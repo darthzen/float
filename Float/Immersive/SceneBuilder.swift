@@ -3,9 +3,11 @@ import RealityKit
 /// Assembles the layered depth scene (§3) from an EnvironmentConfig (§7a).
 /// Every layer is a child of one stationary root at the origin (§9: camera never moves).
 enum SceneBuilder {
+    @MainActor
     static func build(config: EnvironmentConfig, clock: AnimationClock) -> Entity {
         let root = Entity()
         root.name = "UniverseRoot"
+        root.components.set(ClockComponent(clock: clock))  // §5 shared clock handle for ECS systems
 
         let gen = EnvironmentGenerator(config: config)
 

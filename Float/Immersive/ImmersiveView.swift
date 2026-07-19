@@ -9,8 +9,12 @@ struct ImmersiveView: View {
 
     var body: some View {
         RealityView { content, attachments in
-            // Register ECS systems once.
+            // Register ECS components and systems once.
+            ClockComponent.registerComponent()
+            StarVolumeComponent.registerComponent()
+            StarComponent.registerComponent()
             AnimationClockSystem.registerSystem()
+            StarAnimationSystem.registerSystem()
             AsteroidImpactSystem.registerSystem()
 
             // Build the initial universe from the active config (§7a).
