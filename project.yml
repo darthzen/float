@@ -2,16 +2,18 @@
 # https://github.com/yonaskolb/XcodeGen
 name: Float
 options:
-  bundleIdPrefix: org.theashfords
+  bundleIdPrefix: Ash4d
   deploymentTarget:
-    visionOS: "26.0"          # bump to 27.0 when adopting splat / projective-light APIs
+    visionOS: "27.0"          # 27.0 for native Gaussian-splat / projective-light APIs
   createIntermediateGroups: true
 settings:
   base:
     SWIFT_VERSION: "6.0"
     MARKETING_VERSION: "0.1.0"
     CURRENT_PROJECT_VERSION: "1"
-    DEVELOPMENT_TEAM: ""       # set your Apple Developer Team ID
+    # Signing baked in here so `xcodegen generate` never reverts the Xcode UI values.
+    DEVELOPMENT_TEAM: "5YR793D4UZ"   # Rick Ashford
+    CODE_SIGN_STYLE: Automatic
 targets:
   Float:
     type: application
@@ -24,7 +26,7 @@ targets:
           - "Resources/Textures/CREDITS.md"   # asset credits doc
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.theashfords.Float
+        PRODUCT_BUNDLE_IDENTIFIER: Ash4d.Float
         INFOPLIST_FILE: Float/Resources/Info.plist
         CODE_SIGN_ENTITLEMENTS: Float/Resources/Float.entitlements
         GENERATE_INFOPLIST_FILE: NO
