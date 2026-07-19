@@ -1,0 +1,155 @@
+What claude model are you running?
+
+---
+
+How do I switch models in xcode?
+
+---
+
+Read through the project to get context and define next steps
+
+---
+
+Do you understand the instructions to orchestrate passing the actual coding to ollama?
+
+---
+
+Is the planning involved in orchestrating something that can be done accurately with sonnet, or should opus be used?
+
+---
+
+Let's go, then.
+
+---
+
+Build failed
+
+---
+
+It's going to take a whie to copy the os library symbols from the headset. If we assume that it passes the test for now, what's the next task?
+
+---
+
+Yes.
+
+---
+
+Let's debug why I can't run the app on my vision pro
+
+---
+
+Developer mode is on and it's connected via usb-c. I've already clicked to trust the computer.
+
+---
+
+Unable to Install “Float”
+Domain: IXUserPresentableErrorDomain
+Code: 1
+Failure Reason: Please try again later.
+Recovery Suggestion: Bundle at path /var/installd/Library/Caches/com.apple.mobile.installd.staging/temp.OSUmXO/extracted/Float.app has missing or invalid CFBundleExecutable in its Info.plist
+User Info: {
+    DVTErrorCreationDateKey = "2026-07-19 17:27:45 +0000";
+    IDERunOperationFailingWorker = IDEInstallCoreDeviceWorker;
+    NSURL = "file:///Users/rashford/Library/Developer/Xcode/DerivedData/Float-axciabsfzbdsqcbfzhlrpsmbocqx/Build/Products/Debug-xros/Float.app";
+}
+--
+Bundle at path /var/installd/Library/Caches/com.apple.mobile.installd.staging/temp.OSUmXO/extracted/Float.app has missing or invalid CFBundleExecutable in its Info.plist
+Domain: MIInstallerErrorDomain
+Code: 11
+User Info: {
+    FunctionName = "-[MIExecutableBundle _validateWithError:]";
+    LegacyErrorString = MissingBundleExecutable;
+    SourceFileLine = 124;
+}
+--
+
+Event Metadata: com.apple.dt.IDERunOperationWorkerFinished : {
+    "device_identifier" = "00008142-001860D20C09401C";
+    "device_isCoreDevice" = 1;
+    "device_model" = "RealityDevice17,1";
+    "device_osBuild" = "27.0 (24M5316k)";
+    "device_osBuild_monotonic" = 24012316005000011;
+    "device_os_variant" = 1;
+    "device_platform" = "com.apple.platform.xros";
+    "device_platform_family" = 5;
+    "device_reality" = 1;
+    "device_thinningType" = "RealityDevice17,1";
+    "device_transport" = 1;
+    "launchSession_schemeCommand" = Run;
+    "launchSession_schemeCommand_enum" = 1;
+    "launchSession_targetArch" = arm64;
+    "launchSession_targetArch_enum" = 6;
+    "operation_duration_ms" = 326;
+    "operation_errorCode" = 1;
+    "operation_errorDomain" = IXUserPresentableErrorDomain;
+    "operation_errorWorker" = IDEInstallCoreDeviceWorker;
+    "operation_error_reportable" = 1;
+    "operation_name" = IDERunOperationWorkerGroup;
+    "param_consoleMode" = 1;
+    "param_debugger_attachToExtensions" = 0;
+    "param_debugger_attachToXPC" = 1;
+    "param_debugger_type" = 3;
+    "param_destination_isProxy" = 0;
+    "param_destination_platform" = "com.apple.platform.xros";
+    "param_diag_MTE_enable" = 0;
+    "param_diag_MainThreadChecker_stopOnIssue" = 0;
+    "param_diag_MallocStackLogging_enableDuringAttach" = 0;
+    "param_diag_MallocStackLogging_enableForXPC" = 1;
+    "param_diag_allowLocationSimulation" = 1;
+    "param_diag_checker_mtc_enable" = 1;
+    "param_diag_checker_tpc_enable" = 1;
+    "param_diag_gpu_frameCapture_enable" = 0;
+    "param_diag_gpu_shaderValidation_enable" = 0;
+    "param_diag_gpu_validation_enable" = 0;
+    "param_diag_guardMalloc_enable" = 0;
+    "param_diag_memoryGraphOnResourceException" = 0;
+    "param_diag_queueDebugging_enable" = 0;
+    "param_diag_runtimeProfile_generate" = 0;
+    "param_diag_sanitizer_asan_enable" = 0;
+    "param_diag_sanitizer_mtasan_enable" = 0;
+    "param_diag_sanitizer_tsan_enable" = 0;
+    "param_diag_sanitizer_tsan_stopOnIssue" = 0;
+    "param_diag_sanitizer_ubsan_enable" = 0;
+    "param_diag_sanitizer_ubsan_stopOnIssue" = 0;
+    "param_diag_showNonLocalizedStrings" = 0;
+    "param_diag_viewDebugging_enabled" = 1;
+    "param_diag_viewDebugging_insertDylibOnLaunch" = 1;
+    "param_install_style" = 2;
+    "param_launcher_UID" = 2;
+    "param_launcher_allowDeviceSensorReplayData" = 0;
+    "param_launcher_kind" = 0;
+    "param_launcher_style" = 99;
+    "param_launcher_substyle" = 0;
+    "param_lldbVersion_component_idx_1" = 0;
+    "param_lldbVersion_monotonic" = 210300250001;
+    "param_runnable_appExtensionHostRunMode" = 0;
+    "param_runnable_productType" = "com.apple.product-type.application";
+    "param_testing_launchedForTesting" = 0;
+    "param_testing_suppressSimulatorApp" = 0;
+    "param_testing_usingCLI" = 0;
+    "sdk_canonicalName" = "xros27.0";
+    "sdk_osVersion" = "27.0";
+    "sdk_platformID" = 11;
+    "sdk_variant" = xros;
+    "sdk_version_monotonic" = 24012306005000007;
+}
+--
+
+
+System Information
+
+macOS Version 27.0 (Build 26A5378j)
+Xcode 27.0 (25183.45.9) (Build 27A5209h)
+Timestamp: 2026-07-19T12:27:45-05:00
+
+---
+
+It runs now. It puts me into a blank immersive environment with a prompt to enter, but clicking the prompt doesn't seem to do anything
+
+---
+
+It works and the parallax looks good.
+
+---
+
+Before we do that, do we have checkpoints in entire.io?

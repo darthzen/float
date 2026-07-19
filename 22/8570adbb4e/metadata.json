@@ -3,7 +3,7 @@
   "checkpoint_id": "228570adbb4e",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 3,
+  "checkpoints_count": 18,
   "files_touched": [
     "Float/Animation/AnimationClock.swift",
     "Float/Immersive/ImmersiveView.swift",
@@ -18,13 +18,20 @@
       "compact_transcript": "/22/8570adbb4e/0/transcript.jsonl",
       "content_hash": "/22/8570adbb4e/0/content_hash.txt",
       "prompt": "/22/8570adbb4e/0/prompt.txt"
+    },
+    {
+      "metadata": "/22/8570adbb4e/1/metadata.json",
+      "transcript": "/22/8570adbb4e/1/full.jsonl",
+      "compact_transcript": "/22/8570adbb4e/1/transcript.jsonl",
+      "content_hash": "/22/8570adbb4e/1/content_hash.txt",
+      "prompt": "/22/8570adbb4e/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 88,
-    "cache_creation_tokens": 87849,
-    "cache_read_tokens": 2921163,
-    "output_tokens": 20257,
-    "api_call_count": 47
+    "input_tokens": 283,
+    "cache_creation_tokens": 231199,
+    "cache_read_tokens": 11496229,
+    "output_tokens": 75109,
+    "api_call_count": 148
   }
 }
