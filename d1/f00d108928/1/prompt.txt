@@ -1,0 +1,53 @@
+There is definitely flicker, and if the comets are too close, they look like they're just straight lines.
+
+---
+
+The flicker I mentioned was stuttering on the comet. The stars themselves seemed fine, though I don't recall a noticeable twinkle.
+
+---
+
+The comets are much smoother. The twinkling on the farthest stars seems to be working. The near-field stars look like white dots, though. Not stars.
+
+---
+
+My ollama proxy exporter is showing zero activity. What ollama host are you using?
+
+---
+
+That's the correct host. Are you sure you really orchestrated this out?
+
+---
+
+Or the activity was sufficiently small that it doesn't show of the graph. Let's proceed. All of the near field stars disappeared, so I can't verify what they look like.
+
+---
+
+They are back, though there aren't nearly enough stars overall.
+
+---
+
+This is better. I'd like to try at 10000, but remove the comets. Right now, they're more distracting than anything. Also, I noticed that some of the stars in the back were twinking really fast. There should be a maximum bound to the twinkle that doesn't reach the level of blinking.
+
+---
+
+Looks like it stalled.
+
+---
+
+It actually paused. Never loaded the starfield and then backed out of the app.
+
+---
+
+Let's go with 8000, then, and see what that looks like. We'll need to be able to add nebula and other phenomena next, and maybe that will be the solution for not looking so sparse.
+
+---
+
+It's stalled again.
+
+---
+
+It's back now. I'm still seeing comets. Let's hold off on those until we get the star field more to my liking. To my knowledge, none of the ParticleNebula code is wired up and rendering. I certainly don't see anything.
+
+---
+
+cometCount may be set to zero, but I'm still seeing them. I did a clean before I ran it. Enable the nebula on this next run so I can see where we're starting, and also verify that I'm getting a new build.
