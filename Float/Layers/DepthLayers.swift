@@ -209,14 +209,14 @@ enum ParticleNebula: NebulaBackendRenderer {
                 cRight = normalize(cRight)
                 let clusterFace = simd_quatf(simd_float3x3(columns: (cRight, cross(cForward, cRight), cForward)))
 
-                let count = 10 + Int(rng.unit() * 6)           // 10..15 planes per cluster
+                let count = 22 + Int(rng.unit() * 12)          // 22..33 small planes per cluster
                 for _ in 0..<count {
                     let spread = depth * (0.08 + 0.14 * rng.unit())
                     let ox = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)  // soft gaussian-ish
                     let oy = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)
                     let oz = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)
 
-                    let planeSize = depth * (0.10 + 0.20 * rng.unit())   // smaller than v1
+                    let planeSize = depth * (0.04 + 0.08 * rng.unit())   // small: dodges the vOS26 large-transparent depth break
                     let alpha = 0.04 + rng.unit() * 0.07                 // low; overlaps build density
                     let sprite = sprites[Int(rng.unit() * Float(sprites.count)) % sprites.count]
 
@@ -315,12 +315,7 @@ enum ParticleNebula: NebulaBackendRenderer {
     @MainActor
     private static func makeMaterial(_ color: UIColor, _ alpha: Float, _ sprite: TextureResource) -> UnlitMaterial {
         var m = UnlitMaterial()
-        // Full-alpha tint; the sprite's alpha channel shapes the wisp.
         m.color = .init(tint: color, texture: .init(sprite))
-        // Per-plane opacity < 1 forces the TRANSPARENT draw pass, so planes don't write
-        // depth and can't occlude the clouds behind them — opacity == 1.0 was being
-        // treated as opaque (depth-writing), which cut hard-edged notches into clouds.
-        // Never set opacityThreshold either — it triggers dithered alpha-masking.
         m.blending = .transparent(opacity: .init(floatLiteral: alpha))
         return m
     }
