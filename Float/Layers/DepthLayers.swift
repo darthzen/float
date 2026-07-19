@@ -5,8 +5,11 @@ import simd
 enum FarBackdrop {
     static func make(gen: EnvironmentGenerator) -> Entity {
         let e = Entity(); e.name = "L1_Backdrop"
-        // TODO: giant inward sphere (radius ~1000 m), UnlitMaterial with equirect/cubemap
-        //       texture; scale.z = -1 to face inward; ASTC-compressed asset (§4).
+        let sphere = ModelEntity(mesh: .generateSphere(radius: 1000), materials: [UnlitMaterial(color: .init(white: 0.03, alpha: 1.0))])
+        sphere.scale = SIMD3<Float>(1, 1, -1)   // face inward
+        sphere.name = "L1_Backdrop_Sphere"
+        e.addChild(sphere)
+        // TODO: replace placeholder color with equirectangular texture (§4)
         return e
     }
 }
