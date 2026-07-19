@@ -135,3 +135,7 @@ It's still there. Commit and push what you have. I've swapped xcode to the simul
 <status>completed</status>
 <summary>Background command "Build with smaller/more planes and capture" completed (exit code 0)</summary>
 </task-notification>
+
+---
+
+Commit now and I'll test. We can adjust later if needed.
