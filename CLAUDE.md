@@ -23,20 +23,6 @@ A single-user, fully-immersive "floating alone in deep space" experience for App
 - Deployment target is 26.0 in `project.yml` for SDK stability; move to 27 when adopting Gaussian-splat / projective-light APIs.
 - The scaffold is stubs — expect to fix signatures against the live SDK. It has not been compiled.
 
-## Repo layout
-```
-Float/
-  App/           entry (FloatApp), state (AppModel), launcher
-  Immersive/     RealityView host (ImmersiveView), scene assembly (SceneBuilder)
-  Environment/   EnvironmentConfig, deterministic EnvironmentGenerator, SeededRandom
-  Animation/     AnimationClock + ECS system
-  Layers/        L1 backdrop, L2 nebula (swappable backend), L3 star volume, L4 phenomena
-  Bodies/        planet + two-tier rings + star, asteroid field, impact system
-  Interaction/   double-pinch detector, control panel, flick
-  Persistence/   SavedLocation model + store
-  Resources/     Info.plist, Float.entitlements
-```
-
 ## Coding conventions
 - Swift 6, `@MainActor` for app/UI state and anything touching RealityKit main-thread APIs.
 - Keep TODO markers keyed to spec sections (e.g. `// §7d …`) so intent travels with the code.
