@@ -1,0 +1,13 @@
+Check the entire.io dashboard and see if it's appearing now.
+
+---
+
+Check it all. Also, we should check to see if there's a way to integrate it into the xcode claude if it's necessary.
+
+---
+
+Yes. Create the mirror.
+
+---
+
+Record it and make sure it's part of standard procedure for enabling entire in the future
