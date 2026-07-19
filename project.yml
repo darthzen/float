@@ -1,0 +1,29 @@
+# XcodeGen spec — run `xcodegen generate` to produce Float.xcodeproj
+# https://github.com/yonaskolb/XcodeGen
+name: Float
+options:
+  bundleIdPrefix: org.theashfords
+  deploymentTarget:
+    visionOS: "26.0"          # bump to 27.0 when adopting splat / projective-light APIs
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MARKETING_VERSION: "0.1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""       # set your Apple Developer Team ID
+targets:
+  Float:
+    type: application
+    platform: visionOS
+    sources:
+      - path: Float
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.theashfords.Float
+        INFOPLIST_FILE: Float/Resources/Info.plist
+        CODE_SIGN_ENTITLEMENTS: Float/Resources/Float.entitlements
+        GENERATE_INFOPLIST_FILE: NO
+        TARGETED_DEVICE_FAMILY: "7"   # 7 = visionOS
+        SWIFT_EMIT_LOC_STRINGS: YES
+        ENABLE_PREVIEWS: YES
