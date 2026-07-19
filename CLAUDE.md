@@ -17,6 +17,7 @@ A single-user, fully-immersive "floating alone in deep space" experience for App
 - Never claim entire.io is enabled; only verify it.
 - This repo syncs to `darthzen` (Rick's own account): keep `.entire/settings.json` and agent hook files committed; let the `entire/checkpoints/v1` branch push normally.
 - Never hardcode Rick's PAT. Use the Mac's existing `gh` auth.
+- **Mirror registration is a required enable step (not optional).** Enabling + pushing + capturing sessions does NOT put a repo on the entire.io dashboard — only registering it as a cloud mirror does. Whenever enabling entire on a repo, after `entire enable` + `entire agent add claude-code`, run `entire repo mirror create github.com/darthzen/<repo>` and confirm `entire repo mirror list --show-available` shows it as `mirrored` (not `available`). If a repo is ever missing from the dashboard, check this first — it is the usual cause, not transcript/session issues.
 
 ## Build / run
 - Generate the Xcode project: `xcodegen generate` (needs `brew install xcodegen`). Or create a fresh visionOS App target and add `Float/` sources + `Resources/` keys.
