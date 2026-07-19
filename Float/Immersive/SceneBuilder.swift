@@ -5,6 +5,7 @@ import RealityKit
 enum SceneBuilder {
     @MainActor
     static func build(config: EnvironmentConfig, clock: AnimationClock) -> Entity {
+        print("[Float] SceneBuilder.build — nebula:\(config.nebulaBackend) comets:\(PhenomenaSpawner.cometCount) meteors:\(PhenomenaSpawner.meteorCount)")
         let root = Entity()
         root.name = "UniverseRoot"
         root.components.set(ClockComponent(clock: clock))  // §5 shared clock handle for ECS systems

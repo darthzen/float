@@ -27,7 +27,6 @@ struct StarComponent: Component {
 
 struct StarAnimationSystem: System {
     static let clockQuery  = EntityQuery(where: .has(ClockComponent.self))
-    static let starQuery   = EntityQuery(where: .has(StarComponent.self))
     static let volumeQuery = EntityQuery(where: .has(StarVolumeComponent.self))
 
     init(scene: Scene) {}
@@ -43,13 +42,8 @@ struct StarAnimationSystem: System {
                 }
             }
 
-            // Per-star brightness twinkle — pure function of (phase, simTime).
-            for entity in context.entities(matching: Self.starQuery, updatingSystemWhen: .rendering) {
-                if let comp = entity.components[StarComponent.self] {
-                    let twinkle = 1.0 + 0.15 * sin(Float(simTime) * 0.8 + comp.phase)
-                    entity.scale = SIMD3<Float>(repeating: comp.baseScale * twinkle)
-                }
-            }
+            // NOTE: per-star scale twinkle removed — 3000 component writes/frame caused
+            // CPU hitches visible as motion stutter. Revisit with a shader param in M9.
 
             // Slow global yaw of the L3 star volume (~0.3°/sec, pure function of simTime).
             for entity in context.entities(matching: Self.volumeQuery, updatingSystemWhen: .rendering) {
@@ -68,10 +62,29 @@ enum StarVolume {
         e.components.set(StarVolumeComponent())
         var rng = gen.starStream()
 
-        let starCount = 3000
+        let starCount = 7000
         let minRadius: Float = 2.0
         let maxRadius: Float = 200.0
-        let mesh = MeshResource.generateSphere(radius: 0.01)
+        let coreMesh = MeshResource.generateSphere(radius: 0.009)
+        let haloMesh = MeshResource.generateSphere(radius: 0.012)
+
+        // All core materials use alpha:1.0 — reduced alpha on sub-pixel geometry causes
+        // dithering artifacts at 90Hz that look like rapid blinking. Dim via RGB instead.
+        let starMaterials: [UnlitMaterial] = [
+            UnlitMaterial(color: UIColor(red: 0.80, green: 0.90, blue: 1.00, alpha: 1.0)),  // bright blue-white
+            UnlitMaterial(color: UIColor(red: 0.44, green: 0.50, blue: 0.55, alpha: 1.0)),  // dim blue-white
+            UnlitMaterial(color: UIColor(red: 0.24, green: 0.28, blue: 0.32, alpha: 1.0)),  // very dim blue-white
+            UnlitMaterial(color: UIColor(white: 1.00, alpha: 1.0)),                         // bright white
+            UnlitMaterial(color: UIColor(white: 0.55, alpha: 1.0)),                         // dim white
+            UnlitMaterial(color: UIColor(red: 1.00, green: 0.95, blue: 0.75, alpha: 1.0)),  // warm white
+            UnlitMaterial(color: UIColor(red: 0.70, green: 0.60, blue: 0.39, alpha: 1.0)),  // dim yellow-white
+            UnlitMaterial(color: UIColor(red: 0.90, green: 0.63, blue: 0.36, alpha: 1.0))   // orange
+        ]
+
+        let haloMaterials: [UnlitMaterial] = [
+            UnlitMaterial(color: UIColor(red: 0.80, green: 0.90, blue: 1.00, alpha: 0.20)),  // blue glow
+            UnlitMaterial(color: UIColor(white: 1.00, alpha: 0.16))                          // white glow
+        ]
 
         for _ in 0..<starCount {
             // sqrt falloff: denser in the near range where stereo disparity matters most
@@ -85,12 +98,22 @@ enum StarVolume {
             let z = radius * cos(elevation) * sin(azimuth)
 
             let distFraction = (radius - minRadius) / (maxRadius - minRadius)
-            let scale = max(0.1, 1.0 - 0.8 * distFraction)
+            let coreScale: Float = 0.40 + distFraction * 0.40   // near=0.40, far=0.80
 
-            let star = ModelEntity(mesh: mesh, materials: [UnlitMaterial()])
+            let matIndex = Int(rng.unit() * 8.0) % 8
+            let star = ModelEntity(mesh: coreMesh, materials: [starMaterials[matIndex]])
             star.position = SIMD3<Float>(x, y, z)
-            star.scale = SIMD3<Float>(repeating: scale)
-            star.components.set(StarComponent(phase: rng.unit() * 2 * Float.pi, baseScale: scale))
+            star.scale = SIMD3<Float>(repeating: coreScale)
+            star.components.set(StarComponent(phase: rng.unit() * 2 * Float.pi, baseScale: coreScale))
+
+            // §M2 near-field halo: glow sphere makes close stars read as light sources, not geometry
+            if radius < 15.0 {
+                let haloMatIndex = matIndex < 4 ? 0 : 1
+                let halo = ModelEntity(mesh: haloMesh, materials: [haloMaterials[haloMatIndex]])
+                halo.scale = SIMD3<Float>(repeating: coreScale * 2.0)
+                star.addChild(halo)
+            }
+
             e.addChild(star)
         }
 
@@ -223,7 +246,7 @@ struct PhenomenaSystem: System {
         let seed = Float(index * 7 + lap * 13 + 1)
         let azimuth = seed * 2.39996         // golden angle gives good sky coverage
         let elevation = sin(seed * 1.618) * 0.5
-        let r: Float = 70 + sin(seed * 3.7) * 30   // 40–100 m from origin
+        let r: Float = 100 + sin(seed * 3.7) * 30   // 70–130 m from origin — far enough that box geometry isn't obvious
         let cosEl = cos(elevation)
         let startPos = SIMD3<Float>(r * cosEl * cos(azimuth),
                                     r * sin(elevation),
@@ -249,8 +272,8 @@ struct PhenomenaSystem: System {
 }
 
 enum PhenomenaSpawner {
-    // 3 comets + 5 meteors; pre-allocated, no runtime alloc after setup (§10 no hitches).
-    static let cometCount = 3
+    // 0 comets (removed — too distracting at M2) + 5 meteors.
+    static let cometCount = 0
     static let meteorCount = 5
 
     @MainActor

@@ -7,7 +7,7 @@ struct EnvironmentConfig: Codable, Equatable {
 
     // Nebula (L2)
     enum NebulaBackend: String, Codable { case splat, particles }
-    var nebulaBackend: NebulaBackend = .splat
+    var nebulaBackend: NebulaBackend = .particles
     var nebulaPalette: Int = 0
     var nebulaDensity: Float = 0.6
 
