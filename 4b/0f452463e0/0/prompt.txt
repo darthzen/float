@@ -299,3 +299,7 @@ Still jittery. clouds themselves look worse. Two screenshots for you in Download
 ---
 
 You were right. Still jittery.
+
+---
+
+It's fine to commit as is. I just didn't want to lose the work.
