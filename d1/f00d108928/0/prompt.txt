@@ -1,0 +1,17 @@
+Close them out.
+
+---
+
+Verify and close them if the requirements are met.
+
+---
+
+I verified them already. They can be closed. The dashboard in entire is showing 0 commits and 0 checkpoints.
+
+---
+
+The dashboard is showing no analytic data in the last seven days.
+
+---
+
+We'll recheck once I hit a stopping point.
