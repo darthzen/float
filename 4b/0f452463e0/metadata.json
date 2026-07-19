@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "4b0f452463e0",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 17,
+  "files_touched": [
+    "Float/Environment/EnvironmentConfig.swift",
+    "Float/Layers/DepthLayers.swift",
+    "docs/apple-feedback-splat-jitter.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/4b/0f452463e0/0/metadata.json",
+      "transcript": "/4b/0f452463e0/0/full.jsonl",
+      "compact_transcript": "/4b/0f452463e0/0/transcript.jsonl",
+      "content_hash": "/4b/0f452463e0/0/content_hash.txt",
+      "prompt": "/4b/0f452463e0/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1691,
+    "cache_creation_tokens": 690231,
+    "cache_read_tokens": 110934872,
+    "output_tokens": 477561,
+    "api_call_count": 316
+  }
+}
