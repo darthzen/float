@@ -1,0 +1,9 @@
+This repo is not showing on my entire.io dashboard.
+
+---
+
+It has access to all repos in its permissions. The entire.io dashboard is already open in chrome. Go ahead and drive
+
+---
+
+I swapped to float only and then back to all. Recheck it.

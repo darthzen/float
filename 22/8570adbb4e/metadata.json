@@ -1,0 +1,30 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "228570adbb4e",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "Float/Animation/AnimationClock.swift",
+    "Float/Immersive/ImmersiveView.swift",
+    "Float/Immersive/SceneBuilder.swift",
+    "Float/Layers/DepthLayers.swift",
+    "Float/Resources/Info.plist"
+  ],
+  "sessions": [
+    {
+      "metadata": "/22/8570adbb4e/0/metadata.json",
+      "transcript": "/22/8570adbb4e/0/full.jsonl",
+      "compact_transcript": "/22/8570adbb4e/0/transcript.jsonl",
+      "content_hash": "/22/8570adbb4e/0/content_hash.txt",
+      "prompt": "/22/8570adbb4e/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 88,
+    "cache_creation_tokens": 87849,
+    "cache_read_tokens": 2921163,
+    "output_tokens": 20257,
+    "api_call_count": 47
+  }
+}
