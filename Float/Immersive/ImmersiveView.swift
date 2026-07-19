@@ -13,8 +13,10 @@ struct ImmersiveView: View {
             ClockComponent.registerComponent()
             StarVolumeComponent.registerComponent()
             StarComponent.registerComponent()
+            PhenomenonComponent.registerComponent()
             AnimationClockSystem.registerSystem()
             StarAnimationSystem.registerSystem()
+            PhenomenaSystem.registerSystem()
             AsteroidImpactSystem.registerSystem()
 
             // Build the initial universe from the active config (§7a).

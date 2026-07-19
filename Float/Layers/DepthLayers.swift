@@ -172,13 +172,129 @@ enum ParticleNebula: NebulaBackendRenderer {
     }
 }
 
-// L4 — §6. Comet / meteor spawner. Deterministic option is an open decision (§11 #13).
+// L4 — §6. Comet / meteor spawner. Deterministic option is open (§11 #13); free-running for M2.
+struct PhenomenonComponent: Component {
+    enum Kind { case comet, meteor }
+    var kind: Kind
+    var index: Int                  // pool slot, used to vary trajectory on each lap
+    var startPos: SIMD3<Float>
+    var direction: SIMD3<Float>     // normalized travel direction
+    var speed: Float                // m per simTime-second
+    var startSimTime: Double
+    var lap: Int = 0                // increments on each respawn for trajectory variation
+}
+
+struct PhenomenaSystem: System {
+    static let clockQuery = EntityQuery(where: .has(ClockComponent.self))
+    static let phenQuery  = EntityQuery(where: .has(PhenomenonComponent.self))
+    // Phenomena travel 160 m per lap before respawning.
+    static let travelDistance: Float = 160
+
+    init(scene: Scene) {}
+
+    func update(context: SceneUpdateContext) {
+        MainActor.assumeIsolated {
+            var simTime: Double = 0
+            for e in context.entities(matching: Self.clockQuery, updatingSystemWhen: .rendering) {
+                if let c = e.components[ClockComponent.self] { simTime = c.clock.simTime; break }
+            }
+
+            for entity in context.entities(matching: Self.phenQuery, updatingSystemWhen: .rendering) {
+                guard var comp = entity.components[PhenomenonComponent.self] else { continue }
+                let traveled = comp.speed * Float(simTime - comp.startSimTime)
+
+                if traveled >= Self.travelDistance {
+                    comp.lap += 1
+                    comp.startSimTime = simTime
+                    let (pos, dir) = Self.trajectory(index: comp.index, lap: comp.lap)
+                    comp.startPos = pos
+                    comp.direction = dir
+                    Self.orient(entity: entity, direction: dir)
+                    entity.components[PhenomenonComponent.self] = comp
+                } else {
+                    entity.position = comp.startPos + comp.direction * traveled
+                }
+            }
+        }
+    }
+
+    // Deterministic trajectory from (index, lap) using golden-angle distribution.
+    static func trajectory(index: Int, lap: Int) -> (SIMD3<Float>, SIMD3<Float>) {
+        let seed = Float(index * 7 + lap * 13 + 1)
+        let azimuth = seed * 2.39996         // golden angle gives good sky coverage
+        let elevation = sin(seed * 1.618) * 0.5
+        let r: Float = 70 + sin(seed * 3.7) * 30   // 40–100 m from origin
+        let cosEl = cos(elevation)
+        let startPos = SIMD3<Float>(r * cosEl * cos(azimuth),
+                                    r * sin(elevation),
+                                    r * cosEl * sin(azimuth))
+        // Direction roughly tangential to the sphere so streaks cross the sky, not head-on.
+        let radial = normalize(startPos)
+        let worldUp = SIMD3<Float>(0, 1, 0)
+        let tangent = normalize(cross(worldUp, radial))
+        let drift = sin(seed * 0.7) * 0.3
+        let direction = normalize(tangent + SIMD3<Float>(0, drift, 0))
+        return (startPos, direction)
+    }
+
+    // Align entity's local Z axis with direction so the streak points along travel.
+    @MainActor
+    static func orient(entity: Entity, direction: SIMD3<Float>) {
+        let fwd = normalize(direction)
+        let worldUp: SIMD3<Float> = abs(fwd.y) < 0.99 ? SIMD3<Float>(0, 1, 0) : SIMD3<Float>(1, 0, 0)
+        let right = normalize(cross(worldUp, fwd))
+        let up = cross(fwd, right)
+        entity.orientation = simd_quatf(simd_float3x3(columns: (right, up, fwd)))
+    }
+}
+
 enum PhenomenaSpawner {
+    // 3 comets + 5 meteors; pre-allocated, no runtime alloc after setup (§10 no hitches).
+    static let cometCount = 3
+    static let meteorCount = 5
+
     @MainActor
     static func make(gen: EnvironmentGenerator) -> Entity {
         let e = Entity(); e.name = "L4_Phenomena"
-        // TODO: interval spawner scaled by timeScale; particle-trail comets, meteor streaks.
-        //       Keep phenomena mostly beyond ~5 m (§6, comfort).
+        var rng = gen.phenomenaStream()
+
+        // Comet: bright yellow-white head + long tail, slow drift.
+        let cometMesh = MeshResource.generateBox(width: 0.04, height: 0.04, depth: 4.0)
+        var cometMat = UnlitMaterial()
+        cometMat.color = .init(tint: .init(red: 1.0, green: 0.95, blue: 0.7, alpha: 1.0), texture: nil)
+
+        for i in 0..<cometCount {
+            let (pos, dir) = PhenomenaSystem.trajectory(index: i, lap: 0)
+            let comet = ModelEntity(mesh: cometMesh, materials: [cometMat])
+            comet.position = pos
+            comet.components.set(PhenomenonComponent(
+                kind: .comet, index: i, startPos: pos, direction: dir,
+                speed: 4 + rng.unit() * 3,   // 4–7 m/simSec
+                startSimTime: Double(rng.unit() * 20)   // stagger starts
+            ))
+            PhenomenaSystem.orient(entity: comet, direction: dir)
+            e.addChild(comet)
+        }
+
+        // Meteor: short bright blue-white streak, fast.
+        let meteorMesh = MeshResource.generateBox(width: 0.02, height: 0.02, depth: 1.2)
+        var meteorMat = UnlitMaterial()
+        meteorMat.color = .init(tint: .init(red: 0.8, green: 0.9, blue: 1.0, alpha: 1.0), texture: nil)
+
+        for i in 0..<meteorCount {
+            let idx = cometCount + i
+            let (pos, dir) = PhenomenaSystem.trajectory(index: idx, lap: 0)
+            let meteor = ModelEntity(mesh: meteorMesh, materials: [meteorMat])
+            meteor.position = pos
+            meteor.components.set(PhenomenonComponent(
+                kind: .meteor, index: idx, startPos: pos, direction: dir,
+                speed: 18 + rng.unit() * 12,  // 18–30 m/simSec
+                startSimTime: Double(rng.unit() * 10)   // stagger starts
+            ))
+            PhenomenaSystem.orient(entity: meteor, direction: dir)
+            e.addChild(meteor)
+        }
+
         return e
     }
 }
