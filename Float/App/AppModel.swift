@@ -24,12 +24,30 @@ final class AppModel {
     /// the root under it (§7b). Set by ImmersiveView once the scene builds.
     var sceneContainer: Entity?
 
-    /// Regenerate the environment. LIGHT in-place swap: full-scene rebuilds (~6k star
-    /// entities) crashed the device render server, so keep the star field and only
-    /// re-orient the backdrop + rebuild the (few-hundred-entity) nebula. Deterministic:
-    /// the seed advances from the current one, so a jump chain reproduces (§7e). A proper
-    /// crossfade / the §7b hyperspace streak comes once this is stable.
+    /// The §7b whiteout overlay entity; the jump flashes it to mask the swap. Set by ImmersiveView.
+    var whiteout: Entity?
+
+    /// Jump to a fresh environment (§7b): flash the whiteout, and swap under the peak of the
+    /// flash so the change is masked. A stepping stone to the full streak sequence.
     func newEnvironment() {
+        guard let whiteout, sceneContainer != nil else { return }
+        // Don't retrigger while a flash is already running.
+        if whiteout.components[WhiteoutComponent.self]?.active == true { return }
+        var c = whiteout.components[WhiteoutComponent.self] ?? WhiteoutComponent()
+        c.active = true; c.elapsed = 0
+        whiteout.components.set(c)
+
+        // Swap at peak white (single-await Task — the reliable pattern). ~fadeIn + a bit.
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(0.30))
+            applyNewEnvironment()
+        }
+    }
+
+    /// LIGHT in-place swap: full-scene rebuilds (~6k star entities) crashed the device render
+    /// server, so keep the star field and only re-orient the backdrop + rebuild the
+    /// (few-hundred-entity) nebula. Deterministic seed chain reproduces (§7e).
+    private func applyNewEnvironment() {
         guard let container = sceneContainer,
               let root = container.children.first(where: { $0.name == "UniverseRoot" }) else { return }
         let nextSeed = currentConfig.seed &* 2862933555777941757 &+ 3037000493

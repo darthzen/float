@@ -14,10 +14,12 @@ struct ImmersiveView: View {
             StarVolumeComponent.registerComponent()
             StarComponent.registerComponent()
             PhenomenonComponent.registerComponent()
+            WhiteoutComponent.registerComponent()
             AnimationClockSystem.registerSystem()
             StarAnimationSystem.registerSystem()
             PhenomenaSystem.registerSystem()
             AsteroidImpactSystem.registerSystem()
+            WhiteoutSystem.registerSystem()
 
             // Persistent container holds the universe root; environment swaps (§7b) add a
             // new "UniverseRoot" and crossfade out the old one, all under this container.
@@ -26,6 +28,11 @@ struct ImmersiveView: View {
             container.addChild(SceneBuilder.build(config: model.currentConfig, clock: model.clock))
             content.add(container)
             model.sceneContainer = container
+
+            // §7b whiteout overlay — a persistent inward white sphere (alpha 0) the jump flashes.
+            let whiteout = WhiteoutSystem.makeEntity()
+            container.addChild(whiteout)
+            model.whiteout = whiteout
 
             // Attach the (hidden) control panel to the container so it survives swaps;
             // revealed by the two-hand pinch-spread gesture (§7, float-reveal-gesture).
