@@ -7,6 +7,10 @@ struct EnvironmentConfig: Codable, Equatable {
 
     // Nebula (L2)
     enum NebulaBackend: String, Codable { case splat, particles }
+    // Splats jitter (reprojection shift+bounce) as a full-surround volume on the vOS27
+    // beta — ruled out distance, projection mode, splat size, and sort order. Shipping
+    // particles until Apple fixes surround-splat reprojection (FB filed). SplatNebula
+    // stays implemented behind the protocol for when it does (§10).
     var nebulaBackend: NebulaBackend = .particles
     var nebulaPalette: Int = 0
     var nebulaDensity: Float = 0.6

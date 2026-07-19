@@ -1,6 +1,7 @@
 import RealityKit
 import UIKit
 import simd
+import Metal   // MTLAttributeFormat for GaussianSplatResource buffer descriptors (§10)
 
 // L1 — §4. Inward sphere, unlit hi-res equirectangular. Effectively at infinity.
 enum FarBackdrop {
@@ -150,14 +151,162 @@ enum NebulaVolume {
     }
 }
 
+// Procedurally-generated Gaussian-splat data for the nebula. Pure math, deterministic
+// from the seed — no RealityKit/Metal — so it compiles everywhere (device + sim).
+struct NebulaSplatData {
+    var positions: [SIMD3<Float>]   // meters, world space around origin
+    var scales:    [SIMD3<Float>]   // per-axis Gaussian std-dev in meters (anisotropic)
+    var rotations: [SIMD4<Float>]   // unit quaternion packed (x, y, z, w)
+    var opacities: [Float]          // 0...1
+    var colors:    [SIMD3<Float>]   // linear RGB 0...1
+}
+
 enum SplatNebula: NebulaBackendRenderer {
     @MainActor
     static func make(gen: EnvironmentGenerator) -> Entity {
+        #if targetEnvironment(simulator)
+        // Native Gaussian splats aren't in the visionOS simulator SDK — fall back to
+        // the particle nebula in the sim; real splats render on device (§10).
+        return ParticleNebula.make(gen: gen)
+        #else
         let e = Entity(); e.name = "L2_Nebula_Splat"
-        // TODO: native RealityKit Gaussian splat entity (v27). Animate palette via
-        //       ShaderGraph params keyed off clock.simTime (§5).
+        let data = generateSplatData(gen: gen)
+        guard !data.positions.isEmpty else { return e }
+        do {
+            e.components.set(try makeSplatComponent(data))
+        } catch {
+            print("[Float] L2 splat build failed (\(error)) — falling back to particles")
+            return ParticleNebula.make(gen: gen)
+        }
         return e
+        #endif
     }
+
+    // §7 L2. Distribute anisotropic Gaussians across depth shells, clustered and
+    // palette-colored (sampled from real Webb/Hubble nebulae — see CREDITS.md).
+    @MainActor
+    static func generateSplatData(gen: EnvironmentGenerator) -> NebulaSplatData {
+        var rng = gen.nebulaStream()
+        let pi = Float.pi
+
+        // Far shells: near clouds at 15 m parallaxed way too hard as true 3D splats;
+        // real nebulae are near-infinite, so push them out for gentle parallax (§9 comfort).
+        let depthShells: [Float] = [60, 100, 150, 220, 300, 400]
+        let palette: [SIMD3<Float>] = [
+            SIMD3<Float>(0.08, 0.17, 0.32),
+            SIMD3<Float>(0.22, 0.29, 0.43),
+            SIMD3<Float>(0.16, 0.30, 0.53),
+            SIMD3<Float>(0.52, 0.30, 0.23),
+            SIMD3<Float>(0.69, 0.47, 0.35),
+            SIMD3<Float>(0.20, 0.20, 0.26),
+            SIMD3<Float>(0.37, 0.43, 0.56)
+        ]
+
+        var positions: [SIMD3<Float>] = []
+        var scales: [SIMD3<Float>] = []
+        var rotations: [SIMD4<Float>] = []
+        var opacities: [Float] = []
+        var colors: [SIMD3<Float>] = []
+
+        for depth in depthShells {
+            for _ in 0..<3 {                                   // 3 clusters/shell
+                let azimuth = 2.0 * pi * rng.unit()
+                let elevation = (rng.unit() - 0.5) * 0.9
+                let cx = depth * cos(elevation) * cos(azimuth)
+                let cy = depth * sin(elevation)
+                let cz = depth * cos(elevation) * sin(azimuth)
+                let clusterColor = palette[Int(rng.unit() * Float(palette.count)) % palette.count]
+
+                let count = 150 + Int(rng.unit() * 100)        // 150..250 splats/cluster (~3.5k total; splats are cheap)
+                for _ in 0..<count {
+                    let spread = depth * (0.06 + 0.10 * rng.unit())
+                    let ox = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)
+                    let oy = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)
+                    let oz = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)
+                    positions.append(SIMD3<Float>(cx + ox, cy + oy, cz + oz))
+
+                    let baseSize = depth * (0.003 + 0.006 * rng.unit())   // moderate (size doesn't affect the jitter)
+                    let elongation = 1 + 2 * rng.unit()
+                    let scaleZ = baseSize * (0.6 + 0.4 * rng.unit())
+                    scales.append(SIMD3<Float>(baseSize * elongation, baseSize, scaleZ))
+
+                    // uniform-random unit quaternion (x, y, z, w)
+                    let u1 = rng.unit(), u2 = rng.unit(), u3 = rng.unit()
+                    rotations.append(SIMD4<Float>(
+                        sqrt(1 - u1) * sin(2 * pi * u2),
+                        sqrt(1 - u1) * cos(2 * pi * u2),
+                        sqrt(u1) * sin(2 * pi * u3),
+                        sqrt(u1) * cos(2 * pi * u3)
+                    ))
+
+                    opacities.append(0.06 + 0.14 * rng.unit())
+
+                    let v = 0.8 + 0.4 * rng.unit()
+                    colors.append(SIMD3<Float>(min(1, clusterColor.x * v),
+                                               min(1, clusterColor.y * v),
+                                               min(1, clusterColor.z * v)))
+                }
+            }
+        }
+        return NebulaSplatData(positions: positions, scales: scales,
+                               rotations: rotations, opacities: opacities, colors: colors)
+    }
+
+    #if !targetEnvironment(simulator)
+    // Pack the generated arrays into the native GaussianSplatResource buffer layout (vOS27).
+    @MainActor
+    private static func makeSplatComponent(_ d: NebulaSplatData) throws -> GaussianSplatComponent {
+        let n = d.positions.count
+        // SH degree 0 = one DC coefficient per channel. 3DGS convention: dc = (rgb - 0.5) / C0.
+        let c0: Float = 0.2820948
+        let sh = d.colors.map { ($0 - SIMD3<Float>(repeating: 0.5)) / c0 }
+
+        let stride3 = MemoryLayout<SIMD3<Float>>.stride     // 16 (float3 reads first 12)
+        let stride4 = MemoryLayout<SIMD4<Float>>.stride     // 16
+        let stride1 = MemoryLayout<Float>.stride            // 4
+
+        let br = try GaussianSplatResource.BufferResource(
+            count: n,
+            position: .init(buffer: try buffer(d.positions), format: .float3, stride: stride3, offset: 0),
+            scale:    .init(buffer: try buffer(d.scales),    format: .float3, stride: stride3, offset: 0),
+            rotation: .init(buffer: try buffer(d.rotations), format: .float4, stride: stride4, offset: 0),
+            opacity:  .init(buffer: try buffer(d.opacities), format: .float,  stride: stride1, offset: 0),
+            sphericalHarmonics: (.init(buffer: try buffer(sh), format: .float3, stride: stride3, offset: 0), .zero)
+        )
+        let resource = GaussianSplatResource(br)
+        // We supply real meters + 0...1 opacity directly, not 3DGS log/logit encodings.
+        resource.scaleActivation = .identity
+        resource.opacityActivation = .identity
+        // NOTE: neither of these fixes the full-surround reprojection jitter on the vOS27
+        // beta (ruled out along with distance + splat size — see EnvironmentConfig / the
+        // filed FB). Kept as the most sensible settings for when Apple fixes it: tangential
+        // projection + radial-distance sorting for an all-directions volume.
+        resource.projectionMode = .tangential
+        resource.sortingMode = .distance
+        return GaussianSplatComponent(resource)
+    }
+
+    @MainActor
+    private static func buffer<T>(_ array: [T]) throws -> LowLevelBuffer {
+        let byteCount = array.count * MemoryLayout<T>.stride
+        // LowLevelBuffer capacity must be 16-byte aligned (the float-stride opacity
+        // buffer otherwise fails with invalid(bufferCapacity:)). Extra tail bytes are
+        // harmless — descriptors read `count` elements at explicit stride.
+        let capacity = (byteCount + 15) & ~15
+        let buf = try LowLevelBuffer(descriptor: .init(capacity: capacity))
+        // Claim the full region BEFORE writing, so the mutable-bytes callback exposes
+        // capacity bytes (not the initial bytesUsed == 0) — otherwise the copy below
+        // writes out of bounds and corrupts the heap.
+        buf.bytesUsed = capacity
+        buf.withUnsafeMutableBytes { dst in
+            guard let base = dst.baseAddress, dst.count >= byteCount else { return }
+            array.withUnsafeBytes { src in
+                if let s = src.baseAddress { base.copyMemory(from: s, byteCount: byteCount) }
+            }
+        }
+        return buf
+    }
+    #endif
 }
 
 enum ParticleNebula: NebulaBackendRenderer {
