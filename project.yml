@@ -18,6 +18,10 @@ targets:
     platform: visionOS
     sources:
       - path: Float
+        excludes:
+          - "Resources/Textures/_raw/**"      # huge raw source imagery — never bundle (gitignored too)
+          - "Resources/Textures/**/README.md" # per-folder drop-notes
+          - "Resources/Textures/CREDITS.md"   # asset credits doc
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: org.theashfords.Float

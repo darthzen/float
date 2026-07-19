@@ -17,5 +17,10 @@ Float.xcodeproj/
 __pycache__/
 *.pyc
 
+# Raw source imagery (huge equirect panoramas / nebula stills). Keep out of git;
+# only the processed, compressed shipping assets under Resources/Textures/ are committed.
+Float/Resources/Textures/_raw/
+!Float/Resources/Textures/_raw/README.md
+
 # NOTE: entire / .entire handling is account-specific (darthzen vs. other).
 # Do NOT blanket-ignore .entire here — follow your entire workflow when you git-init locally.
