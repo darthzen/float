@@ -1,0 +1,137 @@
+Just did a commit & push from my xcode session.
+
+---
+
+Okay, I'm switching the work over here from xcode so we can actually capture the data we want. Update your memory from the local files.
+
+---
+
+You'll have to remind me to run the recap.
+
+---
+
+The nebula are more rounded now, but they're just opaque blobs. Not even remotely close to realistic.
+
+---
+
+Will it help if I download some legally acceptable imagery to use as the basis for modeling? Where do you want me to put it?
+
+---
+
+Pull the Deep Star Maps 2020 panorama yourself. Instead of dropping pictures, I'll give you the urls so you can document the metadata you need.
+
+---
+
+https://www.flickr.com/photos/nasawebbtelescope/55168418509/in/photostream/
+
+---
+
+https://www.flickr.com/photos/nasawebbtelescope/55119073511/in/dateposted/
+
+---
+
+https://www.flickr.com/photos/nasawebbtelescope/54809196576/in/dateposted/
+
+---
+
+https://www.flickr.com/photos/nasawebbtelescope/53268962997/in/album-72177720332104396/
+
+---
+
+https://www.flickr.com/photos/nasawebbtelescope/52797109227/in/album-72177720332104396/
+
+---
+
+Find similar quality photos to reference for the other planets in the solar system, including Earth.
+
+---
+
+Some quasar and black hole imagery would be good as well. One potential image here, even if it is an artist's render: https://esahubble.org/images/opo2010a/
+
+---
+
+https://esahubble.org/images/heic0211e/
+
+---
+
+https://esawebb.org/news/weic2216/?lang
+
+---
+
+Alright. I think we've got enough to start processing them.
+
+---
+
+Go ahead and run it.
+
+---
+
+Build fails
+
+---
+
+It was a signing issue. I fixed it. Ran it and it looks very good. It is fairly obvious, though, that you have a static background and some random stars placed in front of it. Let's do the ParticleNebula work and see how that affects things. Don't forget to farm out as much as possible to ollama.
+
+---
+
+We're making progress. Is there a way for me to take a screenshot in the app and send it to you to make debugging easier?
+
+---
+
+Screenshot is ~/Downloads/IMG_0006.PNG
+
+---
+
+There are three more images (7,8,9) in the Downloads folder with new screenshots
+
+---
+
+Three more screenshots for you. We're doing much better, but there are still some weird sharp lines inside some of the nebulae.
+
+---
+
+Screenshots 14-17 are in Downloads. The sharp lines are still there.
+
+---
+
+It's still there. Commit and push what you have. I've swapped xcode to the simulator, so I'm ready when you are.
+
+---
+
+<task-notification>
+<task-id>bcnoa4qa5</task-id>
+<tool-use-id>toolu_01FAjnaVtn9EuxByqs9TaUet</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Developer-Float/1354036a-fae6-4537-8a76-af954c864007/tasks/bcnoa4qa5.output</output-file>
+<status>completed</status>
+<summary>Background command "Rebuild with auto-enter, launch, and capture immersive scene" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>befatj112</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Developer-Float/1354036a-fae6-4537-8a76-af954c864007/tasks/befatj112.output</output-file>
+<status>completed</status>
+<summary>Background command "Rebuild with premultiplied alpha and capture" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bnqbecmhh</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Developer-Float/1354036a-fae6-4537-8a76-af954c864007/tasks/bnqbecmhh.output</output-file>
+<status>completed</status>
+<summary>Background command "Build with tint-alpha&lt;1 recipe and capture" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b3wu30d3s</task-id>
+<tool-use-id>toolu_01QvokMomtVgAM6Cp5EbmicZ</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Developer-Float/1354036a-fae6-4537-8a76-af954c864007/tasks/b3wu30d3s.output</output-file>
+<status>completed</status>
+<summary>Background command "Build with smaller/more planes and capture" completed (exit code 0)</summary>
+</task-notification>

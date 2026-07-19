@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "8eceeb3987bf",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 29,
+  "files_touched": [
+    "Float/Layers/DepthLayers.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/8e/ceeb3987bf/0/metadata.json",
+      "transcript": "/8e/ceeb3987bf/0/full.jsonl",
+      "compact_transcript": "/8e/ceeb3987bf/0/transcript.jsonl",
+      "content_hash": "/8e/ceeb3987bf/0/content_hash.txt",
+      "prompt": "/8e/ceeb3987bf/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1419,
+    "cache_creation_tokens": 363356,
+    "cache_read_tokens": 43413298,
+    "output_tokens": 258985,
+    "api_call_count": 170
+  }
+}
