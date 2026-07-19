@@ -216,7 +216,9 @@ enum ParticleNebula: NebulaBackendRenderer {
                     let oy = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)
                     let oz = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)
 
-                    let planeSize = depth * (0.04 + 0.08 * rng.unit())   // small: dodges the vOS26 large-transparent depth break
+                    // Small AND absolutely capped: the vOS26 large-transparent depth break
+                    // triggers on big quads, so even far-shell planes stay ≤ 6 m.
+                    let planeSize = min(depth * (0.04 + 0.08 * rng.unit()), 6.0)
                     let alpha = 0.04 + rng.unit() * 0.07                 // low; overlaps build density
                     let sprite = sprites[Int(rng.unit() * Float(sprites.count)) % sprites.count]
 
