@@ -5,12 +5,22 @@ import Metal   // MTLAttributeFormat for GaussianSplatResource buffer descriptor
 
 // L1 — §4. Inward sphere, unlit hi-res equirectangular. Effectively at infinity.
 enum FarBackdrop {
-    // Equirect starfield in the app bundle (NASA SVS Deep Star Maps 2020, public
-    // domain — see Resources/Textures/CREDITS.md). ASTC swap is a later step (§4).
-    static let textureName = "deep_star_map_8k"
+    // Base equirect panoramas in the bundle (NASA SVS Deep Star Maps + more — public
+    // domain / CC, see CREDITS.md). config.backdrop picks the base; per-seed rotation +
+    // a subtle color wash vary it further so jumps rarely repeat the same sky (§7a).
+    static let textureNames = ["deep_star_map_8k"]
+
+    // Cache loaded panoramas: TextureResource(named:) does NOT cache, so rebuilding the
+    // scene on every jump reloaded the ~130 MB 8K texture and spiked GPU memory until the
+    // render server died. Load each once, reuse across environment swaps.
+    @MainActor private static var textureCache: [String: TextureResource] = [:]
 
     @MainActor
     static func make(gen: EnvironmentGenerator) -> Entity {
+        var rng = gen.backdropStream()
+        let idx = ((gen.config.backdrop % textureNames.count) + textureNames.count) % textureNames.count
+        let name = textureNames[idx]
+
         let mesh = MeshResource.generateSphere(radius: 1000)
         var material = UnlitMaterial()
         material.color = .init(tint: .init(white: 0.01, alpha: 1.0), texture: nil)  // near-black void until the texture loads
@@ -18,15 +28,33 @@ enum FarBackdrop {
         e.name = "L1_Backdrop"
         e.scale.z = -1  // flip winding so the inside surface renders
 
+        // Per-seed orientation: uniform-random rotation so the Milky Way lands differently.
+        let pi = Float.pi
+        let u1 = rng.unit(), u2 = rng.unit(), u3 = rng.unit()
+        e.orientation = simd_quatf(vector: SIMD4<Float>(
+            sqrt(1 - u1) * sin(2 * pi * u2), sqrt(1 - u1) * cos(2 * pi * u2),
+            sqrt(u1) * sin(2 * pi * u3),     sqrt(u1) * cos(2 * pi * u3)))
+
+        // Subtle per-seed color wash (mostly white, slight cast) — different sky hue per jump.
+        let tint = UIColor(red: CGFloat(0.78 + 0.22 * rng.unit()),
+                           green: CGFloat(0.78 + 0.22 * rng.unit()),
+                           blue: CGFloat(0.78 + 0.22 * rng.unit()), alpha: 1)
+
         // Load the equirect asynchronously and swap it in (keeps make() sync so
         // SceneBuilder stays synchronous; backdrop starts black then fills in).
         Task { @MainActor in
-            guard let tex = try? await TextureResource(named: textureName) else {
-                print("[Float] L1 backdrop texture '\(textureName)' not found — staying void")
+            let tex: TextureResource
+            if let cached = textureCache[name] {
+                tex = cached
+            } else if let loaded = try? await TextureResource(named: name) {
+                textureCache[name] = loaded
+                tex = loaded
+            } else {
+                print("[Float] L1 backdrop texture '\(name)' not found — staying void")
                 return
             }
             var lit = UnlitMaterial()
-            lit.color = .init(tint: .white, texture: .init(tex))  // show equirect at full value
+            lit.color = .init(tint: tint, texture: .init(tex))
             e.model?.materials = [lit]
         }
         return e
@@ -151,6 +179,29 @@ enum NebulaVolume {
     }
 }
 
+// §7a — distinct nebula palettes; config.nebulaPalette picks one per environment so each
+// jump lands in a differently-colored nebula. Linear RGB, evoking real nebula types.
+enum NebulaPalettes {
+    static let sets: [[SIMD3<Float>]] = [
+        // 0 — blue reflection + dusty rust (Pleiades / Carina-like)
+        [[0.08, 0.17, 0.32], [0.22, 0.29, 0.43], [0.16, 0.30, 0.53], [0.52, 0.30, 0.23], [0.69, 0.47, 0.35], [0.20, 0.20, 0.26], [0.37, 0.43, 0.56]],
+        // 1 — red emission / H-alpha (Eagle / Lagoon-like)
+        [[0.55, 0.14, 0.18], [0.72, 0.24, 0.28], [0.60, 0.20, 0.30], [0.45, 0.16, 0.22], [0.80, 0.42, 0.35], [0.30, 0.12, 0.16], [0.66, 0.30, 0.28]],
+        // 2 — teal / planetary (OIII, Helix-like)
+        [[0.10, 0.42, 0.44], [0.16, 0.55, 0.52], [0.20, 0.45, 0.60], [0.30, 0.62, 0.55], [0.12, 0.35, 0.50], [0.40, 0.66, 0.60], [0.08, 0.30, 0.40]],
+        // 3 — violet / magenta (Trifid-like)
+        [[0.38, 0.18, 0.48], [0.50, 0.24, 0.55], [0.55, 0.20, 0.40], [0.30, 0.16, 0.45], [0.62, 0.34, 0.58], [0.22, 0.14, 0.36], [0.48, 0.26, 0.50]],
+        // 4 — gold / amber dust (dusty star nursery)
+        [[0.55, 0.40, 0.20], [0.70, 0.52, 0.28], [0.62, 0.44, 0.24], [0.45, 0.32, 0.18], [0.78, 0.60, 0.36], [0.36, 0.26, 0.16], [0.68, 0.48, 0.26]],
+        // 5 — cool cyan-white (faint reflection)
+        [[0.30, 0.42, 0.52], [0.42, 0.54, 0.64], [0.24, 0.36, 0.48], [0.50, 0.60, 0.68], [0.34, 0.46, 0.56], [0.20, 0.30, 0.42], [0.46, 0.56, 0.66]],
+    ]
+
+    static func palette(_ index: Int) -> [SIMD3<Float>] {
+        sets[((index % sets.count) + sets.count) % sets.count]
+    }
+}
+
 // Procedurally-generated Gaussian-splat data for the nebula. Pure math, deterministic
 // from the seed — no RealityKit/Metal — so it compiles everywhere (device + sim).
 struct NebulaSplatData {
@@ -192,15 +243,7 @@ enum SplatNebula: NebulaBackendRenderer {
         // Far shells: near clouds at 15 m parallaxed way too hard as true 3D splats;
         // real nebulae are near-infinite, so push them out for gentle parallax (§9 comfort).
         let depthShells: [Float] = [60, 100, 150, 220, 300, 400]
-        let palette: [SIMD3<Float>] = [
-            SIMD3<Float>(0.08, 0.17, 0.32),
-            SIMD3<Float>(0.22, 0.29, 0.43),
-            SIMD3<Float>(0.16, 0.30, 0.53),
-            SIMD3<Float>(0.52, 0.30, 0.23),
-            SIMD3<Float>(0.69, 0.47, 0.35),
-            SIMD3<Float>(0.20, 0.20, 0.26),
-            SIMD3<Float>(0.37, 0.43, 0.56)
-        ]
+        let palette = NebulaPalettes.palette(gen.config.nebulaPalette)   // §7a per-environment color
 
         var positions: [SIMD3<Float>] = []
         var scales: [SIMD3<Float>] = []
@@ -217,7 +260,7 @@ enum SplatNebula: NebulaBackendRenderer {
                 let cz = depth * cos(elevation) * sin(azimuth)
                 let clusterColor = palette[Int(rng.unit() * Float(palette.count)) % palette.count]
 
-                let count = 150 + Int(rng.unit() * 100)        // 150..250 splats/cluster (~3.5k total; splats are cheap)
+                let count = Int(Float(150 + Int(rng.unit() * 100)) * (0.6 + gen.config.nebulaDensity))  // §7a density
                 for _ in 0..<count {
                     let spread = depth * (0.06 + 0.10 * rng.unit())
                     let ox = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)
@@ -326,15 +369,9 @@ enum ParticleNebula: NebulaBackendRenderer {
             return e
         }
 
-        let palette: [UIColor] = [
-            UIColor(red: 0.08, green: 0.17, blue: 0.32, alpha: 1),  // deep blue
-            UIColor(red: 0.22, green: 0.29, blue: 0.43, alpha: 1),  // steel blue
-            UIColor(red: 0.16, green: 0.30, blue: 0.53, alpha: 1),  // blue
-            UIColor(red: 0.52, green: 0.30, blue: 0.23, alpha: 1),  // dusty rust
-            UIColor(red: 0.69, green: 0.47, blue: 0.35, alpha: 1),  // warm tan
-            UIColor(red: 0.20, green: 0.20, blue: 0.26, alpha: 1),  // muted purple
-            UIColor(red: 0.37, green: 0.43, blue: 0.56, alpha: 1)   // lavender-grey
-        ]
+        let palette = NebulaPalettes.palette(gen.config.nebulaPalette).map {   // §7a per-environment color
+            UIColor(red: CGFloat($0.x), green: CGFloat($0.y), blue: CGFloat($0.z), alpha: 1)
+        }
 
         // Depth shells give volumetric self-parallax; many small, low-alpha wisps
         // accumulate into continuous haze rather than a few giant discs (§2/§3).
@@ -358,7 +395,7 @@ enum ParticleNebula: NebulaBackendRenderer {
                 cRight = normalize(cRight)
                 let clusterFace = simd_quatf(simd_float3x3(columns: (cRight, cross(cForward, cRight), cForward)))
 
-                let count = 22 + Int(rng.unit() * 12)          // 22..33 small planes per cluster
+                let count = Int(Float(22 + Int(rng.unit() * 12)) * (0.6 + gen.config.nebulaDensity))  // §7a density
                 for _ in 0..<count {
                     let spread = depth * (0.08 + 0.14 * rng.unit())
                     let ox = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)  // soft gaussian-ish

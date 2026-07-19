@@ -16,4 +16,5 @@ struct EnvironmentGenerator {
     func nebulaStream()    -> SeededRandom { rng.stream(0x4E45_4255) } // "NEBU"
     func asteroidStream()  -> SeededRandom { rng.stream(0x524F_434B) } // "ROCK"
     func phenomenaStream() -> SeededRandom { rng.stream(0x434F_4D54) } // "COMT"
+    func backdropStream()  -> SeededRandom { rng.stream(0x424B_4452) } // "BKDR"
 }

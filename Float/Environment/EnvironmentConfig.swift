@@ -35,6 +35,7 @@ struct EnvironmentConfig: Codable, Equatable {
         var c = EnvironmentConfig(seed: seed)
         c.nebulaPalette = Int(rng.next() % 8)
         c.nebulaDensity = rng.unit()
+        c.backdrop = Int(rng.next() % 8)   // FarBackdrop wraps this to the available panoramas
         // TODO: roll body / asteroidField per §7a variety policy (open decision §11 #7).
         return c
     }
