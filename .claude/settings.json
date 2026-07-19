@@ -1,4 +1,5 @@
 {
+  "enabledMcpjsonServers": ["ollama-code"],
   "hooks": {
     "PostToolUse": [
       {

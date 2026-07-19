@@ -1,0 +1,40 @@
+# agent-build-tools config for Float — project-wide settings only (never ticket
+# data; tickets are the GitHub Issues in darthzen/float). See
+# ~/Developer/agent-build-tools/config.example.yaml for the full schema.
+project:
+  name: Float
+  repo: "darthzen/float"
+  # No GitHub Projects board (setup_github.sh ran with MAKE_PROJECT=0), so
+  # project_number is omitted and board routing is off.
+  build_through: M1        # HARD GATE: M1 "prove depth" must pass an on-device
+                           #   sign-off before M2+ is farmed. Do NOT raise this
+                           #   until the DEPTH GATE issue is closed. ($BUILD_THROUGH overrides.)
+  board_status: false      # no board → don't spend GraphQL quota pushing Status
+projects: {}               # no milestone → board overrides
+
+# visionOS / Swift tooling. Acceptance commands in a ticket must start with one
+# of `runnable` to be executed by verify/finish; everything else is treated as a
+# manual/descriptive check (most M1 acceptance is on-device visual, by design).
+tooling:
+  runnable: [bash, sh, xcodegen, xcodebuild, swift, swiftlint, python3, cd]
+  # Sources live under Float/ with a flat app target (no SwiftPM packages), so
+  # the default repo-root CWD is correct — no cwd_rules needed.
+  # §N citations in ticket bodies resolve against the spec:
+  schema_doc: starfield_immersive_spec.md
+  # app_build gate intentionally DISABLED for now: the scaffold is uncompiled
+  # stubs (authored off-Mac), so a build gate would fail every ticket. Re-enable
+  # once the M0/M1 stubs compile against the live visionOS SDK:
+  #
+  # app_build:
+  #   paths: ["Float/"]
+  #   command: "xcodegen generate && xcodebuild -scheme Float -destination 'generic/platform=visionOS Simulator' build -quiet"
+  #
+  # `new` fallback acceptance (tickets already carry their own Acceptance):
+  default_acceptance: "xcodegen generate"
+
+# Entire session provenance: Float has entire enabled and main is already pushed,
+# so re-anchor sessions via Entire's metadata ref only (no HEAD rewrite).
+entire:
+  enabled: true
+  agent: claude-code
+  amend: false
