@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "ollama-code": {
+      "type": "stdio",
+      "command": "/Users/rashford/Developer/ollama-code-mcp/.venv/bin/python",
+      "args": ["-m", "ollama_code_mcp.server"],
+      "env": {
+        "OLLAMA_BASE_URL": "http://192.168.7.160:9401",
+        "OLLAMA_MODEL": "qwen3-coder:30b"
+      }
+    }
+  }
+}
