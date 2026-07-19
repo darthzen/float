@@ -3,7 +3,7 @@
   "checkpoint_id": "d65534250486",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 1,
+  "checkpoints_count": 2,
   "files_touched": [
     "Float/Immersive/ImmersiveView.swift",
     "Float/Layers/DepthLayers.swift"
@@ -15,13 +15,20 @@
       "compact_transcript": "/d6/5534250486/0/transcript.jsonl",
       "content_hash": "/d6/5534250486/0/content_hash.txt",
       "prompt": "/d6/5534250486/0/prompt.txt"
+    },
+    {
+      "metadata": "/d6/5534250486/1/metadata.json",
+      "transcript": "/d6/5534250486/1/full.jsonl",
+      "compact_transcript": "/d6/5534250486/1/transcript.jsonl",
+      "content_hash": "/d6/5534250486/1/content_hash.txt",
+      "prompt": "/d6/5534250486/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 6,
-    "cache_creation_tokens": 19393,
-    "cache_read_tokens": 97198,
-    "output_tokens": 1262,
-    "api_call_count": 3
+    "input_tokens": 19,
+    "cache_creation_tokens": 159563,
+    "cache_read_tokens": 1637009,
+    "output_tokens": 11565,
+    "api_call_count": 14
   }
 }
