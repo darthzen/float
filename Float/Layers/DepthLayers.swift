@@ -1,5 +1,6 @@
 import RealityKit
 import simd
+import Foundation
 
 // L1 — §4. Inward sphere, unlit hi-res equirectangular. Effectively at infinity.
 enum FarBackdrop {
@@ -15,11 +16,24 @@ enum FarBackdrop {
 enum StarVolume {
     static func make(gen: EnvironmentGenerator) -> Entity {
         let e = Entity(); e.name = "L3_StarVolume"
+        let base = ModelEntity(mesh: .generateSphere(radius: 0.02), materials: [UnlitMaterial(color: .white)])
         var rng = gen.starStream()
-        // TODO: distribute N points in a 3D shell with density falloff (NOT one radius).
-        //       Prefer LowLevelMesh instanced points; vary brightness/size by distance.
-        //       Keep meaningful structure inside ~50 m for stereo disparity (§2).
-        _ = rng.next()
+        let count = min(1200, max(200, Int(1200 * gen.config.starDensity)))
+        for _ in 0..<count {
+            let u = Double(rng.unit())
+            let bias = u * u
+            let r = 2.0 + 198.0 * bias
+            let theta = 2.0 * Double.pi * Double(rng.unit())
+            let phi = acos(2.0 * Double(rng.unit()) - 1.0)
+            let px = r * sin(phi) * cos(theta)
+            let py = r * sin(phi) * sin(theta)
+            let pz = r * cos(phi)
+            let sz = max(0.3, 3.0 * (1.0 - r / 220.0))
+            let s = base.clone(recursive: false)
+            s.position = SIMD3<Float>(Float(px), Float(py), Float(pz))
+            s.scale = SIMD3<Float>(repeating: Float(sz))
+            e.addChild(s)
+        }
         return e
     }
 }
