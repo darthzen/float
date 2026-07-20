@@ -1,0 +1,27 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "483dbd12467a",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    ".gitignore",
+    "Float/Environment/EnvironmentConfig.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/48/3dbd12467a/0/metadata.json",
+      "transcript": "/48/3dbd12467a/0/full.jsonl",
+      "compact_transcript": "/48/3dbd12467a/0/transcript.jsonl",
+      "content_hash": "/48/3dbd12467a/0/content_hash.txt",
+      "prompt": "/48/3dbd12467a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1923,
+    "cache_creation_tokens": 957816,
+    "cache_read_tokens": 209569626,
+    "output_tokens": 680745,
+    "api_call_count": 433
+  }
+}
