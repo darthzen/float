@@ -13,6 +13,13 @@ struct FloatApp: App {
         }
         .windowResizability(.contentSize)
 
+        // Reading panel (Kindle Cloud Reader etc.) as its own window — the system gives it a
+        // drag bar + resize + eye-level placement, so you can put it wherever you're lying.
+        WindowGroup(id: "reader") {
+            ReaderPanelView()
+        }
+        .defaultSize(width: 640, height: 900)
+
         ImmersiveSpace(id: AppModel.immersiveSpaceID) {
             ImmersiveView()
                 .environment(model)

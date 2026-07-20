@@ -135,6 +135,7 @@ final class AppModel {
 struct LauncherView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         VStack(spacing: 16) {
@@ -161,6 +162,12 @@ struct LauncherView: View {
             }
             .buttonStyle(.bordered)
             .disabled(model.immersion != .open)
+
+            // Reading panel (read.amazon.com — Kindle Cloud Reader) as its own movable window.
+            // Openable any time (even before entering) so you can sign in with your phone reachable,
+            // then enter — the window and its session carry into the immersive space.
+            Button("Read (Kindle)") { openWindow(id: "reader") }
+                .buttonStyle(.bordered)
         }
         .padding(40)
     }
