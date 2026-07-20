@@ -1,0 +1,200 @@
+The generated nebula and stars need to be farther back from the viewer. With as much distance as there is between the background and the rendered objects, it makes the background look more flat.
+
+---
+
+It's not targeted at vOS26. Anything to accommodate that can go.
+
+---
+
+Update the document. We're getting the sharp lines through the nebulae again. Did we have a regression?
+
+---
+
+The blue_filaments.heic and pale_haze.heic both show as grainy in the headset. Is there a way to sharpen or upscale them to smooth them out?
+
+---
+
+Also, the New Environment button doesn't seem to be cycling through all images. I seem to get the same two or three. One other thing to consider. The busier the background image, the less nebulae should be generated. You can do more stars, to create the depth illusion, but the extra nebulae make it more obvious what's "real" and what's generated.
+
+---
+
+Let's do the denoising.
+
+---
+
+I want to test something. I tried using Spatial Media Toolkit to export an Apple Immersive Image of one of our images. It's in the ~/Developer/Float directory. Use it as the launch environment, with the ability to switch between it and the one that you rendered so I can see what the difference is. There are additional settings for depth on the Toolkit, but this is where I want to start.
+
+---
+
+Failed build:
+/Users/rashford/Developer/Float/Float/Immersive/ImmersiveView.swift:38:38 Cannot find 'SpatialImageEnvironment' in scope
+
+---
+
+The spatial image was just standing in front of me (and slightly below me. It didn't wrap around at all.
+
+---
+
+This looks really good. I do have Reality Composer Pro. It downloaded as an xcode project and is in ~/Developer/ConstructAnImmersiveEnvironmentForVisionOS
+
+---
+
+Go ahead and scaffold. I'll do the build
+
+---
+
+What am I double-clicking under RealityKitContent.rkassets? There's a Garden object, but double-clicking it opens to a text file.
+
+---
+
+You have the computer control connector enabled, why don't you take a look at xcode yourself.
+
+---
+
+Hold up. I just downloaded the code. I still need to install Reality Composer Pro. Ugh.
+
+---
+
+It's not on that screen. Apple moved it to a stand-alone app.
+
+---
+
+3 is open. I closed 2
+
+---
+
+It greys out everything. I can't open just a folder and the swift and usda files aren't selectable
+
+---
+
+It's open now.
+
+---
+
+[Image #1]
+
+---
+
+[Image #2]
+
+---
+
+[Image #3]
+
+---
+
+[Image #4]
+
+---
+
+[Image #5]
+
+---
+
+[Image #6]
+
+---
+
+[Image #7]
+
+---
+
+[Image #8]
+
+---
+
+[Image #9]
+
+---
+
+It's still grey
+
+---
+
+Don't I need to add an image filename first before it can get promoted?
+
+---
+
+I managed to link the RCP project to our Float xcode project, btw.
+
+[Image #10]
+
+---
+
+eye didn't have a result. Neither did left or right. eye_left and eye_right are showing in the xcode project, though.
+
+---
+
+Now they show up as options for the image file. I selected eye_left
+
+---
+
+Promote to Uniform is not available. Greyed out.
+
+---
+
+[Image #11]
+
+---
+
+[Image #12]
+
+---
+
+[Image #13]
+
+---
+
+[Image #14]
+
+---
+
+[Image #15]
+
+---
+
+[Image #16]
+
+---
+
+It's saved
+
+---
+
+If I do a "Save As" it defaults to the Float project root.
+
+---
+
+What project name should I give it? Where do you want me to save it?
+
+---
+
+In ~/Developer/Float/RealityKitContent.realitycomposerpro the assets show inside that package.
+
+---
+
+The release notes are here: https://developer.apple.com/documentation/realitycomposerpro/reality-composer-pro-beta-3-release-notes/
+
+---
+
+There is an export, but it's greyed out and I couldn't figure out what to select to get it to enable.
+
+---
+
+USDA and USDZ are both there if I can figure it out.
+
+---
+
+Clicking the material and going to export was the first thing I tried. Didn't work. Let's do the sphere in the scene
+
+---
+
+Okay, the sphere is added.
+
+---
+
+sphere.usda is in the Float directory
+
+---
+
+Land it. We'll come back to it later.
