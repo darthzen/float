@@ -22,6 +22,17 @@ attribution obligation it carries. **Public-domain** assets need no credit;
 - **Pipeline:** EXR → tonemap/convert → ASTC; committed compressed asset lands in
   `Backdrop/`. (RealityKit can't load EXR directly.)
 
+### Shutterstock royalty-free space skies — 8K equirectangular
+Purchased royalty-free (Rick's Shutterstock license). Distinct backdrops the jump cycles
+through with the NASA plate. Originals (12K–15K JPG) in `_raw/`; bundled as 8192×4096 HEIC.
+- **License:** Shutterstock Standard royalty-free (per Rick's account). No public attribution
+  required; usage per the Shutterstock license terms.
+- `dual_nebula.heic` — shutterstock #2436644261 (red+blue dual nebula w/ bright star)
+- `blue_filaments.heic` — shutterstock #2572761365 (cool blue filamentary field)
+- `teal_orange.heic` — shutterstock #2626369537 (dense teal + orange nebula)
+- `dark_dust.heic` — shutterstock #2651221149 (dark, sparse brown dust wisps)
+- `pale_haze.heic` — shutterstock #2700631105 (soft pale-blue haze + star clusters)
+
 ---
 
 ## L2 nebula reference / sprite source (`Nebula/`)

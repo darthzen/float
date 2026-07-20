@@ -5,59 +5,56 @@ import Metal   // MTLAttributeFormat for GaussianSplatResource buffer descriptor
 
 // L1 — §4. Inward sphere, unlit hi-res equirectangular. Effectively at infinity.
 enum FarBackdrop {
-    // Base equirect panoramas in the bundle (NASA SVS Deep Star Maps + more — public
-    // domain / CC, see CREDITS.md). config.backdrop picks the base; per-seed rotation +
-    // a subtle color wash vary it further so jumps rarely repeat the same sky (§7a).
-    static let textureNames = ["deep_star_map_8k"]
-
-    // Cache loaded panoramas: TextureResource(named:) does NOT cache, so rebuilding the
-    // scene on every jump reloaded the ~130 MB 8K texture and spiked GPU memory until the
-    // render server died. Load each once, reuse across environment swaps.
-    @MainActor private static var textureCache: [String: TextureResource] = [:]
+    // Base equirect panoramas in the bundle — NASA SVS Deep Star Maps (public domain) plus
+    // Shutterstock RF space skies (see CREDITS.md). config.backdrop picks the base; per-seed
+    // rotation + a subtle color wash vary it further so jumps rarely repeat the same sky (§7a).
+    static let textureNames = [
+        "deep_star_map_8k", "dual_nebula", "blue_filaments", "teal_orange", "dark_dust", "pale_haze"
+    ]
 
     @MainActor
     static func make(gen: EnvironmentGenerator) -> Entity {
-        var rng = gen.backdropStream()
-        let idx = ((gen.config.backdrop % textureNames.count) + textureNames.count) % textureNames.count
-        let name = textureNames[idx]
-
         let mesh = MeshResource.generateSphere(radius: 1000)
         var material = UnlitMaterial()
         material.color = .init(tint: .init(white: 0.01, alpha: 1.0), texture: nil)  // near-black void until the texture loads
         let e = ModelEntity(mesh: mesh, materials: [material])
         e.name = "L1_Backdrop"
         e.scale.z = -1  // flip winding so the inside surface renders
+        reskin(e, gen: gen)
+        return e
+    }
 
-        // Per-seed orientation: uniform-random rotation so the Milky Way lands differently.
+    // Pick the panorama, orientation, and tint for this environment and apply them to an
+    // existing backdrop sphere — used both at build time and on a jump (§7b). Loads on
+    // demand (no cache): replacing the material drops the old texture, so only ~1 8K
+    // panorama is resident at a time (6 cached would blow the GPU budget).
+    @MainActor
+    static func reskin(_ e: ModelEntity, gen: EnvironmentGenerator) {
+        var rng = gen.backdropStream()
+        let idx = ((gen.config.backdrop % textureNames.count) + textureNames.count) % textureNames.count
+        let name = textureNames[idx]
+
+        // Per-seed orientation: uniform-random rotation so the sky lands differently.
         let pi = Float.pi
         let u1 = rng.unit(), u2 = rng.unit(), u3 = rng.unit()
         e.orientation = simd_quatf(vector: SIMD4<Float>(
             sqrt(1 - u1) * sin(2 * pi * u2), sqrt(1 - u1) * cos(2 * pi * u2),
             sqrt(u1) * sin(2 * pi * u3),     sqrt(u1) * cos(2 * pi * u3)))
 
-        // Subtle per-seed color wash (mostly white, slight cast) — different sky hue per jump.
-        let tint = UIColor(red: CGFloat(0.78 + 0.22 * rng.unit()),
-                           green: CGFloat(0.78 + 0.22 * rng.unit()),
-                           blue: CGFloat(0.78 + 0.22 * rng.unit()), alpha: 1)
+        // Subtle per-seed color wash (mostly white, slight cast).
+        let tint = UIColor(red: CGFloat(0.82 + 0.18 * rng.unit()),
+                           green: CGFloat(0.82 + 0.18 * rng.unit()),
+                           blue: CGFloat(0.82 + 0.18 * rng.unit()), alpha: 1)
 
-        // Load the equirect asynchronously and swap it in (keeps make() sync so
-        // SceneBuilder stays synchronous; backdrop starts black then fills in).
         Task { @MainActor in
-            let tex: TextureResource
-            if let cached = textureCache[name] {
-                tex = cached
-            } else if let loaded = try? await TextureResource(named: name) {
-                textureCache[name] = loaded
-                tex = loaded
-            } else {
-                print("[Float] L1 backdrop texture '\(name)' not found — staying void")
+            guard let tex = try? await TextureResource(named: name) else {
+                print("[Float] L1 backdrop texture '\(name)' not found")
                 return
             }
             var lit = UnlitMaterial()
             lit.color = .init(tint: tint, texture: .init(tex))
             e.model?.materials = [lit]
         }
-        return e
     }
 }
 

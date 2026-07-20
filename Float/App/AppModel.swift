@@ -55,14 +55,10 @@ final class AppModel {
         currentConfig = newConfig
         let gen = EnvironmentGenerator(config: newConfig)
 
-        // Backdrop: re-orient in place (cheap — no rebuild, no texture reload).
-        if let backdrop = root.findEntity(named: "L1_Backdrop") {
-            var rng = gen.backdropStream()
-            let pi = Float.pi
-            let u1 = rng.unit(), u2 = rng.unit(), u3 = rng.unit()
-            backdrop.orientation = simd_quatf(vector: SIMD4<Float>(
-                sqrt(1 - u1) * sin(2 * pi * u2), sqrt(1 - u1) * cos(2 * pi * u2),
-                sqrt(u1) * sin(2 * pi * u3),     sqrt(u1) * cos(2 * pi * u3)))
+        // Backdrop: reskin in place — new panorama (config.backdrop) + orientation + tint.
+        // Loads ONE 8K texture (light — not a full-scene rebuild), hidden by the whiteout.
+        if let backdrop = root.findEntity(named: "L1_Backdrop") as? ModelEntity {
+            FarBackdrop.reskin(backdrop, gen: gen)
         }
 
         // Nebula: rebuild just this layer (keep the heavy star field untouched).
