@@ -198,3 +198,7 @@ sphere.usda is in the Float directory
 ---
 
 Land it. We'll come back to it later.
+
+---
+
+Commit and push
