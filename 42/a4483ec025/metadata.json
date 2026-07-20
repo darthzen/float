@@ -1,0 +1,33 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "42a4483ec025",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    "Float/App/AppModel.swift",
+    "Float/Layers/DepthLayers.swift",
+    "Float/Resources/Textures/Backdrop/blue_filaments.heic",
+    "Float/Resources/Textures/Backdrop/dark_dust.heic",
+    "Float/Resources/Textures/Backdrop/dual_nebula.heic",
+    "Float/Resources/Textures/Backdrop/pale_haze.heic",
+    "Float/Resources/Textures/Backdrop/teal_orange.heic",
+    "Float/Resources/Textures/CREDITS.md"
+  ],
+  "sessions": [
+    {
+      "metadata": "/42/a4483ec025/0/metadata.json",
+      "transcript": "/42/a4483ec025/0/full.jsonl",
+      "compact_transcript": "/42/a4483ec025/0/transcript.jsonl",
+      "content_hash": "/42/a4483ec025/0/content_hash.txt",
+      "prompt": "/42/a4483ec025/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 1917,
+    "cache_creation_tokens": 955615,
+    "cache_read_tokens": 206636992,
+    "output_tokens": 679016,
+    "api_call_count": 430
+  }
+}
