@@ -1,0 +1,28 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "915e39b58d4a",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 6,
+  "files_touched": [
+    "Float/App/AppModel.swift",
+    "Float/App/FloatApp.swift",
+    "Float/Interaction/WebReaderPanel.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/91/5e39b58d4a/0/metadata.json",
+      "transcript": "/91/5e39b58d4a/0/full.jsonl",
+      "compact_transcript": "/91/5e39b58d4a/0/transcript.jsonl",
+      "content_hash": "/91/5e39b58d4a/0/content_hash.txt",
+      "prompt": "/91/5e39b58d4a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 52,
+    "cache_creation_tokens": 58396,
+    "cache_read_tokens": 13617741,
+    "output_tokens": 47878,
+    "api_call_count": 27
+  }
+}
