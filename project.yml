@@ -14,10 +14,16 @@ settings:
     # Signing baked in here so `xcodegen generate` never reverts the Xcode UI values.
     DEVELOPMENT_TEAM: "5YR793D4UZ"   # Rick Ashford
     CODE_SIGN_STYLE: Automatic
+packages:
+  RealityKitContent:
+    path: Packages/RealityKitContent   # RCP ShaderGraph assets (Stereo360 material) — see that package's README
+
 targets:
   Float:
     type: application
     platform: visionOS
+    dependencies:
+      - package: RealityKitContent
     sources:
       - path: Float
         excludes:

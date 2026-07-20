@@ -50,6 +50,21 @@ The GitHub issues are the ticket queue. Each ticket is self-contained: Context (
 - Repo name / visibility / whether to add a GitHub Projects v2 board (defaults chosen in `setup_github.sh`: `float`, private, no board — flip `MAKE_PROJECT=1` to add one).
 - Spec §11 open items still unresolved: nebula backend commit (#2), backdrop source (#3), star distribution (#4), TimeScale range (#5), resolution budget (#6), environment variety (#7), hyperspace default intensity (#8), star brightness defaults (#11), ring vantage (#12), comet determinism (#13), reachable-rocks mechanism (#14). Each is called out in the relevant ticket.
 
+## Parked: imported Apple Spatial environment + stereo-360 (2026-07-19)
+An A/B tool to compare captured **Apple Spatial** 360° skies against the generated scene:
+`AppModel.EnvironmentSource` toggles imported⇄generated; "New Environment" cycles the 5
+`imported_spatial_*.heic` while imported is showing. **Mono works and ships** (inward-sphere
+skybox, primary eye — `Float/Immersive/SpatialImageEnvironment.swift`).
+**Stereo is PARKED**: true per-eye 360 needs a ShaderGraphMaterial (Camera Index Switch), but
+RCP 3 beta changed to a standalone binary `.realitycomposerpro`/`.tm_*` format with no
+documented app-loading path, blocked "Promote to Uniform" for texture params, and its USD
+*export* downgrades to `UsdPreviewSurface` (drops the RealityKit stereo node). The authored
+material is saved in `RealityKitContent.realitycomposerpro` (gitignored, repo root). The
+`Packages/RealityKitContent` SwiftPM scaffold + loader (with graceful mono fallback) stay in
+place. Revisit when Apple documents RCP 3 → app material loading. Details: agent memory
+`rcp3-beta-format-change`, `float-spatial-360-render`. Licensing: the Shutterstock spatial
+HEICs are test-only, **not cleared for distribution** (see `Resources/Textures/CREDITS.md`).
+
 ## File map
 ```
 Float/

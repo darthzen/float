@@ -24,3 +24,16 @@ Float/Resources/Textures/_raw/
 
 # NOTE: entire / .entire handling is account-specific (darthzen vs. other).
 # Do NOT blanket-ignore .entire here — follow your entire workflow when you git-init locally.
+
+# SwiftPM local package build artifacts
+Packages/**/.build/
+
+# Reality Composer Pro 3 standalone project (binary .tm_* format) — kept locally for the
+# shelved stereo-360 material work; NOT part of the app build (see rcp3-beta-format-change memory).
+/RealityKitContent.realitycomposerpro/
+
+# Throwaway RCP USD exports
+/sphere.usda/
+
+# Root-level Apple Spatial source HEICs — the shipping copies live in Resources/Textures/Backdrop
+/shutterstock_*_spatial.public.heic

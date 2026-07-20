@@ -34,8 +34,11 @@ struct EnvironmentConfig: Codable, Equatable {
         var rng = SeededRandom(seed: seed)
         var c = EnvironmentConfig(seed: seed)
         c.nebulaPalette = Int(rng.next() % 8)
-        c.nebulaDensity = rng.unit()
-        c.backdrop = Int(rng.next() % 8)   // FarBackdrop wraps this to the available panoramas
+        // Pick over the ACTUAL panorama count, not % 8 — the old modulus double-weighted
+        // backdrops 0 and 1 (6→0, 7→1), which is why jumps kept landing on the same skies.
+        c.backdrop = Int(rng.next() % UInt64(FarBackdrop.textureNames.count))
+        // §7a: suppress generated nebula against a busy real sky (see FarBackdrop.busyness).
+        c.nebulaDensity = rng.unit() * FarBackdrop.nebulaScale(forBackdrop: c.backdrop)
         // TODO: roll body / asteroidField per §7a variety policy (open decision §11 #7).
         return c
     }

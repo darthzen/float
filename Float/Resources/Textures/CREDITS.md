@@ -291,3 +291,23 @@ through with the NASA plate. Originals (12K–15K JPG) in `_raw/`; bundled as 81
   remnant hero object / phenomenon.
 - **Credit:** X-ray: NASA/CXC/RIKEN & GSFC/T. Sato et al.; Optical: DSS.
 - **License:** Public domain (NASA/CXC; credit by convention).
+
+---
+
+## ⚠️ Test / experimental — imported Apple Spatial environments
+
+### `imported_spatial_1…5.heic` — Shutterstock 360° HDRIs (Apple Spatial exports)
+- **Source:** exported via Spatial Media Toolkit (dropdown: *Apple Spatial*) from Shutterstock
+  360° HDRIs; originals at repo root as `shutterstock_<id>_spatial.public.heic`.
+- **Format:** Apple Spatial **stereo** 360° equirectangular HEIC — CGImage index 0 = left eye,
+  index 1 = right eye (`StereoPair`, disparity 0). Cycled via `SpatialImageEnvironment` for an
+  A/B against the generated scene; currently rendered MONO (primary eye) pending a stereo material.
+  - `imported_spatial_1` — id 2436644261 (Jurik Peter) — 12000×6000/eye
+  - `imported_spatial_2` — id 2572761365 — 15000×7500/eye
+  - `imported_spatial_3` — id 2626369537 — 12000×6000/eye
+  - `imported_spatial_4` — id 2651221149 — 12000×6000/eye
+  - `imported_spatial_5` — id 2700631105 — 12000×6000/eye
+- **Embedded notice:** "Copyright (c) 2024 …/Shutterstock. No use without permission."
+- **License:** ⚠️ **NOT cleared for distribution.** In-repo as comparison test assets only.
+  Confirm the Shutterstock license (and whether it permits shipping) before any of these go in
+  a build that leaves Rick's device. Remove or replace if not licensed for redistribution.

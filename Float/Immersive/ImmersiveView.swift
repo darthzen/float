@@ -25,9 +25,21 @@ struct ImmersiveView: View {
             // new "UniverseRoot" and crossfade out the old one, all under this container.
             let container = Entity()
             container.name = "SceneContainer"
-            container.addChild(SceneBuilder.build(config: model.currentConfig, clock: model.clock))
+            let generated = SceneBuilder.build(config: model.currentConfig, clock: model.clock)
+            container.addChild(generated)
             content.add(container)
             model.sceneContainer = container
+            model.generatedRoot = generated
+
+            // Imported Apple Spatial environment — an empty container mounted now (so toggling
+            // works immediately) whose skybox loads async and can be cycled (importedIndex).
+            let imported = SpatialImageEnvironment.makeContainer()
+            container.addChild(imported)
+            model.importedRoot = imported
+            model.applyEnvironmentVisibility()   // apply launch default (hides generated if imported)
+            Task { @MainActor in
+                await SpatialImageEnvironment.load(index: model.importedIndex, into: imported)
+            }
 
             // §7b whiteout overlay — a persistent inward white sphere (alpha 0) the jump flashes.
             let whiteout = WhiteoutSystem.makeEntity()

@@ -12,6 +12,22 @@ enum FarBackdrop {
         "deep_star_map_8k", "dual_nebula", "blue_filaments", "teal_orange", "dark_dust", "pale_haze"
     ]
 
+    // §7a — how much real nebulosity/structure each panorama already carries (0 = near-black
+    // star field, 1 = nebula-filled sky). MEASURED from the panoramas (blurred-luminance mean
+    // + large-scale variation + non-black coverage), not eyeballed. Index-aligned with
+    // textureNames. Drives generated-nebula density down (below) so our procedural gas doesn't
+    // pile onto — and thereby give away — an already-busy real sky.
+    static let busyness: [Float] = [0.00, 0.80, 0.89, 0.65, 0.28, 0.93]
+
+    // Multiplier applied to a config's nebula density for a given backdrop: a quiet sky keeps
+    // the full range, a busy sky gets a whisper. The freed-up depth cue is the (unchanged,
+    // dense) L3 star field showing through more clearly — see AppModel.applyNewEnvironment.
+    static func nebulaScale(forBackdrop index: Int) -> Float {
+        let n = textureNames.count
+        let b = busyness[((index % n) + n) % n]
+        return 1.0 - 0.85 * b            // busy=0 → 1.0, busy=0.93 → ~0.21
+    }
+
     @MainActor
     static func make(gen: EnvironmentGenerator) -> Entity {
         let mesh = MeshResource.generateSphere(radius: 1000)
@@ -150,7 +166,9 @@ struct StarAnimationSystem: System {
     }
 }
 
-// L3 — the depth workhorse. Thousands of points across ~2–200 m for real parallax (§3).
+// L3 — the depth workhorse. Thousands of points across ~25–260 m for real parallax (§3).
+// Field pushed back off the viewer so it reads clearly behind the hero bodies (~90 m)
+// instead of intermingling with them, which flattened the whole scene.
 enum StarVolume {
     @MainActor
     static func make(gen: EnvironmentGenerator) -> Entity {
@@ -159,8 +177,8 @@ enum StarVolume {
         var rng = gen.starStream()
 
         let starCount = 7000
-        let minRadius: Float = 2.0
-        let maxRadius: Float = 200.0
+        let minRadius: Float = 25.0
+        let maxRadius: Float = 260.0
         let coreMesh = MeshResource.generateSphere(radius: 0.009)
         let haloMesh = MeshResource.generateSphere(radius: 0.012)
 
@@ -202,8 +220,9 @@ enum StarVolume {
             star.scale = SIMD3<Float>(repeating: coreScale)
             star.components.set(StarComponent(phase: rng.unit() * 2 * Float.pi, baseScale: coreScale))
 
-            // §M2 near-field halo: glow sphere makes close stars read as light sources, not geometry
-            if radius < 15.0 {
+            // §M2 near-field halo: glow sphere makes the nearest stars read as light sources,
+            // not geometry. Threshold tracks the new 25 m near boundary (was 15 m at 2 m min).
+            if radius < 45.0 {
                 let haloMatIndex = matIndex < 4 ? 0 : 1
                 let halo = ModelEntity(mesh: haloMesh, materials: [haloMaterials[haloMatIndex]])
                 halo.scale = SIMD3<Float>(repeating: coreScale * 2.0)
@@ -293,7 +312,9 @@ enum SplatNebula: NebulaBackendRenderer {
 
         // Far shells: near clouds at 15 m parallaxed way too hard as true 3D splats;
         // real nebulae are near-infinite, so push them out for gentle parallax (§9 comfort).
-        let depthShells: [Float] = [60, 100, 150, 220, 300, 400]
+        // Whole field moved back again so the nebula sits clearly behind the hero bodies
+        // and reaches toward the 1000 m backdrop instead of reading flat.
+        let depthShells: [Float] = [120, 170, 230, 300, 390, 500]
         let palette = NebulaPalettes.palette(gen.config.nebulaPalette)   // §7a per-environment color
 
         var positions: [SIMD3<Float>] = []
@@ -304,7 +325,12 @@ enum SplatNebula: NebulaBackendRenderer {
 
         for depth in depthShells {
             for _ in 0..<3 {                                   // 3 clusters/shell
-                let azimuth = 2.0 * pi * rng.unit()
+                // §3 bias clusters toward the viewer's initial forward (-Z) so the busy nebula
+                // tends to land in front on entry, not behind. Soft — some still go behind; one
+                // rng draw keeps the seed sequence. Flip `front`'s sign if it biases backward.
+                let front: Float = -pi / 2
+                let a = 2 * rng.unit() - 1                      // [-1, 1)
+                let azimuth = front + (a * abs(a)) * pi         // concentrated near front
                 let elevation = (rng.unit() - 0.5) * 0.9
                 let cx = depth * cos(elevation) * cos(azimuth)
                 let cy = depth * sin(elevation)
@@ -426,10 +452,17 @@ enum ParticleNebula: NebulaBackendRenderer {
 
         // Depth shells give volumetric self-parallax; many small, low-alpha wisps
         // accumulate into continuous haze rather than a few giant discs (§2/§3).
-        let depthShells: [Float] = [15, 28, 45, 68, 95, 120]
+        // Pushed back off the viewer to match the star field — the near shell no longer
+        // crowds the hero bodies, so the haze reads as a distant backdrop, not flat.
+        let depthShells: [Float] = [50, 85, 130, 185, 250, 320]
         for depth in depthShells {
             for _ in 0..<4 {                                   // 4 cluster centers per shell
-                let azimuth = 2.0 * Float.pi * rng.unit()
+                // §3 bias clusters toward the viewer's initial forward (-Z) — busy nebula tends
+                // to land in front on entry, not behind. Soft; one rng draw keeps the sequence.
+                // Flip `front`'s sign if it biases backward on device.
+                let front: Float = -Float.pi / 2
+                let a = 2 * rng.unit() - 1
+                let azimuth = front + (a * abs(a)) * Float.pi
                 let elevation = (rng.unit() - 0.5) * 0.9
                 let cx = depth * cos(elevation) * cos(azimuth)
                 let cy = depth * sin(elevation)
@@ -453,9 +486,13 @@ enum ParticleNebula: NebulaBackendRenderer {
                     let oy = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)
                     let oz = spread * (rng.unit() + rng.unit() + rng.unit() - 1.5)
 
-                    // Small AND absolutely capped: the vOS26 large-transparent depth break
-                    // triggers on big quads, so even far-shell planes stay ≤ 6 m.
-                    let planeSize = min(depth * (0.04 + 0.08 * rng.unit()), 6.0)
+                    // Scales with depth so far clouds subtend a natural angle, but capped:
+                    // planes from *different* clusters aren't parallel, so where big quads
+                    // reach across into a neighbouring cluster they interpenetrate and draw
+                    // a hard seam — the "sharp lines" artifact. Cap keeps a plane smaller than
+                    // the inter-cluster gap. (This is sorted-transparency intersection, NOT the
+                    // vOS26 depth break — that one's gone on vOS27; this cap stays regardless.)
+                    let planeSize = min(depth * (0.04 + 0.08 * rng.unit()), 10.0)
                     let alpha = 0.04 + rng.unit() * 0.07                 // low; overlaps build density
                     let sprite = sprites[Int(rng.unit() * Float(sprites.count)) % sprites.count]
 

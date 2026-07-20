@@ -21,7 +21,7 @@ A single-user, fully-immersive "floating alone in deep space" experience for App
 
 ## Build / run
 - Generate the Xcode project: `xcodegen generate` (needs `brew install xcodegen`). Or create a fresh visionOS App target and add `Float/` sources + `Resources/` keys.
-- Deployment target is 26.0 in `project.yml` for SDK stability; move to 27 when adopting Gaussian-splat / projective-light APIs.
+- Deployment target is 27.0 in `project.yml` — required for the native Gaussian-splat / projective-light APIs. vOS26 workarounds (e.g. the large-transparent-quad depth break) no longer apply; do not reintroduce them. Note: intersection/seam artifacts from crossed transparent quads are OS-independent and their guards must stay.
 - The scaffold is stubs — expect to fix signatures against the live SDK. It has not been compiled.
 
 ## Coding conventions
