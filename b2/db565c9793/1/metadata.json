@@ -1,0 +1,89 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "b2db565c9793",
+  "session_id": "8d109261-fefa-4831-baf8-dd2ab92a2eb0",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-23T19:38:14.138796Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "save_step_count": 2,
+  "files_touched": [
+    "Float/App/AppModel.swift",
+    "Float/App/FloatApp.swift",
+    "Float/Environment/EnvironmentConfig.swift",
+    "Float/Immersive/SpatialImageEnvironment.swift",
+    "Float/Layers/DepthLayers.swift",
+    "Float/Resources/Textures/Backdrop/spatial_blue_filaments.heic",
+    "Float/Resources/Textures/Backdrop/spatial_paranal_vlt.heic",
+    "Float/Resources/Textures/Backdrop/spatial_rogland_night.heic",
+    "Float/Resources/Textures/CREDITS.md",
+    "Packages/RealityKitContent/README.md"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-opus-4-8",
+  "turn_id": "c3ebcacf9f68",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 41,
+    "cache_creation_tokens": 40089,
+    "cache_read_tokens": 1157173,
+    "output_tokens": 8250,
+    "api_call_count": 22
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-23T19:38:14.127641Z",
+    "agent_lines": 0,
+    "agent_removed": 851,
+    "human_added": 684,
+    "human_modified": 34,
+    "human_removed": 0,
+    "total_committed": 684,
+    "total_lines_changed": 1732,
+    "agent_percentage": 49.13394919168591,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 1898,
+      "user_lines_removed": 34,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "Float/App/AppModel.swift": 81,
+        "Float/App/FloatApp.swift": 8,
+        "Float/Environment/EnvironmentConfig.swift": 5,
+        "Float/Interaction/SceneSelector.swift": 129,
+        "Float/Layers/DepthLayers.swift": 72,
+        "Float/Resources/Textures/CREDITS.md": 195,
+        "scripts/backdrop_tool.py": 279,
+        "upscale/build_depth_wf.py": 51,
+        "upscale/build_wf.py": 79,
+        "upscale/comfyui_12288x6144_realistic_upscale.json": 440,
+        "upscale/comfyui_8k_realistic_upscale.json": 391,
+        "upscale/pack_spatial.swift": 34,
+        "upscale/stereo_synth.py": 129
+      },
+      "user_removed_per_file": {
+        "Float/App/AppModel.swift": 14,
+        "Float/Environment/EnvironmentConfig.swift": 2,
+        "Float/Layers/DepthLayers.swift": 18
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 66,
+      "user_lines_removed": 0,
+      "agent_lines_added": 1893,
+      "agent_lines_removed": 34,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "Packages/RealityKitContent/Sources/RealityKitContent/RealityKitContent.rkassets/Stereo360.usda": 61
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+use the kubernetes connector and help me figure out what the login is for my comfyui-filebrowser deployment
+
+---
+
+Create the persistent config volume and use `Yellow-Panda-Stone` as the password
