@@ -1,0 +1,73 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "bf774eb8507a",
+  "session_id": "e2618adc-48c8-4631-880a-a25b0a36608e",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-23T19:56:09.931511Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "save_step_count": 2,
+  "files_touched": [
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_blue_filaments.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_dark_dust.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_deep_star_map.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_dual_nebula.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_pale_haze.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_teal_orange.jpg",
+    "Float/Resources/Textures/Backdrop/spatial_blue_filaments.heic",
+    "Float/Resources/Textures/Backdrop/spatial_dark_dust.heic",
+    "Float/Resources/Textures/Backdrop/spatial_deep_star_map.heic",
+    "Float/Resources/Textures/Backdrop/spatial_dual_nebula.heic",
+    "Float/Resources/Textures/Backdrop/spatial_pale_haze.heic",
+    "Float/Resources/Textures/Backdrop/spatial_teal_orange.heic",
+    "upscale/process_backdrops.py"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-fable-5",
+  "turn_id": "c95a4f1904de",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 4571,
+    "cache_creation_tokens": 799627,
+    "cache_read_tokens": 95334874,
+    "output_tokens": 375849,
+    "api_call_count": 306
+  },
+  "session_metrics": {
+    "turn_count": 15
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-23T19:56:09.298262Z",
+    "agent_lines": 1,
+    "agent_removed": 1,
+    "human_added": 147,
+    "human_modified": 7,
+    "human_removed": 0,
+    "total_committed": 155,
+    "total_lines_changed": 156,
+    "agent_percentage": 1.282051282051282,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 5,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 5,
+      "user_lines_removed": 0,
+      "agent_lines_added": 8,
+      "agent_lines_removed": 1,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      }
+    }
+  ]
+}

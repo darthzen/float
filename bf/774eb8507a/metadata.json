@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "bf774eb8507a",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "files_touched": [
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_blue_filaments.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_dark_dust.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_deep_star_map.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_dual_nebula.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_pale_haze.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_teal_orange.jpg",
+    "Float/Resources/Textures/Backdrop/spatial_blue_filaments.heic",
+    "Float/Resources/Textures/Backdrop/spatial_dark_dust.heic",
+    "Float/Resources/Textures/Backdrop/spatial_deep_star_map.heic",
+    "Float/Resources/Textures/Backdrop/spatial_dual_nebula.heic",
+    "Float/Resources/Textures/Backdrop/spatial_pale_haze.heic",
+    "Float/Resources/Textures/Backdrop/spatial_teal_orange.heic",
+    "upscale/process_backdrops.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/bf/774eb8507a/0/metadata.json",
+      "transcript": "/bf/774eb8507a/0/full.jsonl",
+      "compact_transcript": "/bf/774eb8507a/0/transcript.jsonl",
+      "content_hash": "/bf/774eb8507a/0/content_hash.txt",
+      "prompt": "/bf/774eb8507a/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 4571,
+    "cache_creation_tokens": 799627,
+    "cache_read_tokens": 95334874,
+    "output_tokens": 375849,
+    "api_call_count": 306
+  }
+}
