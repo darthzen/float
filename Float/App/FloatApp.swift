@@ -20,6 +20,20 @@ struct FloatApp: App {
         }
         .defaultSize(width: 640, height: 900)
 
+        // Scene picker (§7a) — its own window so it can be opened from inside the immersive
+        // space and left floating while iterating on a specific sky.
+        WindowGroup(id: "scenes") {
+            SceneSelectorView()
+                .environment(model)
+        }
+        .defaultSize(width: 520, height: 640)
+
+        // Entertainment sub-menu — Kindle / Music / Video.
+        WindowGroup(id: "entertainment") {
+            EntertainmentMenuView()
+        }
+        .defaultSize(width: 400, height: 480)
+
         ImmersiveSpace(id: AppModel.immersiveSpaceID) {
             ImmersiveView()
                 .environment(model)

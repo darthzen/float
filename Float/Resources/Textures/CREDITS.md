@@ -270,6 +270,201 @@ through with the NASA plate. Originals (12K–15K JPG) in `_raw/`; bundled as 81
 
 ---
 
+## Deep-sky feature imagery — L3 far objects (`_raw/deepsky/`)
+
+Full-resolution masters for the distant galaxies / nebulae that hang in the far field
+(§7c hero objects, L3 billboards). All downloaded 2026-07-23. Rick supplied NASA SVS
+pages as the starting point; **SVS re-serves downscaled derivatives** (mostly 3840×2160
+video frames), so each master below was traced back to the originating ESA/Hubble or
+STScI release, which is 2–9× larger. SVS page IDs are noted for cross-reference.
+
+**License (all ESA/Hubble items):** CC BY 4.0 — attribution required, credit line
+unaltered and kept adjacent to the image. NASA SVS / STScI items are public domain.
+Per the ESA/Hubble FAQ, individuals named in credit lines do **not** need to be
+contacted; that clearance is what separates these from the rejected Fujii image below.
+
+| File | Object | Dimensions | Release |
+|---|---|---|---|
+| `carina_hh901_mystic_mountain_heic1007c.tif` | HH 901 pillar, Carina Nebula | 7281×7149 | heic1007c |
+| `m16_pillars_visible_heic1501a.tif` | Pillars of Creation, M16 — visible | 6780×7071 | heic1501a |
+| `m16_pillars_infrared_heic1501b.tif` | Pillars of Creation, M16 — infrared | 3249×3045 | heic1501b |
+| `m8_lagoon_visible_8kx8k.png` | Lagoon Nebula, M8 — visible | 8000×8000 | STScI/SVS 30943 |
+| `m8_lagoon_infrared_8kx8k.png` | Lagoon Nebula, M8 — infrared | 8000×8000 | STScI/SVS 30943 |
+| `s106_snow_angel_heic1118a.tif` | Sharpless 2-106 "snow angel" | 4356×3202 | heic1118a |
+| `m104_sombrero_opo0328a.tif` | Sombrero Galaxy, M104 | 11472×6429 | opo0328a |
+| `m106_heic1302a_7910x6178.tif` | Messier 106 / NGC 4258 | 7910×6178 | heic1302a |
+| `ngc4631_whale_potw1146a.tif` | Whale Galaxy, NGC 4631 (edge-on) | 8933×2434 | potw1146a |
+| `m31_andromeda_phat_10k_heic1502a.tif` | Andromeda, M31 — PHAT mosaic | 10000×3197 | heic1502a |
+| `milkyway_360_panorama_eso0932a.tif` | Milky Way 360° panorama | 6000×3000 | eso0932a |
+
+### Credit lines (must ship verbatim if the asset ships)
+- **HH 901 / Mystic Mountain** (heic1007c, SVS 30940) — https://esahubble.org/images/heic1007c/
+  "NASA, ESA and M. Livio and the Hubble 20th Anniversary Team (STScI)"
+- **M16 Pillars of Creation** (heic1501a/b, SVS 31007) — https://esahubble.org/images/heic1501a/
+  "NASA, ESA/Hubble and the Hubble Heritage Team"
+- **M8 Lagoon Nebula** (SVS 30943) — https://svs.gsfc.nasa.gov/30943/
+  "NASA, ESA, and STScI" — public domain. Hubble's 28th-anniversary image.
+  Note: these are the 8K×8K STScI source plates, *larger* than the ESA/Hubble
+  release (heic1808a, 4782×6028), so SVS is the better source for this one.
+- **Sharpless 2-106** (heic1118a, SVS 30682) — https://esahubble.org/images/heic1118a/
+  "NASA & ESA"
+- **M104 Sombrero** (opo0328a, SVS 30995) — https://esahubble.org/images/opo0328a/
+  "NASA/ESA and The Hubble Heritage Team (STScI/AURA)"
+- **M106** (heic1302a, SVS 31021) — https://esahubble.org/images/heic1302a/
+  "NASA, ESA, the Hubble Heritage Team (STScI/AURA), and R. Gendler (for the Hubble
+  Heritage Team); Acknowledgment: J. GaBany"
+  ⚠️ Contains amateur data composited by Gendler/GaBany. It is an official ESA/Hubble
+  release under CC BY 4.0 and the FAQ clears reuse, but the credit line is longer than
+  usual and must not be trimmed.
+- **NGC 4631 Whale** (potw1146a, SVS 31016) — https://esahubble.org/images/potw1146a/
+  "NASA & ESA"
+- **M31 Andromeda** (heic1502a, SVS 30990) — https://esahubble.org/images/heic1502a/
+  "NASA, ESA, J. Dalcanton (University of Washington, USA), B. F. Williams (University
+  of Washington, USA), L. C. Johnson (University of Washington, USA), the PHAT team,
+  and R. Gendler."
+  Note: this is the 10K publication TIFF. The true original is 69536×22230 (4.3 GB
+  PSB) with a 40K TIFF (1.7 GB) intermediate — both available if 10K proves too soft.
+  It covers ~⅓ of the disc, not the whole galaxy; for a full-disc M31 billboard the
+  SVS 30990 wide view (NOAO ground-based optical, 3840×2160) is the fallback.
+- **Milky Way 360° panorama** (eso0932a) — https://www.eso.org/public/images/eso0932a/
+  "ESO/S. Brunier" — CC BY 4.0. GigaGalaxy Zoom project, 2009.
+
+### ⚠️ eso0932a resolves the §287 / §11 open question — and it is too small
+The spec (§287) lists the ESO Milky Way panorama as an L1 backdrop candidate with
+"license + resolution must be verified before shipping". Now verified:
+- **License: fine** — CC BY 4.0, credit "ESO/S. Brunier".
+- **Resolution: fails the spec target.** The public original is **6000×3000**, well
+  under §4's 8K–16K equirect requirement, and *below* the Deep Star Maps plate already
+  bundled (8192×4096, with 16K/32K/64K available). The 800-megapixel version referenced
+  in the press release is not published — ESO directs requests to Brunier privately.
+- **Conclusion:** keep Deep Star Maps as the L1 plate. eso0932a is still useful as a
+  *look* reference (it is real astrophotography of the band, in galactic coordinates,
+  2:1 equirect and seam-clean) but should not be upscaled into a shipping backdrop.
+
+### Survey note — the ESO 360° panorama archive
+https://www.eso.org/public/images/archive/category/360pano/ (459 images) was enumerated
+from the catalogue embedded in the `viewall` page: 250 entries recovered, 138 true 2:1
+equirectangular. Exactly one (eso0932a) is deep-sky; every other is a ground-level
+panorama — Paranal/La Silla/ALMA/Chajnantor sites, ESO HQ interiors, ESO Supernova.
+
+⚠️ **This note originally concluded "all unusable — do not re-survey."** That was written
+under the no-ground reading of the premise. Rick relaxed that gate on 2026-07-23 (a static
+horizon is a vection rest frame and a vertigo mitigation, not a violation of §9), so the
+night-sky subset is now live — see **Grounded night-sky backdrops** below. The interiors
+and daytime shots remain out.
+
+---
+
+## Grounded night-sky backdrops (`_raw/grounded/`) — vertigo-mitigation option
+
+For viewers who get vertigo in an all-sky float, a static horizon gives the vestibular
+system a rest frame. These are full-sphere 2:1 equirects that drop straight onto the
+existing `FarBackdrop` inward sphere with no code change.
+
+### ⚠️ The trap: most ESO "-extended" panoramas are black-padded at the nadir
+ESO pads partial-sphere captures out to a nominal 2:1 with **pure black fill**. The
+catalogue reports 2.000 aspect for all of them, so this is invisible until you measure it.
+Measured nadir black fraction across the night-sky candidates:
+
+| Candidate | Nadir black | Verdict |
+|---|---|---|
+| `150119-3p6-airglow-eq-extended` | 47.9% | ✗ reject |
+| `150119cesta-airglow-eq-extended` | 46.5% | ✗ reject |
+| `150123-24_atacama_fullfr_cc-eq-ext` | 44.7% | ✗ reject (also has an identifiable person) |
+| `potw2514c` | 43.4% | ✗ reject |
+| `uhd-9428-panorama-eq-extended` | 41.4% | ✗ reject |
+| `150126vlt2-dal-jup-eq-extended` | 40.0% | ✗ reject |
+| `nik9850p1-cc-extended` | 38.3% | ✗ reject |
+| `potw1224a-ext` | 32.4% | ✗ reject |
+| `2016_04_06_VISTA_night_Pano-VTversion_CC` | 29.3% | ✗ reject |
+| `2016_04_09_ALMA_Central_Array_Reproj-CC` | 28.7% | ✗ reject |
+| `2016-04-03-paranal-vlt-360fd-extended-cc` | 27.5% | ✗ reject |
+| `brammer-nightmoon-eq-ext` | 8.6% | ✗ reject (twilight/moonlit, reads as daytime) |
+| **`ESO_Paranal_360_Marcio_Cabral_Chile_09-CC`** | **0.0%** | ✓ **keep** |
+| **`ESO_Paranal_360_Marcio_Cabral_Chile_10-CC`** | **0.0%** | ✓ **keep** |
+| **`2019-06-30-FSLaSillaBTW-3p6-And-NTT-EQproj-CC`** | **0.0%** | ✓ **keep** |
+| **`2019-07-02-ExTra-Airglow-360Pano-24mm-EQ-CC`** | **0.0%** | ✓ **keep** |
+
+Rejected ones look down onto a black void with a hard circular edge — which destroys the
+very rest frame the ground is there to provide. **Always measure the nadir before adopting
+an ESO panorama.** Reproduce with the check in `scripts/` or: downsample to 64×512 luma,
+count bottom rows where `max(row) <= 6`.
+
+### Kept — ESO Atacama night panoramas (CC BY 4.0)
+- `paranal_vlt_milkyway_cabral09_26k.jpg` — 26162×13081. Milky Way over the VLT platform.
+  **Credit: "M. Cabral/ESO"** — https://www.eso.org/public/images/ESO_Paranal_360_Marcio_Cabral_Chile_09-CC/
+- `paranal_vlt_milkyway_cabral10_26k.jpg` — 25786×12893. *"The VLT points up into the Milky
+  Way"* — laser guide stars firing. **Credit: "M. Cabral/ESO"**
+- `lasilla_milkyway_arc_2019_23k.jpg` — 23384×11692. *"Milky Way arc above La Silla."*
+  **Credit: "P. Horálek/ESO"**
+- `lasilla_extra_airglow_2019_24k.jpg` — 23692×11846. *"Two Milky Way lightning strikes"* —
+  ExTrA domes, twin Milky Way limbs, strong airglow. **Credit: "P. Horálek/ESO"**
+
+Credit order matters: ESO writes these **photographer-first** ("M. Cabral/ESO"), not
+"ESO/M. Cabral". Reproduce the string as-is.
+
+These are the `cdn.eso.org/images/large/<id>.jpg` files, which for this archive are served
+at **full catalogue resolution** — not downscaled. The `original` TIFFs are the same pixels
+at ~358 MB each; the JPEGs are the practical master.
+
+⚠️ ESO CC BY 4.0 carries two live exceptions: the **ESO logo** is protected, and
+**commercial use of images with identifiable people is prohibited**. All four kept images
+were checked for people; `150123-24_atacama` was rejected partly on that basis. Telescope
+domes carry ESO branding — fine as photographic content, but do not crop a logo out as a
+standalone mark.
+
+### Kept — Poly Haven night HDRIs (CC0, no attribution required)
+True full-sphere, real HDR, no black padding, and **CC0** — the cleanest licensing in this
+entire file. Downloaded at 8K to match §4's backdrop budget; 16K and 24K are available.
+- `rogland_clear_night_8k.hdr` — 8192×4096 Radiance RGBE (24576×12288 max).
+  Strong Milky Way arch over dark rocky desert, **no buildings or hardware**. Best fit if
+  the goal is "grounded but not a specific real place."
+  Author: Greg Zaal. https://polyhaven.com/a/rogland_clear_night
+- `dikhololo_night_8k.hdr` — 8192×4096 Radiance RGBE (24576×12288 max).
+  Milky Way over dark scrub with tree silhouettes; warmer, softer horizon glow.
+  Author: Greg Zaal. https://polyhaven.com/a/dikhololo_night
+
+Courtesy credit "HDRI from Poly Haven (CC0)" is appreciated but **not legally required**.
+
+⚠️ Poly Haven's `night` tag is unreliable — over half the 59 tagged assets are moonlit or
+twilight and read as blue daylight (`clarens_night_01`, `kloppenheim_02`,
+`narrow_moonlit_road`, `qwantani_moonrise`). Preview before adopting; only the two above
+survived a visual pass.
+
+### Shipped assets (bundled 2026-07-23)
+All six are ingested to **8192×4096 HEIC** in `Backdrop/` via
+`scripts/backdrop_tool.py ingest`, which is reproducible — rerun the exact command to
+regenerate. `busyness` below is the measured value carried in `FarBackdrop.catalog`.
+
+| Bundled asset | Source | Ingest command | busyness |
+|---|---|---|---|
+| `ground_rogland_night.heic` | `rogland_clear_night_8k.hdr` | `ingest --exposure -3.0` | 0.55 |
+| `ground_dikhololo_night.heic` | `dikhololo_night_8k.hdr` | `ingest --exposure -1.0` | 0.63 |
+| `ground_paranal_vlt.heic` | `paranal_vlt_milkyway_cabral09_26k.jpg` | `ingest` | 0.84 |
+| `ground_paranal_lasers.heic` | `paranal_vlt_milkyway_cabral10_26k.jpg` | `ingest` | 0.65 |
+| `ground_lasilla_arc.heic` | `lasilla_milkyway_arc_2019_23k.jpg` | `ingest` | 0.89 |
+| `ground_lasilla_airglow.heic` | `lasilla_extra_airglow_2019_24k.jpg` | `ingest` | 1.00 |
+
+The two HDRIs need **negative** exposure: they are real HDR, and an untonemapped
+(or sips-default) conversion lifts the ground until the scene reads as dusk. Exposure
+was picked so the ground stays *readable* rather than crushed to silhouette — a black
+ground gives a horizon line but no texture, which weakens the rest frame that is the
+whole reason these are here. `dikhololo` was captured darker and needed +2 stops
+relative to `rogland`.
+
+### Open design consequences of shipping a grounded mode
+Not blockers, but a ground plane interacts with three existing systems:
+1. **§7b hyperspace jump** — with a horizon present the jump must either keep the ground
+   static (breaks the fiction) or move it (destroys the rest frame, and is *worse* for
+   comfort than the current design). Grounded presets likely need the jump replaced with a
+   cross-fade. This is the biggest one.
+2. **§4 L2 nebula volume** — a surrounding splat/particle volume will clip through the
+   horizon. Needs an above-horizon clamp in grounded presets.
+3. **§7d drift + debris** — ambient objects and debris on paths below the horizon will read
+   as passing "underground." Needs culling against the horizon plane.
+
+---
+
 ## ⛔ Rejected — licensing not acceptable
 
 ### Scorpius / Milky Way center — Akira Fujii (via ESA/Hubble)

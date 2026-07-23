@@ -1,8 +1,9 @@
 import SwiftUI
 import RealityKit
 
-/// App-wide observable state: immersion status + the currently active universe.
-/// Spec: §7a (EnvironmentConfig drives everything), §5 (one clock), §7e (saved places).
+/// App-wide observable state. The generated L1–L4 universe was retired in favour of a fixed
+/// library of pre-rendered stereo skies, so this is now just: which sky is showing, plus the
+/// hooks the immersive scene needs to swap it. Spec: §7a (scene selection), §7e (saved Places).
 @Observable
 @MainActor
 final class AppModel {
@@ -11,127 +12,74 @@ final class AppModel {
     enum ImmersionState { case closed, opening, open }
     var immersion: ImmersionState = .closed
 
-    /// Which environment is currently shown. `importedSpatial` = the bundled Apple Spatial
-    /// stereo image; `generated` = our procedural L1–L4 scene. Toggled for A/B comparison.
-    enum EnvironmentSource { case importedSpatial, generated }
-    var environmentSource: EnvironmentSource = .importedSpatial   // launch into the imported image
+    /// Index of the current sky in `SpatialImageEnvironment.catalog`.
+    var currentScene: Int = 0
 
-    /// Which bundled Apple Spatial sky is showing (index into SpatialImageEnvironment.resourceNames).
-    var importedIndex: Int = 0
-
-    /// The config that fully describes the current universe (§7a).
-    var currentConfig: EnvironmentConfig = .random(seed: 0x0F10A7)
-
-    /// Global animation clock (§5). Shared by every animated system.
+    /// Global animation clock (§5, foundational). Retained for future slow motion (e.g. a
+    /// gentle backdrop yaw); nothing reads it while the scene is a static sphere.
     let clock = AnimationClock()
 
     /// Saved "Places" (§7e).
     var savedLocations: [SavedLocation] = []
 
-    /// Persistent container holding the active universe root(s); environment swaps replace
-    /// the root under it (§7b). Set by ImmersiveView once the scene builds.
-    var sceneContainer: Entity?
+    /// Set by ImmersiveView once the scene builds.
+    var sceneContainer: Entity?   // persistent container
+    var sceneRoot: Entity?        // the SpatialImageEnvironment sphere container
+    var whiteout: Entity?         // §7b flash overlay
 
-    /// The §7b whiteout overlay entity; the jump flashes it to mask the swap. Set by ImmersiveView.
-    var whiteout: Entity?
+    // MARK: - Scene selection
 
-    /// The two toggleable environments, both mounted under the container so switching is just
-    /// a visibility flip (no rebuild — see EnvironmentSource). Set by ImmersiveView.
-    var generatedRoot: Entity?    // the SceneBuilder "UniverseRoot" (L1–L4)
-    var importedRoot: Entity?     // the Apple Spatial image environment
-
-    /// Show exactly one environment per `environmentSource`. Safe to call before `importedRoot`
-    /// finishes its async load — it just no-ops on the nil side.
-    func applyEnvironmentVisibility() {
-        generatedRoot?.isEnabled = (environmentSource == .generated)
-        importedRoot?.isEnabled  = (environmentSource == .importedSpatial)
+    /// Show a specific sky by catalog index, masked by the §7b whiteout flash.
+    func selectScene(_ index: Int) {
+        let n = SpatialImageEnvironment.catalog.count
+        guard n > 0 else { return }
+        let idx = ((index % n) + n) % n
+        currentScene = idx
+        maskedSwap { [weak self] in self?.applyScene(idx) }
     }
 
-    /// Flip between the imported Apple Spatial image and the generated scene (A/B comparison).
-    func toggleEnvironmentSource() {
-        environmentSource = (environmentSource == .generated) ? .importedSpatial : .generated
-        applyEnvironmentVisibility()
+    /// Jump to a random *different* sky. Uses a shuffle bag so every sky is visited once
+    /// before any repeat (independent random draws clustered on a few). No determinism
+    /// requirement here — this is a user action, not generation (§5 applied to the retired
+    /// generated scene).
+    func randomScene() {
+        let n = SpatialImageEnvironment.catalog.count
+        guard n > 1 else { if n == 1 { selectScene(0) }; return }
+        if sceneBag.isEmpty {
+            var bag = Array(0..<n).shuffled()
+            if bag.last == currentScene { bag.swapAt(0, n - 1) }   // no immediate repeat
+            sceneBag = bag
+        }
+        selectScene(sceneBag.removeLast())
     }
 
-    /// Advance to the next bundled Apple Spatial sky and swap it into the imported container.
-    func advanceImportedImage() {
-        guard let importedRoot else { return }
-        importedIndex = (importedIndex + 1) % SpatialImageEnvironment.resourceNames.count
-        Task { @MainActor in await SpatialImageEnvironment.load(index: importedIndex, into: importedRoot) }
+    private var sceneBag: [Int] = []
+
+    /// Load the sky into the sphere. Falls through to the mono skybox if the stereo material
+    /// or an eye can't load (SpatialImageEnvironment handles that).
+    private func applyScene(_ index: Int) {
+        guard let sceneRoot else { return }
+        Task { @MainActor in await SpatialImageEnvironment.load(index: index, into: sceneRoot) }
     }
 
-    /// Jump to a fresh environment (§7b): flash the whiteout, and swap under the peak of the
-    /// flash so the change is masked. A stepping stone to the full streak sequence.
-    func newEnvironment() {
-        // "New Environment" acts on whatever you're looking at: cycle the imported skies, or
-        // jump the generated universe.
-        if environmentSource == .importedSpatial { advanceImportedImage(); return }
-        guard let whiteout, sceneContainer != nil else { return }
-        // Don't retrigger while a flash is already running.
+    /// Run `swap` under the peak of the §7b whiteout flash. Applies immediately if the overlay
+    /// isn't mounted yet (e.g. a scene chosen from the launcher before entering the space).
+    private func maskedSwap(_ swap: @escaping @MainActor () -> Void) {
+        guard let whiteout else { swap(); return }
         if whiteout.components[WhiteoutComponent.self]?.active == true { return }
         var c = whiteout.components[WhiteoutComponent.self] ?? WhiteoutComponent()
         c.active = true; c.elapsed = 0
         whiteout.components.set(c)
-
-        // Swap at peak white (single-await Task — the reliable pattern). ~fadeIn + a bit.
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(0.30))
-            applyNewEnvironment()
+            swap()
         }
-    }
-
-    /// LIGHT in-place swap: full-scene rebuilds (~6k star entities) crashed the device render
-    /// server, so keep the star field and only re-orient the backdrop + rebuild the
-    /// (few-hundred-entity) nebula. Deterministic seed chain reproduces (§7e).
-    private func applyNewEnvironment() {
-        guard let container = sceneContainer,
-              let root = container.children.first(where: { $0.name == "UniverseRoot" }) else { return }
-        let nextSeed = currentConfig.seed &* 2862933555777941757 &+ 3037000493
-        var newConfig = EnvironmentConfig.random(seed: nextSeed)
-
-        // Cycle backdrops through a shuffle-bag so New Environment visits EVERY panorama
-        // before any repeats — independent random draws (even unbiased) clustered on a few
-        // skies. Overrides the seed-derived backdrop; density is re-derived for the pick so
-        // the §7a busyness suppression still applies.
-        var pick = SeededRandom(seed: nextSeed ^ 0x424B_4452_5348_4646)   // "BKDRSHFF"
-        newConfig.backdrop = nextBackdrop(rng: &pick)
-        newConfig.nebulaDensity = pick.unit() * FarBackdrop.nebulaScale(forBackdrop: newConfig.backdrop)
-
-        currentConfig = newConfig
-        let gen = EnvironmentGenerator(config: newConfig)
-
-        // Backdrop: reskin in place — new panorama (config.backdrop) + orientation + tint.
-        // Loads ONE 8K texture (light — not a full-scene rebuild), hidden by the whiteout.
-        if let backdrop = root.findEntity(named: "L1_Backdrop") as? ModelEntity {
-            FarBackdrop.reskin(backdrop, gen: gen)
-        }
-
-        // Nebula: rebuild just this layer (keep the heavy star field untouched).
-        root.children.filter { $0.name.hasPrefix("L2_Nebula") }.forEach { $0.removeFromParent() }
-        root.addChild(NebulaVolume.make(gen: gen))
-    }
-
-    /// Shuffle-bag over the backdrops: hand out each panorama once (in a seeded random
-    /// order) before refilling, so New Environment cycles through ALL of them. Refill avoids
-    /// opening on the sky we just showed, so there are no back-to-back repeats across bags.
-    private var backdropBag: [Int] = []
-    private func nextBackdrop(rng: inout SeededRandom) -> Int {
-        let count = FarBackdrop.textureNames.count
-        if backdropBag.isEmpty {
-            var bag = Array(0..<count)
-            for i in stride(from: count - 1, through: 1, by: -1) {      // Fisher–Yates
-                let j = Int(rng.next() % UInt64(i + 1))
-                bag.swapAt(i, j)
-            }
-            // removeLast() serves the pick, so keep bag.last (the next pick) off the current sky.
-            if count > 1 && bag.last == currentConfig.backdrop { bag.swapAt(0, count - 1) }
-            backdropBag = bag
-        }
-        return backdropBag.removeLast()
     }
 }
 
-/// Minimal launcher; the real experience is the immersive space.
+/// Launcher — the flat window that opens the immersive space and gives the three top-level
+/// actions: a random sky, the scene picker, and the Entertainment sub-menu (Kindle / Music /
+/// Video). Everything scene-related now targets the single spatial-image system.
 struct LauncherView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
@@ -141,6 +89,7 @@ struct LauncherView: View {
         VStack(spacing: 16) {
             Text("Float").font(.extraLargeTitle)
             Text("Step into deep space.").foregroundStyle(.secondary)
+
             Button("Enter") {
                 Task {
                     model.immersion = .opening
@@ -149,25 +98,18 @@ struct LauncherView: View {
                 }
             }
             .buttonStyle(.borderedProminent)
+            .disabled(model.immersion != .closed)
 
-            // TEMP trigger for the environment jump until the two-hand pinch-spread gesture
-            // lands (see float-reveal-gesture). Only meaningful once you're in the space.
-            Button("New Environment") { model.newEnvironment() }
+            Button("Random Scene", systemImage: "shuffle") { model.randomScene() }
                 .buttonStyle(.bordered)
-                .disabled(model.immersion != .open)
 
-            // A/B toggle: imported Apple Spatial image  ⇄  generated scene.
-            Button(model.environmentSource == .generated ? "Show Imported Image" : "Show Generated Scene") {
-                model.toggleEnvironmentSource()
+            Button("Scenes…", systemImage: "square.grid.2x2") { openWindow(id: "scenes") }
+                .buttonStyle(.bordered)
+
+            Button("Entertainment", systemImage: "play.rectangle.on.rectangle") {
+                openWindow(id: "entertainment")
             }
             .buttonStyle(.bordered)
-            .disabled(model.immersion != .open)
-
-            // Reading panel (read.amazon.com — Kindle Cloud Reader) as its own movable window.
-            // Openable any time (even before entering) so you can sign in with your phone reachable,
-            // then enter — the window and its session carry into the immersive space.
-            Button("Read (Kindle)") { openWindow(id: "reader") }
-                .buttonStyle(.bordered)
         }
         .padding(40)
     }

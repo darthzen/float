@@ -1,0 +1,61 @@
+#usda 1.0
+(
+    defaultPrim = "Root"
+)
+
+def Xform "Root"
+{
+    def Material "Stereo360"
+    {
+        # Public texture parameters — set at runtime per HEIC eye by
+        # SpatialImageEnvironment.makeStereoSphere (leftParam/rightParam).
+        asset inputs:LeftEye = @@ (
+            customData = {
+                dictionary realitykit = {
+                    bool isPublic = 1
+                }
+            }
+        )
+        asset inputs:RightEye = @@ (
+            customData = {
+                dictionary realitykit = {
+                    bool isPublic = 1
+                }
+            }
+        )
+        token outputs:mtlx:surface.connect = </Root/Stereo360/UnlitSurface.outputs:out>
+        token outputs:realitykit:vertex
+
+        # Per-eye selection: camera index 0 = left, 1 = right, mono/default = left.
+        def Shader "EyeSwitch"
+        {
+            uniform token info:id = "ND_realitykit_geometry_switch_cameraindex_color3"
+            color3f inputs:mono.connect = </Root/Stereo360/LeftImage.outputs:out>
+            color3f inputs:left.connect = </Root/Stereo360/LeftImage.outputs:out>
+            color3f inputs:right.connect = </Root/Stereo360/RightImage.outputs:out>
+            color3f outputs:out
+        }
+
+        def Shader "LeftImage"
+        {
+            uniform token info:id = "ND_image_color3"
+            asset inputs:file.connect = </Root/Stereo360.inputs:LeftEye>
+            color3f outputs:out
+        }
+
+        def Shader "RightImage"
+        {
+            uniform token info:id = "ND_image_color3"
+            asset inputs:file.connect = </Root/Stereo360.inputs:RightEye>
+            color3f outputs:out
+        }
+
+        # Unlit: a skybox at infinity must not be lit by scene lights.
+        def Shader "UnlitSurface"
+        {
+            uniform token info:id = "ND_realitykit_unlit_surfaceshader"
+            color3f inputs:color.connect = </Root/Stereo360/EyeSwitch.outputs:out>
+            token outputs:out
+        }
+    }
+}

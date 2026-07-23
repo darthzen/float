@@ -1,18 +1,19 @@
 import Foundation
 
-/// §7e — a "Place". Tiny: seed + params + clock + thumbnail, not recorded positions.
+/// §7e — a saved "Place". Since the app moved from a seed-generated universe to a fixed
+/// library of pre-rendered stereo skies, a Place is no longer a seed + generation params —
+/// it is simply *which sky* (by its bundle resource name) plus a display label and thumbnail.
+/// The old deterministic-restore machinery (simTime / generatorVersion / seed) is gone with
+/// the generated scene.
 struct SavedLocation: Codable, Identifiable {
     var id: UUID = UUID()
-    var config: EnvironmentConfig     // seed + all generation params
-    var simTime: Double               // restore moment for the deterministic layer
-    var timeScale: Double
-    var thumbnailFile: String         // the literal "screenshot" label in the gallery
-    var createdAtEpoch: Double        // wall-clock label ONLY (never feeds generation)
-    var generatorVersion: Int         // migration guard (§7e)
+    var sceneName: String        // SpatialImageEnvironment resource name
+    var label: String            // user-facing name in the gallery
+    var thumbnailFile: String    // the gallery thumbnail
+    var createdAtEpoch: Double   // wall-clock label only
 }
 
-/// Loads/saves Places. The impact layer replays from initial conditions, not evolved
-/// state (§7e) — a returned spot has the same setup with a fresh outcome.
+/// Loads/saves Places.
 @MainActor
 final class SavedLocationStore {
     // TODO: persist [SavedLocation] via Codable JSON + thumbnail image files (or SwiftData).

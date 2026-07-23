@@ -21,36 +21,21 @@ final class DoublePinchDetector {
     }
 }
 
-/// §7 — the control panel shown as a ViewAttachment. Speed slider + New Environment + Save.
+/// §7 — the in-scene control panel (ViewAttachment). Trimmed to what the spatial-image app
+/// needs: a random-scene jump and save. (The old time-speed slider drove generated animation
+/// that no longer exists; the flick-an-asteroid interaction went with the asteroid layer.)
 struct ControlPanelView: View {
     @Environment(AppModel.self) private var model
 
     var body: some View {
         VStack(spacing: 20) {
-            Text("Time")
-            // §7 speed slider → clock.timeScale (0 = freeze).
-            Slider(value: Binding(get: { model.clock.timeScale },
-                                  set: { model.clock.timeScale = $0 }),
-                   in: 0...10)
-            Button("New Environment") {
-                // §7b hyperspace jump → §7a regenerate. TODO: trigger the transition.
-            }
+            Button("Random Scene") { model.randomScene() }
             Button("Save This Spot") {
-                // §7e capture config + simTime + timeScale + thumbnail.
+                // §7e capture current sceneName + thumbnail.
             }
         }
         .padding(28)
         .glassBackgroundEffect()
         .frame(width: 320)
-    }
-}
-
-/// §7f — flick an asteroid. A fingertip collider imparts a mass-scaled impulse.
-@MainActor
-final class FlickInteraction {
-    func ingest(fingertip: SIMD3<Float>, velocity: SIMD3<Float>) {
-        // TODO: kinematic fingertip collider; on contact with a (tame) rock, apply an
-        //       impulse proportional to hand velocity and inversely to mass. Outward only;
-        //       any rebound toward the head still hits the §9 fade/deflect bubble.
     }
 }

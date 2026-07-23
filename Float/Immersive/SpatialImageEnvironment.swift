@@ -4,27 +4,56 @@ import Foundation
 import ImageIO
 import CoreGraphics
 
-/// Presents a bundled **Apple Spatial** (stereo 360° equirect) still as an immersive
-/// environment, for A/B-ing real captured/authored skies against our procedurally generated
-/// scene (§3/§4). Not part of the generated pipeline — it's a static sibling of UniverseRoot
-/// that AppModel toggles on/off (EnvironmentSource) and cycles through (importedIndex).
+/// Presents a bundled **Apple Spatial** (stereo 360° equirect) still as the immersive
+/// environment — the app's sole scene system since the generated L1–L4 pipeline was retired.
+/// AppModel selects a sky by `catalog` index (`selectScene` / `randomScene`).
 ///
-/// Rendering: an **inward sphere** at ~infinity (wraps 360°, like FarBackdrop). Two material
-/// paths, picked at load time:
-///   • STEREO — a Reality Composer Pro `ShaderGraphMaterial` named `Stereo360` (a Camera Index
-///     Switch selecting per-eye), with its `LeftEye`/`RightEye` texture parameters set at
-///     runtime from the HEIC's two eyes (CGImage index 0 = left, 1 = right). See
-///     Packages/RealityKitContent/README.md for how to author that material.
-///   • MONO fallback — primary eye on an UnlitMaterial. Used until the `Stereo360` material
-///     exists (or if it fails to load), so the build never breaks while it's being authored.
+/// Rendering: an **inward sphere** at ~infinity (wraps 360°). Two material paths, picked at
+/// load time:
+///   • STEREO — the `Stereo360` `ShaderGraphMaterial` (a Camera Index Switch selecting per-eye),
+///     hand-authored as USD in the RealityKitContent package, with its `LeftEye`/`RightEye`
+///     texture parameters set at runtime from the HEIC's two eyes (CGImage index 0 = left,
+///     1 = right).
+///   • MONO fallback — primary eye on an UnlitMaterial, if the material or an eye can't load.
 /// (visionOS 26 `ImagePresentationComponent` was tried first but renders a spatial photo as a
 /// flat floating panel, not a surround, so it's wrong for an equirect environment.)
 enum SpatialImageEnvironment {
-    /// Bundled Apple Spatial HEICs (Resources/Textures/Backdrop, CREDITS.md). Cycled by AppModel.
-    static let resourceNames = [
-        "imported_spatial_1", "imported_spatial_2", "imported_spatial_3",
-        "imported_spatial_4", "imported_spatial_5"
+    /// One selectable sky. All are 2-image stereo HEICs in Resources/Textures/Backdrop
+    /// (see CREDITS.md) that render through the `Stereo360` material — per-eye stereo on
+    /// device, mono in the simulator (which can't show two eyes). `spatial_*` are the
+    /// pipeline's own conversions (mono → DA V2 / luminance depth → ODS stereo, see
+    /// upscale/process_backdrops.py); `imported_spatial_*` are the earlier toolkit exports.
+    /// `thumb` is the selector thumbnail in Backdrop/Thumbnails/<name>.jpg.
+    struct Scene: Identifiable, Hashable {
+        let name: String        // bundle resource name (the HEIC, and the thumbnail stem)
+        let title: String       // selector label
+        let grounded: Bool      // real horizon (vertigo-mitigation group)
+        var id: String { name }
+    }
+
+    static let catalog: [Scene] = [
+        // ── Grounded (real horizon) ────────────────────────────────────────────
+        .init(name: "spatial_rogland_night",   title: "Rogland Desert Night",  grounded: true),
+        .init(name: "spatial_dikhololo_night", title: "Dikhololo Night",       grounded: true),
+        .init(name: "spatial_paranal_vlt",     title: "Paranal — VLT",         grounded: true),
+        .init(name: "spatial_paranal_lasers",  title: "Paranal — Laser Guide", grounded: true),
+        .init(name: "spatial_lasilla_arc",     title: "La Silla — Milky Way",  grounded: true),
+        .init(name: "spatial_lasilla_airglow", title: "La Silla — Airglow",    grounded: true),
+        // ── Deep space (no horizon) ────────────────────────────────────────────
+        .init(name: "spatial_deep_star_map",   title: "Deep Star Map",         grounded: false),
+        .init(name: "spatial_dual_nebula",     title: "Dual Nebula",           grounded: false),
+        .init(name: "spatial_blue_filaments",  title: "Blue Filaments",        grounded: false),
+        .init(name: "spatial_teal_orange",     title: "Teal & Orange",         grounded: false),
+        .init(name: "spatial_dark_dust",       title: "Dark Dust",             grounded: false),
+        .init(name: "spatial_pale_haze",       title: "Pale Haze",             grounded: false),
+        // NOTE: the earlier `imported_spatial_1…5` were dropped — they were the Spatial-Media-
+        // Toolkit-Pro exports of these SAME five Shutterstock photos (verified by image match),
+        // so the six deep-space entries above already ARE those skies, recreated by our pipeline
+        // with the coherence + cos² zenith fixes the pre-baked exports couldn't get.
     ]
+
+    /// Resource names in catalog order — the index space AppModel/`load(index:)` use.
+    static var resourceNames: [String] { catalog.map(\.name) }
 
     // Must match the authored RCP material (see the package README).
     private static let materialSceneName = "Stereo360"          // Stereo360.usda
