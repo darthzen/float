@@ -151,10 +151,17 @@ def synth_pack(mono_png, depth_png, name, category):
     # heavy smoothing + gentle baseline) so the whole starfield shifts together and fuses like
     # the imported skies — per-feature luminance depth made stars "wildly different". Both use
     # the cos^2 pole falloff so looking up doesn't converge overhead (the zenith artifact).
+    #
+    # Deep-space tuning (device feedback, two rounds): the first uniform-vergence pass fused
+    # well but the nebula relief cardboarded — bright masses popped onto a discrete near plane
+    # sitting too close. Progressively flattened: floor 0.75→0.88→0.94 (shrinks near/far
+    # separation to ~1.6px), baseline 0.30→0.22%, smoothing 0.03→0.07 (masses blend into a
+    # continuous gradient, not layers). Kept a whisper of relief rather than going fully flat,
+    # since the depth itself reads well — it was only the layering that was too strong.
     if category == "grounded":
         params = dict(baseline_frac=0.010, smooth_frac=0.0, pole_power=2.0, depth_floor=0.0)
     else:
-        params = dict(baseline_frac=0.003, smooth_frac=0.03, pole_power=2.0, depth_floor=0.75)
+        params = dict(baseline_frac=0.0022, smooth_frac=0.07, pole_power=2.0, depth_floor=0.94)
     with tempfile.TemporaryDirectory() as td:
         lp0, rp0 = synth(mono_png, depth_png, td, **params)
         lp, rp = lp0, rp0

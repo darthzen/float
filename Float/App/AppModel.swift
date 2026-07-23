@@ -83,6 +83,7 @@ final class AppModel {
 struct LauncherView: View {
     @Environment(AppModel.self) private var model
     @Environment(\.openImmersiveSpace) private var openImmersiveSpace
+    @Environment(\.dismissImmersiveSpace) private var dismissImmersiveSpace
     @Environment(\.openWindow) private var openWindow
 
     var body: some View {
@@ -110,6 +111,17 @@ struct LauncherView: View {
                 openWindow(id: "entertainment")
             }
             .buttonStyle(.bordered)
+
+            Button("Exit", systemImage: "power", role: .destructive) {
+                // Leave cleanly: dismiss the immersive space first, then terminate. A hard
+                // exit is fine for a single-user sideloaded app (no App Store review).
+                Task {
+                    if model.immersion == .open { await dismissImmersiveSpace() }
+                    exit(0)
+                }
+            }
+            .buttonStyle(.bordered)
+            .padding(.top, 8)
         }
         .padding(40)
     }

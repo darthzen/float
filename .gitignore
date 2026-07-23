@@ -37,3 +37,4 @@ Packages/**/.build/
 
 # Root-level Apple Spatial source HEICs — the shipping copies live in Resources/Textures/Backdrop
 /shutterstock_*_spatial.public.heic
+upscale/icon_layers/
