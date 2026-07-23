@@ -106,3 +106,7 @@ All five of those imported skies were converted from the shutterstock photos in 
 <summary>Monitor event: "reprocess batch progress and completion"</summary>
 <event>[14:34:00] DONE: 12 ok, 0 failed</event>
 </task-notification>
+
+---
+
+We're done for now, so go ahead and commit & push.
