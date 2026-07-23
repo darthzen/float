@@ -1,0 +1,26 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "b2db565c9793",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "files_touched": [
+    "Float/Immersive/ImmersiveView.swift"
+  ],
+  "sessions": [
+    {
+      "metadata": "/b2/db565c9793/0/metadata.json",
+      "transcript": "/b2/db565c9793/0/full.jsonl",
+      "compact_transcript": "/b2/db565c9793/0/transcript.jsonl",
+      "content_hash": "/b2/db565c9793/0/content_hash.txt",
+      "prompt": "/b2/db565c9793/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 422,
+    "cache_creation_tokens": 745593,
+    "cache_read_tokens": 62067862,
+    "output_tokens": 376612,
+    "api_call_count": 226
+  }
+}
