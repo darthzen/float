@@ -59,6 +59,12 @@ MANIFEST = [
     ("spatial_dark_dust",       "shutterstock_2651221149.jpg", "deepspace", None),
     ("spatial_pale_haze",       "shutterstock_2700631105.jpg", "deepspace", None),
     ("spatial_deep_star_map",   "starmap_2020_8k.exr",         "deepspace", None),
+    # ── SPHEREx all-sky maps (4000x2000 equirect; neural-SR'd to TARGET) ─────
+    ("spatial_spherex_stars",   "spherex/SPHEREx_StarsRGB_equirectangular.tif",         "deepspace", None),
+    ("spatial_spherex_full",    "spherex/SPHEREx_StarsRGB_LinesRB_equirectangular.tif", "deepspace", None),
+    # ── unWISE W1+W2 custom all-sky (built at TARGET res by fetch_unwise.py +
+    #    allsky_rgb.py — galactic frame, Lang asinh RGB; no SR needed) ─────────
+    ("spatial_unwise_allsky",   "unwise/unwise_w1w2_equirectangular.tif",               "deepspace", None),
 ]
 
 
@@ -96,12 +102,24 @@ def mono_hires(src_rel, exposure, out_png):
         lin = load_linear(src)
         rgb = tonemap(lin, exposure=exposure or 0.0)
         im = Image.fromarray(rgb, "RGB")
-    # never upscale past the source; cap at TARGET. Keeps 8K sources at 8K (no fakery).
+    # Sources below TARGET are ALWAYS neurally upscaled to it (Rick's rule — the old
+    # "never upscale past the source" cap here shipped the SPHEREx maps at 4000px and
+    # they read as grain on device). Oversized sources Lanczos-DOWN to TARGET (fine —
+    # the rule governs upscaling only). SR output is cached: the pod pass is minutes.
     sw = im.size[0]
-    w = min(TARGET_W, sw)
-    h = w // 2
-    if im.size != (w, h):
-        im = im.resize((w, h), Image.LANCZOS)
+    if sw < TARGET_W:
+        from neural_sr import sr_equirect
+        tag = os.path.splitext(os.path.basename(src_rel))[0]
+        cache = os.path.join(RAW, "_sr_cache", f"{tag}_{TARGET_W}.png")
+        if os.path.exists(cache):
+            im = Image.open(cache).convert("RGB")
+            log(f"  SR: cached ({cache})")
+        else:
+            im = sr_equirect(im, tag, TARGET_W)
+            os.makedirs(os.path.dirname(cache), exist_ok=True)
+            im.save(cache)
+    elif im.size != (TARGET_W, TARGET_H):
+        im = im.resize((TARGET_W, TARGET_H), Image.LANCZOS)
     im.save(out_png)
     return im.size
 

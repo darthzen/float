@@ -8,16 +8,32 @@ import simd
 @MainActor
 final class DoublePinchDetector {
     var onDoublePinch: (() -> Void)?
-    private var lastPinchEndTime: Double?
 
     // Hysteresis thresholds (metres) so one slow pinch isn't read as two.
     private let pinchOn: Float = 0.015
     private let pinchOff: Float = 0.03
+    /// Max gap between the two pinch *releases* (§7: two cycles inside ~350–450 ms).
+    private let window: Double = 0.45
+
+    private var isPinched = false
+    private var lastReleaseTime: Double?
 
     func ingest(thumbTip: SIMD3<Float>, indexTip: SIMD3<Float>, time: Double) {
-        // TODO: detect pinch enter/exit via distance + hysteresis; if two cycles land
-        //       inside the window, fire onDoublePinch() (§7).
-        _ = simd_distance(thumbTip, indexTip)
+        let d = simd_distance(thumbTip, indexTip)
+        if isPinched {
+            guard d > pinchOff else { return }
+            isPinched = false
+            if let prev = lastReleaseTime, time - prev <= window {
+                lastReleaseTime = nil
+                onDoublePinch?()
+            } else {
+                lastReleaseTime = time
+            }
+        } else if d < pinchOn {
+            isPinched = true
+            // A first release too old to pair with the cycle starting now is stale.
+            if let prev = lastReleaseTime, time - prev > window { lastReleaseTime = nil }
+        }
     }
 }
 

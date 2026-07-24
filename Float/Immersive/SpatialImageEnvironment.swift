@@ -46,6 +46,53 @@ enum SpatialImageEnvironment {
         .init(name: "spatial_teal_orange",     title: "Teal & Orange",         grounded: false),
         .init(name: "spatial_dark_dust",       title: "Dark Dust",             grounded: false),
         .init(name: "spatial_pale_haze",       title: "Pale Haze",             grounded: false),
+        // ── Deep-sky masters (gnomonic composite over the Deep Star Map plate,
+        //    see upscale/deepsky_pipeline.py; credits in CREDITS.md) ───────────
+        .init(name: "spatial_m16_pillars",     title: "Pillars of Creation",   grounded: false),
+        .init(name: "spatial_carina_mystic",   title: "Carina — Mystic Mountain", grounded: false),
+        .init(name: "spatial_m8_lagoon",       title: "Lagoon Nebula",         grounded: false),
+        .init(name: "spatial_m104_sombrero",   title: "Sombrero Galaxy",       grounded: false),
+        // A/B pair for the approved Sombrero: equidistant wrap, bigger. Delete the loser.
+        .init(name: "spatial_m104_sombrero_wrap", title: "Sombrero Galaxy (Wrap)", grounded: false),
+        .init(name: "spatial_s106_angel",      title: "S106 — Snow Angel",     grounded: false),
+        .init(name: "spatial_m106_spiral",     title: "M106 Spiral Galaxy",    grounded: false),
+        .init(name: "spatial_ngc4631_whale",   title: "Whale Galaxy",          grounded: false),
+        .init(name: "spatial_m31_andromeda",   title: "Andromeda",             grounded: false),
+        // ── SPHEREx all-sky maps (native equirect, process_backdrops.py) ──────
+        .init(name: "spatial_spherex_stars",   title: "SPHEREx — Stars",       grounded: false),
+        .init(name: "spatial_spherex_full",    title: "SPHEREx — Stars + Lines", grounded: false),
+        // ── unWISE custom all-sky (built from CDS HiPS at target res —
+        //    scripts/fetch_unwise.py + upscale/allsky_rgb.py) ────────────────
+        .init(name: "spatial_unwise_allsky",   title: "unWISE — Infrared Sky",  grounded: false),
+        // ── ESA/Webb POTM batch (auto-placed by potm_auto_manifest.py; first-guess
+        //    framing — nudge fov/exposure in deepsky_auto.json and re-run to tune) ──
+        .init(name: "spatial_potm2508a", title: "Dusty wisps round a dusty disc", grounded: false),
+        .init(name: "spatial_potm2410a", title: "Edge of the Phantom Galaxy", grounded: false),
+        .init(name: "spatial_potm2408a", title: "Peeking into Perseus", grounded: false),
+        .init(name: "spatial_potm2405a", title: "Fireworks of stellar starbursts", grounded: false),
+        .init(name: "spatial_potm2402a", title: "A galactic treasury", grounded: false),
+        .init(name: "spatial_potm2310a", title: "No tricks, just treats", grounded: false),
+        .init(name: "spatial_potm2308a", title: "A FEAST for the eyes", grounded: false),
+        .init(name: "spatial_potm2307a", title: "The life and times of dust", grounded: false),
+        .init(name: "spatial_potm2305a", title: "Webb peers behind bars", grounded: false),
+        .init(name: "spatial_potm2301a", title: "A Spiral Amongst Thousands", grounded: false),
+        .init(name: "spatial_potm2211a", title: "Galactic Get-Together", grounded: false),
+        .init(name: "spatial_potm2210a", title: "Merging Galaxies", grounded: false),
+        .init(name: "spatial_potm2208a", title: "Heart of the Phantom Galaxy", grounded: false),
+        .init(name: "spatial_potm2207a", title: "Stephan's Quintet", grounded: false),
+        .init(name: "spatial_pillarsofcreation_composite", title: "Pillars of Creation (Composite)", grounded: false),
+        .init(name: "spatial_carinanebula3", title: "Carina Nebula Jets", grounded: false),
+        .init(name: "spatial_weic2615a", title: "Centaurus A", grounded: false),
+        .init(name: "spatial_weic2608a", title: "Star-forming regions in M51", grounded: false),
+        .init(name: "spatial_weic2520a", title: "Sagittarius B2 (NIRCam)", grounded: false),
+        .init(name: "spatial_weic2427a", title: "Sombrero Galaxy (MIRI)", grounded: false),
+        .init(name: "spatial_weic2316a", title: "Rho Ophiuchi cloud complex", grounded: false),
+        .init(name: "spatial_saturn1", title: "Saturn", grounded: false),
+        .init(name: "spatial_bullet-cluster", title: "Bullet Cluster", grounded: false),
+        .init(name: "spatial_potm2401b", title: "S1 LMC N79", grounded: false),
+        .init(name: "spatial_heic0604a", title: "Messier 82 (Hubble)", grounded: false),
+        .init(name: "spatial_weic2520b", title: "Sagittarius B2 (MIRI)", grounded: false),
+        .init(name: "spatial_weic2205b", title: "Cosmic Cliffs (Composite)", grounded: false),
         // NOTE: the earlier `imported_spatial_1…5` were dropped — they were the Spatial-Media-
         // Toolkit-Pro exports of these SAME five Shutterstock photos (verified by image match),
         // so the six deep-space entries above already ARE those skies, recreated by our pipeline
@@ -148,6 +195,11 @@ enum SpatialImageEnvironment {
         let sphere = ModelEntity(mesh: .generateSphere(radius: sphereRadius), materials: [material])
         sphere.name = skyboxName
         sphere.scale.z = -1   // flip winding so the inside surface renders (matches FarBackdrop)
+        // Canonical facing: the equirect's centre column (u = 0.5) must be straight ahead
+        // (-Z) at launch. Unrotated, it lands 90° to the user's LEFT (measured on device —
+        // deep-sky composites centred at lon 0 needed a 90° CCW turn to face). -90° about Y
+        // maps -X → -Z. Applies to every sky so the pipeline's "lon 0 = forward" holds.
+        sphere.orientation = simd_quatf(angle: -.pi / 2, axis: [0, 1, 0])
         return sphere
     }
 }

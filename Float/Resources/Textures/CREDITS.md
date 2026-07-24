@@ -506,3 +506,49 @@ Not blockers, but a ground plane interacts with three existing systems:
 - **License:** ⚠️ **NOT cleared for distribution.** In-repo as comparison test assets only.
   Confirm the Shutterstock license (and whether it permits shipping) before any of these go in
   a build that leaves Rick's device. Remove or replace if not licensed for redistribution.
+
+---
+
+## ESA/Webb POTM batch — shipped backdrops (2026-07-24)
+
+60 scenes (`Backdrop/spatial_potm*.heic`, `spatial_weic*.heic`,
+`spatial_pillarsofcreation_composite`, `spatial_carinanebula3`, `spatial_saturn1`,
+`spatial_bullet-cluster`, `spatial_heic0604a`) composited from ESA/Webb fullsize
+originals over the Deep Star Map plate via `upscale/deepsky_pipeline.py` +
+`upscale/deepsky_auto.json`.
+
+- **License:** CC BY 4.0 (ESA/Webb; `heic0604a` is ESA/Hubble, same license).
+- **Attribution:** REQUIRED if distributed. Per-image credit lines live in the
+  fetch manifest table: `_raw/potm/potm_manifest.md` (kept in-repo; the image
+  originals themselves are archived off-repo, see `_raw/potm/README` note).
+- **Fetcher:** `scripts/fetch_potm.py` (discover/add/fetch, resumable).
+
+## SPHEREx all-sky maps — shipped backdrops (2026-07-24)
+
+`spatial_spherex_stars/lines/full.heic` from NASA SPHEREx all-sky equirectangular
+releases (4000×2000 native, no upscale), via `upscale/process_backdrops.py`.
+
+- **License:** Public domain (NASA/JPL-Caltech). No attribution required.
+- **Suggested credit (courtesy):** "NASA/JPL-Caltech (SPHEREx)."
+
+## unWISE custom all-sky map — shipped backdrop (2026-07-24)
+
+`spatial_unwise_allsky.heic` is our own all-sky equirect build (the first custom
+one — a dry run of the pipeline intended for the SPHEREx Year-1 spectral cubes,
+due ~Nov 2026): unWISE W1 (3.4 µm) + W2 (4.6 µm) coadds rendered to a
+12288×6144 galactic-frame CAR equirect by the CDS hips2fits service
+(`CDS/P/unWISE/W1`, `CDS/P/unWISE/W2` FITS tiles), then composed with the
+Lang/Legacy-Surveys color-preserving asinh convention (R=W2, G=mean, B=W1;
+darkened cuts bg-pct 30 / mn −0.15 for scene-library consistency).
+Scripts: `scripts/fetch_unwise.py` + `upscale/allsky_rgb.py`.
+
+- **Underlying data:** WISE/NEOWISE, public domain (NASA/JPL-Caltech/UCLA);
+  unWISE coadds by D. Lang & A. Meisner.
+- **HiPS rendering layer:** CDS, Strasbourg — **ODbL-1.0** (attribution
+  required; nominally share-alike). If ODbL is ever unacceptable for
+  distribution, rebuild from the raw unwise.me coadd tiles instead (public
+  domain path, ~hundreds of GB).
+- **Credit line:** "unWISE (D. Lang, A. Meisner)/NASA/JPL-Caltech;
+  HiPS: CDS, Strasbourg."
+- **Citations:** Lang 2014 (AJ 147, 108); Meisner, Lang & Schlegel 2017
+  (AJ 154, 161); Wright et al. 2010 (WISE); Mainzer et al. 2011 (NEOWISE).

@@ -7,6 +7,7 @@ import ARKit
 /// overlay used to mask scene changes. Spec: §7 hand tracking.
 struct ImmersiveView: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.openWindow) private var openWindow
 
     var body: some View {
         RealityView { content, attachments in
@@ -52,9 +53,38 @@ struct ImmersiveView: View {
         .upperLimbVisibility(.visible)
     }
 
-    /// ARKit hand-tracking loop (90 Hz on v26+). Feeds the gesture detectors.
+    /// ARKit hand-tracking loop (90 Hz on v26+). Feeds the §7 double-pinch detector, which
+    /// reopens the launcher menu — the only way back to UI once its window has been closed.
+    /// (§7's gaze-conflict mitigation is deferred: with no window open there's nothing for
+    /// the first pinch's system-tap to land on, which is exactly the reopen case.)
     private func runHandTracking() async {
-        // TODO: start ARKitSession + HandTrackingProvider; route joints to
-        //       DoublePinchDetector (§7).
+        guard HandTrackingProvider.isSupported else { return }
+        let session = ARKitSession()
+        let hands = HandTrackingProvider()
+        do { try await session.run([hands]) } catch { return }
+
+        // One detector per hand so alternating-hand pinches don't pair into a "double".
+        let detectors: [HandAnchor.Chirality: DoublePinchDetector] =
+            [.left: DoublePinchDetector(), .right: DoublePinchDetector()]
+        for d in detectors.values {
+            d.onDoublePinch = { openWindow(id: "launcher") }
+        }
+
+        for await update in hands.anchorUpdates where update.event == .updated {
+            let anchor = update.anchor
+            guard anchor.isTracked, let skeleton = anchor.handSkeleton else { continue }
+            let thumb = skeleton.joint(.thumbTip)
+            let index = skeleton.joint(.indexFingerTip)
+            guard thumb.isTracked, index.isTracked else { continue }
+            // Same-hand tip distance — anchor space suffices, no world transform needed.
+            detectors[anchor.chirality]?.ingest(
+                thumbTip: translation(of: thumb.anchorFromJointTransform),
+                indexTip: translation(of: index.anchorFromJointTransform),
+                time: update.timestamp)
+        }
+    }
+
+    private func translation(of m: simd_float4x4) -> SIMD3<Float> {
+        SIMD3(m.columns.3.x, m.columns.3.y, m.columns.3.z)
     }
 }

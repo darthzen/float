@@ -12,8 +12,18 @@ final class AppModel {
     enum ImmersionState { case closed, opening, open }
     var immersion: ImmersionState = .closed
 
-    /// Index of the current sky in `SpatialImageEnvironment.catalog`.
+    /// Index of the current sky in `SpatialImageEnvironment.catalog`. Restored across
+    /// launches by NAME (not index) so catalog additions/reorders don't shift the selection.
     var currentScene: Int = 0
+
+    private static let lastSceneKey = "lastSceneName"
+
+    init() {
+        if let name = UserDefaults.standard.string(forKey: Self.lastSceneKey),
+           let idx = SpatialImageEnvironment.catalog.firstIndex(where: { $0.name == name }) {
+            currentScene = idx
+        }
+    }
 
     /// Global animation clock (§5, foundational). Retained for future slow motion (e.g. a
     /// gentle backdrop yaw); nothing reads it while the scene is a static sphere.
@@ -35,6 +45,8 @@ final class AppModel {
         guard n > 0 else { return }
         let idx = ((index % n) + n) % n
         currentScene = idx
+        UserDefaults.standard.set(
+            SpatialImageEnvironment.catalog[idx].name, forKey: Self.lastSceneKey)
         maskedSwap { [weak self] in self?.applyScene(idx) }
     }
 
@@ -124,5 +136,14 @@ struct LauncherView: View {
             .padding(.top, 8)
         }
         .padding(40)
+        .task {
+            // Launch straight into the environment — the menu stays up for Scenes/Exit but
+            // shouldn't gate entry. (The in-scene control panel's hand-tracking reveal is
+            // still stubbed, so the launcher window must keep existing as the fallback UI.)
+            guard model.immersion == .closed else { return }
+            model.immersion = .opening
+            _ = await openImmersiveSpace(id: AppModel.immersiveSpaceID)
+            model.immersion = .open
+        }
     }
 }

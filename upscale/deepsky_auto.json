@@ -1,0 +1,353 @@
+[
+ {
+  "name": "spatial_potm2508a",
+  "rel": "../potm_sr/potm2508a.png",
+  "kind": "field",
+  "params": {
+   "fov_x": 130,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Dusty wisps round a dusty disc"
+ },
+ {
+  "name": "spatial_potm2410a",
+  "rel": "../potm/potm2410a.tif",
+  "kind": "field",
+  "params": {
+   "fov_x": 261,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Catching the edge of the Phantom Galaxy"
+ },
+ {
+  "name": "spatial_potm2408a",
+  "rel": "../potm/potm2408a.tif",
+  "kind": "field",
+  "params": {
+   "fov_x": 130,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Peeking into Perseus"
+ },
+ {
+  "name": "spatial_potm2405a",
+  "rel": "../potm/potm2405a.tif",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "Fireworks of stellar starbursts"
+ },
+ {
+  "name": "spatial_potm2402a",
+  "rel": "../potm/potm2402a.tif",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "A galactic treasury"
+ },
+ {
+  "name": "spatial_potm2310a",
+  "rel": "../potm_sr/potm2310a.png",
+  "kind": "field",
+  "params": {
+   "fov_x": 253,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "No tricks, just treats"
+ },
+ {
+  "name": "spatial_potm2308a",
+  "rel": "../potm/potm2308a.tif",
+  "kind": "field",
+  "params": {
+   "fov_x": 236,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "A FEAST for the eyes"
+ },
+ {
+  "name": "spatial_potm2307a",
+  "rel": "../potm/potm2307a.tif",
+  "kind": "field",
+  "params": {
+   "fov_x": 240,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "The life and times of dust"
+ },
+ {
+  "name": "spatial_potm2305a",
+  "rel": "../potm/potm2305a.tif",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "Webb peers behind bars"
+ },
+ {
+  "name": "spatial_potm2301a",
+  "rel": "../potm/potm2301a.tif",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "A Spiral Amongst Thousands"
+ },
+ {
+  "name": "spatial_potm2211a",
+  "rel": "../potm/potm2211a.tif",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "Galactic Get-Together"
+ },
+ {
+  "name": "spatial_potm2210a",
+  "rel": "../potm_sr/potm2210a.png",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "Webb Explores a Pair of Merging Galaxies"
+ },
+ {
+  "name": "spatial_potm2208a",
+  "rel": "../potm_sr/potm2208a.png",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "Webb Inspects the Heart of the Phantom Galaxy"
+ },
+ {
+  "name": "spatial_potm2207a",
+  "rel": "../potm/potm2207a.tif",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "Stephan\u2019s Quintet (MIRI Imaging)"
+ },
+ {
+  "name": "spatial_pillarsofcreation_composite",
+  "rel": "../potm/pillarsofcreation_composite.tif",
+  "kind": "field",
+  "params": {
+   "fov_x": 130,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Pillars of Creation (NIRCam and MIRI Composite Image)"
+ },
+ {
+  "name": "spatial_carinanebula3",
+  "rel": "../potm/carinanebula3.tif",
+  "kind": "field",
+  "params": {
+   "fov_x": 130,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Carina Nebula Jets (NIRCam Narrowband Filters)"
+ },
+ {
+  "name": "spatial_weic2615a",
+  "rel": "../potm_sr/weic2615a.png",
+  "kind": "field",
+  "params": {
+   "fov_x": 194,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Centaurus A (MIRI image)"
+ },
+ {
+  "name": "spatial_weic2608a",
+  "rel": "../potm_sr/weic2608a.png",
+  "kind": "field",
+  "params": {
+   "fov_x": 180,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Star-forming regions in M51"
+ },
+ {
+  "name": "spatial_weic2520a",
+  "rel": "../potm/weic2520a.tif",
+  "kind": "field",
+  "params": {
+   "fov_x": 185,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Sagittarius B2 (NIRCam image)"
+ },
+ {
+  "name": "spatial_weic2427a",
+  "rel": "../potm/weic2427a.tif",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "Sombrero galaxy (MIRI)"
+ },
+ {
+  "name": "spatial_weic2316a",
+  "rel": "../potm/weic2316a.tif",
+  "kind": "field",
+  "params": {
+   "fov_x": 130,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Rho Ophiuchi cloud complex"
+ },
+ {
+  "name": "spatial_saturn1",
+  "rel": "../potm_sr/saturn1.png",
+  "kind": "object",
+  "params": {
+   "fov_x": 95,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.12,
+   "exposure": 0.2
+  },
+  "title": "Saturn\u2019s rings shine in Webb\u2019s observations of ringed planet"
+ },
+ {
+  "name": "spatial_bullet-cluster",
+  "rel": "../potm/bullet-cluster.tif",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "Bullet Cluster (NIRCam Image)"
+ },
+ {
+  "name": "spatial_potm2401b",
+  "rel": "../potm_sr/potm2401b.png",
+  "kind": "field",
+  "params": {
+   "fov_x": 210,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "S1 LMC N79 (cropped)"
+ },
+ {
+  "name": "spatial_heic0604a",
+  "rel": "../potm/heic0604a.tif",
+  "kind": "object",
+  "params": {
+   "fov_x": 85,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.14,
+   "exposure": 0.25
+  },
+  "title": "Messier 82 (Hubble 2006 image)"
+ },
+ {
+  "name": "spatial_weic2520b",
+  "rel": "../potm_sr/weic2520b.png",
+  "kind": "field",
+  "params": {
+   "fov_x": 182,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Sagittarius B2 (MIRI image)"
+ },
+ {
+  "name": "spatial_weic2205b",
+  "rel": "../potm/weic2205b.tif",
+  "kind": "field",
+  "params": {
+   "fov_x": 231,
+   "lon": 0,
+   "lat": 0,
+   "feather": 0.3,
+   "exposure": 0.35
+  },
+  "title": "Combined NIRCam and MIRI Image of the \u201cCosmic Cliffs\u201d in Carina"
+ }
+]
