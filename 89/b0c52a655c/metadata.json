@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "89b0c52a655c",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 11,
+  "files_touched": [
+    ".gitignore",
+    "Float/App/AppModel.swift",
+    "Float/Immersive/ImmersiveView.swift",
+    "Float/Immersive/SpatialImageEnvironment.swift",
+    "Float/Interaction/Interaction.swift",
+    "Float/Resources/Textures/CREDITS.md",
+    "scripts/fetch_unwise.py",
+    "upscale/allsky_rgb.py",
+    "upscale/deepsky_prev/unwise_banding_check.jpg",
+    "upscale/deepsky_prev/unwise_w1w2.jpg",
+    "upscale/deepsky_prev/unwise_w1w2_bg30_mn-0.15_mx100.jpg",
+    "upscale/depth_anything_v2.json",
+    "upscale/process_backdrops.py",
+    "upscale/starfield_stereo_depth_official.json"
+  ],
+  "sessions": [
+    {
+      "metadata": "/89/b0c52a655c/0/metadata.json",
+      "transcript": "/89/b0c52a655c/0/full.jsonl",
+      "compact_transcript": "/89/b0c52a655c/0/transcript.jsonl",
+      "content_hash": "/89/b0c52a655c/0/content_hash.txt",
+      "prompt": "/89/b0c52a655c/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 101,
+    "cache_creation_tokens": 136802,
+    "cache_read_tokens": 6091944,
+    "output_tokens": 53084,
+    "api_call_count": 54
+  }
+}

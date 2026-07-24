@@ -1,0 +1,212 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "89b0c52a655c",
+  "session_id": "0dda4d9e-6cbb-4a12-a541-fd4d105b1afb",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-24T16:33:49.197188Z",
+  "branch": "main",
+  "checkpoints_count": 11,
+  "save_step_count": 11,
+  "files_touched": [
+    ".gitignore",
+    "Float/App/AppModel.swift",
+    "Float/Immersive/ImmersiveView.swift",
+    "Float/Immersive/SpatialImageEnvironment.swift",
+    "Float/Interaction/Interaction.swift",
+    "Float/Resources/Textures/CREDITS.md",
+    "scripts/fetch_unwise.py",
+    "upscale/allsky_rgb.py",
+    "upscale/deepsky_prev/unwise_banding_check.jpg",
+    "upscale/deepsky_prev/unwise_w1w2.jpg",
+    "upscale/deepsky_prev/unwise_w1w2_bg30_mn-0.15_mx100.jpg",
+    "upscale/depth_anything_v2.json",
+    "upscale/process_backdrops.py",
+    "upscale/starfield_stereo_depth_official.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-fable-5",
+  "turn_id": "f933c2ab5844",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 101,
+    "cache_creation_tokens": 136802,
+    "cache_read_tokens": 6091944,
+    "output_tokens": 53084,
+    "api_call_count": 54
+  },
+  "session_metrics": {
+    "turn_count": 11
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-24T16:33:48.910614Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 407,
+    "human_removed": 104,
+    "total_committed": 201,
+    "total_lines_changed": 511,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 2842,
+      "user_lines_removed": 191,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "Float/App/AppModel.swift": 22,
+        "Float/Immersive/ImmersiveView.swift": 33,
+        "Float/Immersive/SpatialImageEnvironment.swift": 83,
+        "Float/Interaction/Interaction.swift": 20,
+        "Float/Resources/Textures/CREDITS.md": 24,
+        "scripts/fetch_potm.py": 201,
+        "upscale/build_sr_wf_ui.py": 120,
+        "upscale/deepsky_auto.json": 783,
+        "upscale/deepsky_auto_catalog.swift": 61,
+        "upscale/deepsky_pipeline.py": 319,
+        "upscale/equirect_realesrgan_sr.json": 177,
+        "upscale/master_sr.py": 175,
+        "upscale/neural_sr.py": 116,
+        "upscale/potm_auto_manifest.py": 112,
+        "upscale/potm_usdu_master_sr.json": 392,
+        "upscale/process_backdrops.py": 21,
+        "upscale/starfield_stereo_depth_official.json": 178
+      },
+      "user_removed_per_file": {
+        "Float/App/AppModel.swift": 1,
+        "Float/Immersive/ImmersiveView.swift": 3,
+        "Float/Interaction/Interaction.swift": 4,
+        "upscale/depth_anything_v2.json": 178,
+        "upscale/process_backdrops.py": 5
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 5,
+      "user_lines_removed": 0,
+      "agent_lines_added": 2837,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 324,
+      "user_lines_removed": 0,
+      "agent_lines_added": 2837,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "scripts/make_triage_page.py": 154,
+        "triage.html": 165
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 5,
+      "user_lines_removed": 0,
+      "agent_lines_added": 3156,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 5,
+      "user_lines_removed": 0,
+      "agent_lines_added": 3156,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      }
+    },
+    {
+      "checkpoint_number": 6,
+      "user_lines_added": 5,
+      "user_lines_removed": 0,
+      "agent_lines_added": 3156,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      }
+    },
+    {
+      "checkpoint_number": 7,
+      "user_lines_added": 59,
+      "user_lines_removed": 3,
+      "agent_lines_added": 2991,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        ".gitignore": 4,
+        "scripts/make_triage_page.py": 50
+      },
+      "user_removed_per_file": {
+        "scripts/make_triage_page.py": 3
+      }
+    },
+    {
+      "checkpoint_number": 8,
+      "user_lines_added": 5,
+      "user_lines_removed": 0,
+      "agent_lines_added": 3332,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      }
+    },
+    {
+      "checkpoint_number": 9,
+      "user_lines_added": 101,
+      "user_lines_removed": 2,
+      "agent_lines_added": 3374,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "scripts/make_triage_page.py": 2,
+        "scripts/prune_scenes.py": 88,
+        "upscale/potm_auto_manifest.py": 6
+      },
+      "user_removed_per_file": {
+        "scripts/make_triage_page.py": 2
+      }
+    },
+    {
+      "checkpoint_number": 10,
+      "user_lines_added": 101,
+      "user_lines_removed": 2,
+      "agent_lines_added": 3374,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "scripts/make_triage_page.py": 2,
+        "scripts/prune_scenes.py": 88,
+        "upscale/potm_auto_manifest.py": 6
+      },
+      "user_removed_per_file": {
+        "scripts/make_triage_page.py": 2
+      }
+    },
+    {
+      "checkpoint_number": 11,
+      "user_lines_added": 12,
+      "user_lines_removed": 313,
+      "agent_lines_added": 3476,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/pruned_scenes.json": 7
+      },
+      "user_removed_per_file": {
+        "upscale/deepsky_auto.json": 312,
+        "upscale/pruned_scenes.json": 1
+      }
+    }
+  ]
+}

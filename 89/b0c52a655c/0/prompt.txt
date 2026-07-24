@@ -1,0 +1,408 @@
+If I want to improve my starfield renderings, how hard would it be to pull the raw data from SPHEREx and build our own equirect 360 images? One idea that might be too costly from a performance standpoint, would be to do multiple layers with that data, so we can get the depth feel we're looking for? I know that the colorization is a fairly elaborate process, but I'd be very surprised if some of the more popular renderings didn't have documented processes.
+
+---
+
+<task-notification>
+<task-id>afb2d8699f40adaa5</task-id>
+<tool-use-id>toolu_019EiRP35U4f1skk4CTLUYLE</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/0dda4d9e-6cbb-4a12-a541-fd4d105b1afb/tasks/afb2d8699f40adaa5.output</output-file>
+<status>completed</status>
+<summary>Agent "Explore Float backdrop pipeline" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>I have everything needed. One note: `DepthLayers.swift` despite its name contains only the whiteout transition, not multi-layer parallax. Here is the report.
+
+---
+
+# Backdrop / spatial-image pipeline — findings
+
+## 1. `upscale/process_backdrops.py` — the full pipeline
+
+The batch driver that turns every source into the app's stereo HEIC format. Per-scene stages (docstring lines 7-16; `process()` at line 194):
+
+1. **mono_hires** (`mono_hires`, line 85) — re-ingest the highest-res `_raw` source, tonemap to a mono PNG at target res. This is the "upscale."
+2. **depth** — grounded scenes → Depth Anything V2; deep-space → luminance.
+3. **stereo** — `stereo_synth.synth` (DIBR forward warp).
+4. **pack** — `pack_spatial.swift` → `Backdrop/&lt;name&gt;.heic` (2-image HEIC).
+5. **thumbnail** — left eye → `Backdrop/Thumbnails/&lt;name&gt;.jpg`, 512w (line 187-190).
+
+**Target resolution:** `TARGET_W, TARGET_H = 12288, 6144` (line 42), i.e. 2:1 equirect, 12K. Global baseline constant `BASELINE = 0.010` (line 43).
+
+**The 3 SPHEREx rows** (lines 62-65) — added to `MANIFEST`, category `deepspace`, no exposure:
+- `spatial_spherex_stars` ← `spherex/SPHEREx_StarsRGB_equirectangular.tif`
+- `spatial_spherex_lines` ← `spherex/SPHEREx_LinesRB_equirectangular.tif`
+- `spatial_spherex_full` ← `spherex/SPHEREx_StarsRGB_LinesRB_equirectangular.tif`
+
+**Upscale logic** (lines 106-121): sources below `TARGET_W` are neural-SR'd (`neural_sr.sr_equirect`), cached under `_raw/_sr_cache/&lt;tag&gt;_12288.png`; oversized sources Lanczos-DOWN. The comment at 104-106 explicitly says the old "never upscale past source" cap shipped SPHEREx at 4000px and "read as grain on device," so the rule now forces SR.
+
+&gt; ⚠️ **Important discrepancy for your proposal:** despite that intent, the *shipped* `spatial_spherex_*.heic` files are all **4000×2000** (verified with `sips`), and `CREDITS.md:529` documents them as "4000×2000 native, no upscale." So the SR-to-12288 path was described but the committed SPHEREx assets were not regenerated through it — they ship at raw survey resolution. Every other deep-sky/grounded scene ships at 12288×6144 or 12000×6000 / 8192×4096. This is the single biggest existing-quality gap a custom SPHEREx equirect would target.
+
+**Depth model / `starfield_stereo_depth_official.json`:** it is an exported **ComfyUI graph** (UI format, not API format) defining a 4-node Depth Anything V2 workflow: `LoadImage` → `DownloadAndLoadDepthAnythingV2Model` (widget `depth_anything_v2_vitl_fp32.safetensors`, fp32) → `DepthAnything_V2` → `SaveImage("depth")`. It's the canonical/reference version of what `build_depth_wf.py` emits at runtime. The live depth call is `depth_via_comfy` (line 125): downsamples the mono to **2048×1024** (depth is low-frequency, comment line 126/131), `kubectl cp`s to the `ai` namespace ComfyUI pod on a V100, submits, polls the queue, copies the newest `depth_&lt;name&gt;_*.png` back.
+
+**Projection handling:** `process_backdrops` is equirect-only — every source is treated as a 2:1 equirect. Gnomonic/equidistant reprojection lives only in `deepsky_pipeline.py` (see §5). SPHEREx sources are already equirect so they pass straight through.
+
+**Stereo params** (`synth_pack`, lines 164-191, per-category recipe §9):
+- **grounded:** `baseline_frac=0.010, smooth_frac=0.0, pole_power=2.0, depth_floor=0.0` (real DA V2 depth, guided edge-snap).
+- **deep-space** (what SPHEREx uses): `baseline_frac=0.0022, smooth_frac=0.07, pole_power=2.0, depth_floor=0.94`.
+
+The 168-176 comment documents the depth-flattening history (the "Flatten deep-space depth further" commit `1624e05`): floor 0.75→0.88→0.94, baseline 0.30→0.22%, smoothing 0.03→0.07 — deliberately near-uniform vergence so the whole starfield "shifts together and fuses," avoiding the "cardboard/layered" look. **This is the key tension with your multi-depth-layer idea: the pipeline was explicitly tuned to *suppress* per-feature depth in deep space because layering read badly.**
+
+## 2. SPHEREx source provenance &amp; resolution
+
+- Raw files: `Float/Resources/Textures/_raw/spherex/` — three `.tif` files, all **4000×2000** (verified), 2:1 equirect. Small on disk (6-57 MB).
+- Credited in `CREDITS.md:526-533`: "NASA SPHEREx all-sky equirectangular releases (4000×2000 native, no upscale)," public domain (NASA/JPL-Caltech), courtesy credit "NASA/JPL-Caltech (SPHEREx)." Shipped 2026-07-24 via `process_backdrops.py`.
+- No dedicated fetch script for SPHEREx (unlike POTM's `scripts/fetch_potm.py`). The 4000×2000 all-sky maps are the only SPHEREx assets present — **there is no raw survey/spectral-cube data in the repo**; these are the pre-rendered public PNG/TIF all-sky mosaics. Your proposal to pull *raw* SPHEREx survey data would be entirely new ground — nothing in the pipeline currently ingests FITS/spectral cubes.
+
+## 3. `SpatialImageEnvironment.swift` — how backdrops render
+
+- **Single inward stereo sphere per scene.** `makeSphere` (line 224): `ModelEntity(mesh: .generateSphere(radius: sphereRadius))`, `sphereRadius = 1000` (line 143), `scale.z = -1` to render the interior, oriented `-π/2` about Y so equirect centre column faces −Z (lines 230-234).
+- **Stereo delivery:** the HEIC carries two images; `loadEyes` (line 202) pulls CGImage index 0 = left, index 1 = right. `makeStereoSphere` (line 184) loads a hand-authored `Stereo360` `ShaderGraphMaterial` (a Camera Index Switch), sets `LeftEye`/`RightEye` `TextureResource` params. **Mono fallback** (`makeMonoSphere`, line 214) uses `UnlitMaterial` with the primary eye (simulator, or if material/eye load fails).
+- **No multi-layer / parallax support.** `load(index:into:)` (line 158) removes any existing child named `skyboxName` before adding the new sphere (lines 173-176) — exactly one backdrop sphere exists at a time. `DepthLayers.swift` (despite the name) contains only the §7b `WhiteoutComponent`/`WhiteoutSystem` transition, **not** depth layers — a leftover name from the retired L1-L4 generated pipeline. So there is currently **zero** infrastructure for multiple spheres at different radii; your proposal would introduce that concept fresh.
+- Loading is one scene at a time: `ImmersiveView.swift:32` and `AppModel.swift:74` call `SpatialImageEnvironment.load` inside a `Task`; scene swaps go through the whiteout. No preloading, no scene caching.
+
+## 4. Existing depth tuning
+
+All in the stereo synth + the deep-space recipe:
+- `stereo_synth.py`: `synth(..., baseline_frac, smooth_frac, pole_power, depth_floor)` (line 151). Depth is `near=1 far=0`; disparity `D = baseline_px · depth · cos(lat)^pole_power` (lines 188-196). Deep-space `smooth_frac` box-blurs depth to a low-freq field (lines 166-177); `depth_floor` lifts depth onto a high floor for near-uniform global vergence (lines 179-186). `luminance_depth` (line 65) = brightness→nearness for deep space.
+- Guided filter `guided_refine` (line 94) snaps soft DA V2 depth edges onto sharp color silhouettes; `forward_warp` (line 112) is foreground-priority scatter with disocclusion hole-fill.
+- The "Flatten deep-space depth further" tuning is the `depth_floor=0.94 / smooth=0.07 / baseline=0.0022` values in `process_backdrops.synth_pack` (line 180) and mirrored in `deepsky_pipeline.py:17`.
+
+## 5. `deepsky_pipeline.py` + `master_sr.py` (compose + neural SR)
+
+- **`deepsky_pipeline.py`** adds a **compose** stage ahead of the shared depth→stereo→pack. Flat astrophotos are projected onto the star-map equirect: `_add_layer` (line 149) supports **gnomonic** (tangent plane, straight structure preserved, edge scale blows up 1/cos² — used for discrete "object" scenes) and **equidistant** azimuthal (uniform angular scale, wraps wide fields — used for "field" scenes) (proj chosen line 250). Additive in linear light over a dimmed Deep Star Map plate (`BASE_DIM=0.72`, line 48), plus a blurred halo underlayer (lines 253-256). Per-scene placement params: `fov_x`, `lon`, `lat`, `feather`, `exposure`, `rot`, `proj` (MANIFEST lines 63-78). Then `synth_pack(..., "deepspace")` reuses the same deep-space stereo recipe. `MASTER_CAP=12000` (line 49).
+- **`master_sr.py`** upscales *undersampled* flat masters before compose: a master is undersampled when `need_px = fov_x/360 · 12288`, `stretch = need_px/width &gt; 1.25` (line 133). Those get an **UltimateSDUpscale** diffusion pass (Realistic Vision V6 + 4x NMKD-Siax, denoise 0.20, tiled, seam-fix — full recipe `sr_workflow` line 55) at `upscale_by = min(4.0, stretch·1.15)`, output to `_raw/potm_sr/`, then `deepsky_auto.json` is repointed.
+- **`neural_sr.py`** is the *equirect* SR path (what `process_backdrops` calls for sub-target sources incl. SPHEREx): plain-model `RealESRGAN_x4plus` (line 29), wrap-padded 64px across the lon ±180 seam (lines 31, 101-113), then cropped and Lanczos'd to exact target. Docstring (lines 8-16) explains the A/B: RealESRGAN chosen over Siax/UltraSharp/USDU for faithful nebula color and clean round stars, no worm artifacts — **this is the model a custom SPHEREx equirect would go through** (USDU reserved for flat POTM masters).
+
+A custom SPHEREx equirect built from raw survey data would slot in as a `deepspace` manifest row and pass through: (native-res equirect) → `neural_sr` if below 12288 → deep-space stereo → pack. Multiple depth layers would require new work in *both* the synth stage (currently collapses to one near-uniform depth) and the Swift renderer (currently one sphere).
+
+## 6. Performance-relevant constraints
+
+- **Texture size:** shipped HEIC eyes run **8192×4096 → 12288×6144** (grounded/deep-sky at 12K, star map at 8K, SPHEREx currently 4000×2000). Each stereo scene decodes **two** full-res CGImages into two `TextureResource`s (`makeStereoSphere` lines 189-190). A 12288×6144 RGBA texture is ~300 MB uncompressed per eye, ~600 MB/scene before mipmaps — the practical ceiling for how far a SPHEREx equirect can be pushed.
+- **Only one scene resident at a time** — `load` removes the prior sphere before adding the new one (`SpatialImageEnvironment.swift:173-176`); no preloading or caching in `AppModel`/`ImmersiveView`. A multi-layer design would multiply live texture count (N layers × 2 eyes), which is the main memory risk to flag.
+- **No explicit GPU/thermal/texture-budget guards** exist in the Swift code (grep found none) — the constraint is implicit in the single-sphere, single-scene design. HEIC files are lossy q0.9 (`pack_spatial.swift:20`); the `ster` stereo-pair box is dropped by macOS ImageIO but the app reads by index anyway (lines 8-12, 24-32).
+- On-device notes are qualitative and live in the pipeline comments (device-feedback rounds on cardboarding, zenith pinch, "grain," "floating in the dark"), not as measured budgets.
+
+**Net for the proposal:** the plumbing to *build* a custom equirect SPHEREx starfield already exists (manifest row + RealESRGAN equirect SR + deep-space stereo). The two things that do **not** exist and would be genuinely new: (a) ingesting *raw* SPHEREx survey data (no FITS/cube tooling anywhere), and (b) any multi-depth-layer rendering — the current renderer is strictly one stereo sphere, and the stereo synth was deliberately flattened to *avoid* the layered look you'd now be trying to reintroduce.</result>
+<usage><subagent_tokens>77164</subagent_tokens><tool_uses>16</tool_uses><duration_ms>128305</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a17c4006e3871a75b</task-id>
+<tool-use-id>toolu_01MyroHw43AtX6HF2vs32A5i</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/0dda4d9e-6cbb-4a12-a541-fd4d105b1afb/tasks/a17c4006e3871a75b.output</output-file>
+<status>completed</status>
+<summary>Agent "Research SPHEREx raw data feasibility" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>I have enough to compile a comprehensive report. Here are my findings.
+
+---
+
+# SPHEREx → All-Sky Equirectangular VR Starfield: Feasibility Report
+*(as of 2026-07-24)*
+
+## Bottom line up front
+- **What exists TODAY at IRSA:** Level 2 *spectral images* (per-exposure multi-extension FITS), released weekly, currently the **QR2** ("Quick Release 2") processing. These are individual pointings, not a mosaic.
+- **What does NOT yet exist (promised):** The official **102-band all-sky spectral data cubes / mosaics** (HEALPix, Galactic coords). Per the SPHEREx map-making paper these are scheduled for the **Year-1 data release ~November 2026** via an IRSA "public mosaic tool." So in July 2026 you would be building your own mosaic OR waiting ~4 months for the official one.
+- **The pretty "all-sky maps" NASA already published** (May 2025 onward) are **visualizations only** — spatial resolution deliberately reduced by ~1000×, not science-grade downloadables.
+- **Feasibility verdict:** Mosaicking raw L2 yourself is possible but heavy (~2.3 million exposures over the mission; hundreds of thousands already public). For a VR starfield the **sane path is to wait for / use the official HEALPix all-sky cubes and reproject them to equirectangular (CAR)** with `reproject`/`healpy`. That is a single-GPU, few-hours job rather than a mosaicking pipeline project.
+
+---
+
+## 1. SPHEREx public data products at IRSA (mid-2026)
+
+**Release cadence &amp; status**
+- **QR1**: weekly releases began **July 2025**. Now legacy (QR1 on AWS only through Jan 2026).
+- **QR2**: weekly releases began **October 2025**, improved calibration, supersedes QR1. This is the current live product.
+- **Latency:** data appears publicly **~60 days after observation**.
+- First full all-sky *coverage* epoch was acquired early 2026 (survey runs May→Dec 2025 for pass 1). Four all-sky passes total over the 25-month mission (2 sky surveys/year).
+
+**Level 2 Spectral Images (available now)**
+- Format: **Multi-Extension FITS (MEF)**. **6 MEFs per sky pointing** (one per detector), **~70 MB each**, 6 extensions.
+- Each detector image: **2040 × 2040 pixels, native ~6.15 arcsec/pixel** (≈ your 6.2"; note the PSF is oversampled internally at 0.615"/sub-pixel — don't confuse the two; the science pixel is 6.15").
+- Extensions include: calibrated flux, per-pixel flags/status, variance map, zodiacal-light model, exposure-averaged PSF, and **spectral WCS** (which wavelength each pixel sampled — because of the Linear Variable Filters, wavelength varies across the array).
+- Six bands 0.75–5.0 µm (Band1 0.75–1.09; Band2 1.10–1.62; Band3 1.63–2.41; Band4 2.42–3.82; Band5 3.83–4.41; Band6 4.42–5.00), R≈35–130. The 102 "colors" come from co-adding many exposures that sampled each sky position at different LVF wavelengths.
+- Calibration products also public (gain, dark, PSF ~6 MB [101×101×121], dichroic, solid-angle maps, etc.).
+
+**All-sky maps / data cubes (promised, not yet public)**
+- Year-1 &amp; Year-2 releases will include **102 single-color full-sky mosaics** ("Data Cube" product) — spatially+spectrally interpolated all-sky maps at 102 wavelengths.
+- Projection: **HEALPix in Galactic coordinates** for science; the coverage-monitoring maps use Mollweide at Nside=1024 (3.4' pixels). Science full-sky products use HEALPix representation, delivered via an IRSA "public mosaic tool."
+- **Scheduled ~November 2026** (Year-1). As of July 2026: **not released yet.**
+
+**Rough full-sky download size (build-your-own from L2)**
+- Mission total ≈ **2.3 million exposures**; 14 billion spectra; ~1.4 trillion voxels *per* all-sky pass. At ~70 MB × 6 detectors per pointing, the full L2 corpus is on the order of **hundreds of TB**. Even one complete sky pass of L2 is tens of TB. This is the main argument against DIY mosaicking.
+
+---
+
+## 2. Tooling
+
+- **IRSA APIs:** IVOA **Simple Image Access v2 (SIA2)** endpoint `https://irsa.ipac.caltech.edu/SIA?` with collections `spherex_qr2` (wide), `spherex_qr2_deep` (deep), `spherex_qr2_cal` (calibration). Query by position/band/time/ID.
+- **Python:** **`pyvo`** and **`astroquery`** (SIA2 + TAP). IRSA publishes tutorial notebooks (the "Introduction to SPHEREx Spectral Images" tutorial).
+- **Cutout Service:** spatial subsets of the L2 MEFs by center + size (same HDU structure).
+- **Bulk/cloud:** browsable dirs at `https://irsa.ipac.caltech.edu/ibe/data/spherex/qr2` (wget/curl); **AWS Open Data** bucket `s3://nasa-irsa-spherex` (`us-east-1`, no-sign-request) — mirrors QR2 `level2/`. Good if you run your V100 pod in/near AWS us-east-1.
+- **Web GUI:** SPHEREx Data Explorer.
+- **Reprojection/mosaic:** `reproject` (`reproject_from_healpix`/`reproject_to_healpix`, target `CAR`), `healpy` (`cartview`, `projview`), `astropy.wcs`. No dedicated "spherex" all-sky-mosaic PyPI package found; the SPHEREx pipeline paper describes an internal bin/coadd mosaicker not yet released as user tooling. No mature community all-sky SPHEREx mosaic exists yet (too early).
+
+---
+
+## 3. How popular all-sky renderings / colorizations are made
+
+**NASA/JPL SPHEREx visualizations (SVS 31376, PIA26600)**
+- Elliptical (Mollweide-style) all-sky projection; **resolution reduced ~1000×** from native.
+- Two colorization schemes documented: (a) science/ISM view — 4 µm hot hydrogen → **blue**, 3.4 µm PAH dust → **red**; (b) stars/galaxies view — **short/medium/long wavelength → blue/green/red**. No public code, but the convention (short→blue, long→red) is the standard.
+
+**Precedent pipelines you can copy**
+- **Lupton et al. asinh RGB** (the canonical false-color method): asinh stretch preserves faint structure while not saturating bright cores — the de-facto standard for SDSS, unWISE, HiPS. (`astropy.visualization.make_lupton_rgb`.) Paper: astro-ph/0312483.
+- **unWISE / WISE all-sky:** 2.75"/pix coadds at 3.4 &amp; 4.6 µm (W1/W2), Meisner/Lang coadd methodology; a well-documented 2-band → color precedent very close to your SPHEREx use case.
+- **Gaia DR2 "Sky in Colour":** built with **HEALPix + healpy**; flux/density maps binned to HEALPix (up to Nside=8192 ≈ 0.18 arcmin²/pixel), then plane-projected; interactive via GAVS. Good reference for HEALPix→image color compositing.
+- **HEALPix → equirectangular (CAR)** is a solved problem: `reproject_from_healpix(..., &lt;CAR WCS&gt;)`; healpy `projview`. This is exactly the last step you need for a VR equirect texture.
+
+---
+
+## 4. Effort estimate — single V100 pod, astropy skills
+
+**Two realistic paths:**
+
+**Path A — Wait for / use official HEALPix all-sky cubes (recommended).**
+- Available ~Nov 2026. Download 102 HEALPix maps (Galactic), pick your band-to-RGB triplets, apply asinh/log stretch (Lupton), `reproject_from_healpix → CAR`, tile into equirect layers.
+- Effort: **days**, not months. Trivially fits a single V100 (it's mostly I/O + reprojection, GPU barely needed except for compositing/upscaling). Multiple wavelength/depth layers = just choose different band groupings.
+
+**Path B — Build your own mosaic from L2 now.**
+- You'd query L2 via SIA2, handle each exposure's **per-pixel spectral WCS** (wavelength varies across array), regrid/bin onto a common HEALPix grid per wavelength channel, coadd with hit-count/variance tracking, mask zodiacal light. This replicates the mission's L2→L3 mapmaker.
+- Effort: **weeks–months**; data volume tens–hundreds of TB; the wavelength-assignment/coaddition bookkeeping is the hard part, not the compute. Feasible on one V100 only if you restrict to a sky region or a few bands. Not recommended for a first all-sky VR texture.
+
+**Coverage gaps / solar exclusion (important for early releases):**
+- SPHEREx surveys in great circles roughly perpendicular to the Sun; there are **solar-exclusion / partial-coverage regions** and the ecliptic poles get very deep coverage (the two "deep fields"), while a full uniform all-sky pass only completes every ~6 months. Early QR data has **uneven depth and coverage holes** — a mid-2026 DIY mosaic would have visible gaps/seams. The official Year-1 cube is specifically the point at which full, gap-filled all-sky coverage is guaranteed. (IRSA docs don't tabulate the exclusion zones explicitly; the mission papers describe the survey geometry.)
+
+---
+
+## 5. Resolution ceiling (equirectangular full-sky, pixels wide)
+
+Equirect width = 360° of sky / pixel scale; height = width/2.
+
+| Survey | Pixel scale | Equirect width × height | Notes |
+|---|---|---|---|
+| **SPHEREx (native)** | 6.2″/pix | **≈209,000 × 104,500** (~21.8 Gpx/band) | 1,296,000″ ÷ 6.2. Per mono band; ×102 for full cube |
+| WISE / unWISE coadds | 2.75″/pix | ≈471,000 × 236,000 (~111 Gpx) | Finer than SPHEREx — deeper 2-band imaging |
+| Gaia DR2 sky image | ~1.5′ (90″)/pix effective | ≈14,400 × 7,200 | The *image* is coarse though astrometry is ~100 µas |
+
+**Practical takeaways for VR:**
+- A full-res SPHEREx equirect band is **~209k px wide (~21 gigapixels)** — far beyond a single GPU texture. You'll tile/mip it (e.g., 16k or 32k equirect for the base VR sphere, with higher-res tiles streamed).
+- SPHEREx's spatial resolution (6.2″) is actually **coarser than unWISE (2.75″)** — SPHEREx's unique value is the **102 spectral channels**, not spatial sharpness. For a starfield, consider using unWISE/DSS for spatial crispness and SPHEREx for the spectral/false-color layers.
+- Storage sanity check: one 16-bit mono band at native res ≈ **44 GB**; a 3-band 8-bit RGB equirect ≈ **65 GB** — so downsample aggressively for the VR base layer and keep native only for zoom tiles.
+
+---
+
+## Key sources
+- SPHEREx Data Products (IRSA): https://caltech-ipac.github.io/spherex-archive-documentation/spherex-data-products/
+- SPHEREx Data Access (IRSA): https://caltech-ipac.github.io/spherex-archive-documentation/spherex-data-access/
+- Intro to SPHEREx Spectral Images (tutorial): https://caltech-ipac.github.io/irsa-tutorials/spherex-intro/
+- SPHEREx QR on AWS Open Data: https://registry.opendata.aws/spherex-qr/ (bucket `s3://nasa-irsa-spherex`)
+- IRSA Explanatory Supplement (QR): https://irsa.ipac.caltech.edu/data/SPHEREx/docs/SPHEREx_Expsupp_QR_v1.0.pdf
+- Spectral Map Making with SPHEREx (all-sky cube spec, HEALPix, ~Nov 2026): https://arxiv.org/html/2603.25790
+- SPHEREx image/spectrophotometry pipeline: https://arxiv.org/html/2511.15823
+- SPHEREx Satellite Mission paper: https://arxiv.org/abs/2511.02985
+- JPL "How SPHEREx Will Share Its All-Sky Map": https://www.jpl.nasa.gov/news/how-nasas-spherex-mission-will-share-its-all-sky-map-with-the-world/
+- NASA SVS SPHEREx All-Sky Map (colorization/projection): https://svs.gsfc.nasa.gov/31376/ and image: https://www.jpl.nasa.gov/images/pia26600-spherexs-first-all-sky-map/
+- Lupton asinh RGB method: https://arxiv.org/pdf/astro-ph/0312483
+- unWISE deep coadds (Meisner et al.): https://iopscience.iop.org/article/10.3847/1538-3881/aa894e
+- Gaia DR2 "Sky in Colour" (healpy/HEALPix): https://www.cosmos.esa.int/web/gaia/gaiadr2_gaiaskyincolour
+- reproject HEALPix→CAR docs: https://reproject.readthedocs.io/en/stable/healpix.html
+
+**One-line recommendation:** For a VR starfield, plan around the **official ~Nov 2026 HEALPix all-sky cubes → asinh false-color → reproject to CAR → tiled equirect**; treat DIY L2 mosaicking as a later stretch goal only, and consider unWISE for spatial detail since SPHEREx's edge is spectral, not spatial.
+
+I did not create a plan file since this was a read-only research request; let me know if you'd like me to write this up into the plan file or expand any section.</result>
+<usage><subagent_tokens>32287</subagent_tokens><tool_uses>15</tool_uses><duration_ms>203035</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>ad310a07b0929271f</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/0dda4d9e-6cbb-4a12-a541-fd4d105b1afb/tasks/ad310a07b0929271f.output</output-file>
+<status>completed</status>
+<summary>Agent "Plan unWISE equirect pipeline" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>All research is complete. Here is the implementation plan.
+
+---
+
+# Plan: unWISE W1+W2 all-sky infrared backdrop (`spatial_unwise_allsky`)
+
+A dry run of the "N band maps → RGB equirect → existing spatial pipeline" flow that the SPHEREx 102-band HEALPix cubes will use in Year-1 (~Nov 2026). Two new scripts, one MANIFEST row, one catalog entry, one CREDITS section. No new Python dependencies.
+
+## Design decisions (with what I verified)
+
+### 1. Data access: CDS hips2fits (path a) — chosen
+
+Verified against the live docs at `https://alasky.cds.unistra.fr/hips-image-services/hips2fits` (mirror: `https://alaskybis.cds.unistra.fr/hips-image-services/hips2fits`):
+
+- Parameters: `hips`, `width`, `height`, `projection` (CAR **is** listed as supported), `coordsys` (`icrs`|`galactic`), `ra`/`dec`/`fov` OR a `wcs` JSON dict of header key-values, `format` (`fits` default | `png` | `jpg`), `min_cut`/`max_cut`/`stretch`/`cmap` (only relevant for png/jpg), `rotation_angle`, `inverse_longitude`.
+- **Hard cap verified: width × height ≤ 50 Mpx.** 12288×6144 = 75.5 Mpx, so the full-res pull must be striped. 12288×1536 = 18.9 Mpx per strip → 4 latitude strips per band, each well under the cap (and small enough to dodge server timeouts).
+- unWISE HiPS IDs verified via MocServer (`alasky.cds.unistra.fr/MocServer/query?ID=*unWISE*`): **`CDS/P/unWISE/W1`**, **`CDS/P/unWISE/W2`**, and prebuilt color **`CDS/P/unWISE/color-W2-W1W2-W1`** (the ID itself confirms the R=W2, G=(W1+W2)/2, B=W1 convention).
+- `CDS/P/unWISE/W1` record verified: `hips_tile_format = jpeg fits` — **FITS tiles exist**, so `format=fits` returns real float values per band and we do our own stretch. `hips_order = 8`; copyright "CNRS/Universite de Strasbourg", license ODbL-1.0, "IPAC/NASA - D. Lang for the reprocessing".
+- The HiPS pyramid is precomputed at every order, so the server does the 38× downsample (2.75″ native → ~105″/px at 12288 wide) by picking the right order — the supersampling problem is solved server-side for free.
+
+**Rejected (b) raw unwise.me coadd tiles:** 18,240 tiles × 2 bands, hundreds of GB, plus our own tangent-plane→CAR mosaicking and inter-tile background matching, to feed a 75 Mpx product. Pure overkill.
+**Rejected (c) direct HiPS tile download + reproject:** HiPS tiles are HPX-projected image tiles, not `reproject_from_healpix`-consumable HEALPix maps; would require astropy + astropy-healpix + custom code to reimplement what hips2fits already does server-side.
+
+### 2. Colorization: Lang/Legacy-Surveys convention — chosen
+
+Verified the exact reference implementation, `_unwise_to_rgb` in `legacysurvey/legacypipe` `py/legacypipe/coadds.py`:
+
+```python
+scale1 = scale2 = 50.;  mn, mx = -1., 100.;  arcsinh = 1.
+img1 = w1/scale1; img2 = w2/scale2
+nlmap(x) = arcsinh(x*arcsinh)/sqrt(arcsinh)
+mean = (img1+img2)/2; I = nlmap(mean); img_i = I*img_i/mean   # color-preserving asinh
+normalize by (nlmap(mn), nlmap(mx));  B = img1(W1), R = img2(W2), G = (R+B)/2
+```
+
+This is *the* documented unWISE convention (matches the CDS color HiPS), is native to 2 bands, and its color-preserving asinh is exactly what tames the galactic bulge. Lupton `make_lupton_rgb` is rejected: needs astropy, and needs a synthetic green anyway — Lang's formulation *is* a Lupton-style asinh with the synthetic green built in. Keep `scale_per_band`, `mn`, `mx`, `arcsinh`, and the 3×N band→channel matrix as named tunables so SPHEREx's N=102 drops in later (default matrix for unWISE: `R=[0,1], G=[.5,.5], B=[1,0]`).
+
+Caveat (unverified): Lang's defaults assume native unWISE coadd flux units; the CDS FITS tiles *should* preserve them, but ship a `--auto-cut` percentile fallback in case the served values are rescaled.
+
+### 3. Coordinate frame / orientation
+
+- Verified in `CREDITS.md`: the base plate `starmap_2020_8k.exr` is the **celestial (equatorial)** SVS variant (galactic `_gal.exr` variants exist but weren't used). Scenes are standalone skies, though — nothing in the app requires cross-scene frame agreement.
+- Verified in `SpatialImageEnvironment.swift` (`makeSphere`, line ~233): the sphere gets a −90° Y rotation so **equirect center column (u=0.5) faces −Z at launch** — "lon 0 = forward".
+- **Recommendation: galactic frame, galactic center at image center.** For an IR dust map this is the canonical presentation (WISE/Planck): the Milky Way band runs horizontally around the viewer like a glowing horizon, and the bulge — the best part of the IR sky — is straight ahead at launch. Use `coordsys=galactic` / `GLON-CAR`/`GLAT-CAR` with GC at CRVAL.
+- **Mirror-parity risk (must verify empirically at preview):** an inside-of-sphere texture must be east-left "sky seen from within". Toggle is the `CDELT1` sign (or `inverse_longitude`). Verification anchor: in the preview, the Large and Small Magellanic Clouds must sit on the correct side of the bulge relative to any planetarium view (e.g. compare against the `spatial_deep_star_map` thumbnail, accounting for the frame difference, or Aladin Lite in galactic mode).
+
+### 4. Dependencies: none new
+
+Verified: pipeline Python is pyenv 3.14.5 with only `numpy 2.5.0` + `PIL 12.3.0` (astropy/reproject/healpy/scipy/tifffile all missing). hips2fits FITS output is a single primary HDU, float, big-endian — a ~35-line reader (2880-byte header blocks, parse `NAXIS1/2`, `BITPIX` −32/−64, `&gt;f4`/`&gt;f8` via numpy) suffices. Strong repo precedent: `backdrop_tool.py` already hand-parses Radiance RGBE for exactly this reason.
+
+### 5. Background / zero point
+
+For a visual product: per-band global percentile subtraction (default: subtract the ~30th percentile, clamp negatives to 0) applied before the Lang stretch. unWISE full-depth coadds have low-level moon-glow/scan stripes in W2; at 105″/px most average away, and asinh compression hides the rest. Expose `--bg-pct` as a tunable; do **not** attempt spatially varying background fitting unless the preview shows visible banding (note it as the escalation path).
+
+## Implementation steps
+
+### Step 1 — `scripts/fetch_unwise.py` (fetch stage, `fetch_potm.py` style)
+
+Output dir `Float/Resources/Textures/_raw/unwise/fits/`. Two subcommands:
+
+- `preview`: per band, one request — `hips=CDS/P/unWISE/W1|W2, width=4096, height=2048, projection=CAR, coordsys=galactic, ra/dec at GC (0,0 galactic — verify how ra/dec are interpreted under coordsys=galactic; if ambiguous, use the wcs form here too), fov=360, format=fits` → `W1_preview.fits`, `W2_preview.fits` (~33.5 MB each).
+- `fetch`: per band, 4 strips of 12288×1536 via the `wcs` JSON param: `CTYPE1/2 = GLON-CAR/GLAT-CAR`, `CDELT = ∓360/12288 = ∓0.029296875`, `CRVAL = (0,0)`, `CRPIX1 = 6144.5`, `CRPIX2 = 3072.5 − strip_row0` (CAR requires CRVAL2=0; strips select the lat band purely via CRPIX2). ~75.5 MB/strip, 8 strips total.
+- Resumable like fetch_potm: skip strips already on disk at expected size; sequential requests with retry/backoff; fall back to the `alaskybis` mirror on failure; same UA convention (`Mozilla/5.0 (Float unWISE fetcher; rick@theashfords.org)`).
+
+### Step 2 — `upscale/allsky_rgb.py` (source-agnostic band→RGB compose)
+
+- Minimal FITS reader (as above); assemble strips bottom-to-top per band → float array per band.
+- Stage contract (SPHEREx-ready): `compose(bands: list[np.ndarray], matrix: 3×N, scales: N, mn, mx, arcsinh, bg_pct) -&gt; uint8 RGB`; unWISE defaults are just one named config dict.
+- Wrap-seam sanity check built in: assert column 0 vs column −1 mean abs diff is small; also warn on NaN count (nan_to_num).
+- Outputs: `_raw/unwise/unwise_w1w2_equirectangular.tif` (8-bit sRGB, deflate-compressed TIFF — matches the SPHEREx `_raw/spherex/*.tif` precedent; `load_linear` handles 8-bit sRGB TIFF via PIL) + a 2048-wide preview JPG into `upscale/deepsky_prev/` for eyeballing.
+- **Preview the downstream look:** `process_backdrops.mono_hires` runs the tif through `load_linear`→`tonemap` (Reinhard), which darkens mids. Add a `--simulate-tonemap` preview mode that shows the post-Reinhard result; if too dark, the MANIFEST `hdr_exposure` slot (passed to `tonemap`) is the sanctioned knob — no special-casing needed.
+
+### Step 3 — Low-res preview gate (do FIRST, before the 600 MB pull)
+
+`fetch_unwise.py preview` → `allsky_rgb.py --preview` (4096×2048) → Rick eyeballs: (a) does IR-only sky read as a starfield or as a dust smear? (b) bulge blown out? (c) mirror parity correct (Magellanic Clouds check)? (d) seam clean? Only then run the full fetch. Total cost of the gate: ~10 minutes, ~70 MB.
+
+### Step 4 — Wiring
+
+- `upscale/process_backdrops.py` MANIFEST, after the SPHEREx rows (~line 65):
+  `("spatial_unwise_allsky", "unwise/unwise_w1w2_equirectangular.tif", "deepspace", None)` — at exactly 12288 wide it skips SR (the `elif` no-op branch), then luminance depth → deepspace stereo recipe → HEIC + thumbnail. No V100 needed (honors the standing rule trivially: this is downsample-only, done server-side by the HiPS pyramid).
+- `Float/Immersive/SpatialImageEnvironment.swift`, after the SPHEREx block (~line 64):
+  `.init(name: "spatial_unwise_allsky", title: "unWISE — Infrared Sky", grounded: false),`
+- `Float/Resources/Textures/CREDITS.md`, new section after the SPHEREx one: source (CDS hips2fits render of `CDS/P/unWISE/W1`/`W2`), process (this plan's scripts, Lang RGB convention), citations Lang 2014 (AJ 147, 108) and Meisner, Lang &amp; Schlegel 2017 (AJ 154, 161), plus WISE (Wright et al. 2010)/NEOWISE (Mainzer et al. 2011); suggested credit "unWISE (D. Lang, A. Meisner)/NASA/JPL-Caltech; HiPS: CDS, Strasbourg". **Flag: the CDS HiPS layer itself is ODbL-1.0 (CNRS/Unistra)** — underlying WISE data is public domain, but the CDS rendering carries attribution (and nominally share-alike) terms; record the credit line and note the raw-tile path (b) as the fallback if ODbL is ever deemed unacceptable for shipping.
+
+### Step 5 — Verification
+
+1. Seam: numeric column-0 vs column-−1 check in allsky_rgb (before HEIC), plus visual: roll the preview by width/2 and inspect the former seam.
+2. Poles: inspect top/bottom 5% of the preview for NaN holes or smearing anomalies.
+3. Orientation: bulge centered (faces −Z at launch); Magellanic-Cloud chirality check vs `spatial_deep_star_map`.
+4. `python3 upscale/process_backdrops.py --only spatial_unwise_allsky`, then sim build; confirm scene loads via the Stereo360 path and the thumbnail appears in the selector.
+
+## Risks
+
+- **50 Mpx cap** (verified) — handled by striping; **rate limits undocumented** — sequential + retry + alaskybis mirror.
+- **`wcs` JSON with GLON-CAR unverified** — I could not test a live request; implementer should validate with one cheap 512×256 strip first. If galactic CTYPEs misbehave, fall back to equatorial `RA---CAR` full-sky and roll/flip columns in numpy (a CAR frame rotation about the poles is a pixel roll; a full galactic↔equatorial rotation is not — so prefer fixing the request, not post-hoc numpy).
+- **Galactic plane saturation** — Lang asinh is designed for this data; `mn/mx/scale` tunables + preview gate.
+- **IR sky may read dust-heavy, not starry** — that's the point of the Step-3 gate; if rejected, the scripts still stand as the SPHEREx dry run.
+- **Flux-unit assumption behind Lang defaults** — `--auto-cut` percentile fallback.
+- **iCloud disk** — ~0.9 GB lands under `_raw/unwise/`; consider the off-repo archive note pattern used for `_raw/potm`.
+
+## Estimates
+
+- Preview gate: ~70 MB, ~10 min including eyeball.
+- Full fetch: ~604 MB FITS (8 strips × 75.5 MB), 30–90 min wall (server-render bound).
+- Compose: &lt;5 min CPU (numpy over 75 Mpx × 2 bands); output TIFF ~120–230 MB.
+- Pipeline (luminance depth + stereo synth + pack at 12K): ~10–20 min. HEIC ~30–60 MB.
+- Total: roughly 1–2.5 hours wall, ~1.7 GB peak disk.
+
+## Could NOT verify
+
+- Live behavior of `wcs`-JSON strip requests with galactic CTYPEs, and how `ra`/`dec` are interpreted when `coordsys=galactic` (docs ambiguous) — validate with a tiny request.
+- hips2fits render time and any throttling at ~19 Mpx/request.
+- That CDS FITS tiles preserve native unWISE flux units (affects Lang default cuts only).
+- The `hips_pixel_scale = 0.229` value's units in the MocServer record (inconsistent with order 8; immaterial here).
+- Which RA sits at the center column of `starmap_2020_8k.exr` (SVS 4851) — immaterial under the per-scene-independence conclusion, but check the SVS page if cross-scene alignment is ever wanted.
+
+### Critical Files for Implementation
+- /Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/upscale/process_backdrops.py (MANIFEST row; `mono_hires` path the tif flows through)
+- /Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/scripts/fetch_potm.py (pattern for the new `scripts/fetch_unwise.py`)
+- /Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/upscale/deepsky_pipeline.py (preview-mode + equirect/compose conventions for the new `upscale/allsky_rgb.py`)
+- /Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/Float/Immersive/SpatialImageEnvironment.swift (catalog entry; orientation convention)
+- /Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/Float/Resources/Textures/CREDITS.md (new unWISE section, ODbL flag)
+
+Sources: [hips2fits service docs](https://alasky.cds.unistra.fr/hips-image-services/hips2fits), [MocServer unWISE records](http://alasky.cds.unistra.fr/MocServer/query?ID=*unWISE*&amp;get=id&amp;fmt=ascii), [legacypipe coadds.py (`_unwise_to_rgb`)](https://github.com/legacysurvey/legacypipe/blob/main/py/legacypipe/coadds.py), [astroquery hips2fits docs](https://astroquery.readthedocs.io/en/latest/hips2fits/hips2fits.html), [unWISE viewer](https://catalog.unwise.me/viewer.html)</result>
+<usage><subagent_tokens>76835</subagent_tokens><tool_uses>17</tool_uses><duration_ms>306540</duration_ms></usage>
+</task-notification>
+
+---
+
+◇ ultraplan
+Starting Claude Code on the web…
+
+---
+
+ultraplan: session creation failed — Repo is too large to teleport. Please setup GitHub on https://claude.ai/code
+
+---
+
+I'll just approve as is. I mainly just wanted to see what ultracode was like.
+
+---
+
+<task-notification>
+<task-id>bynx3xdqx</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/0dda4d9e-6cbb-4a12-a541-fd4d105b1afb/tasks/bynx3xdqx.output</output-file>
+<status>completed</status>
+<summary>Background command "Fetch 4096x2048 W1+W2 preview FITS from hips2fits" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bt3p5gcbi</task-id>
+<tool-use-id>toolu_01Uw8GqFmJLhLKsVMjmuBurG</tool-use-id>
+<status>stopped</status>
+<summary>No completion record was found for this background shell command from the previous session. It may have been stopped (via the UI, Monitor timeout, or agent teardown — these leave no transcript marker), or it may have been running when the previous Claude Code process exited. Check the output file for partial results before assuming it completed.</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>bt3p5gcbi</task-id>
+<tool-use-id>toolu_01Uw8GqFmJLhLKsVMjmuBurG</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/0dda4d9e-6cbb-4a12-a541-fd4d105b1afb/tasks/bt3p5gcbi.output</output-file>
+<status>completed</status>
+<summary>Background command "Fetch 8 full-res 12288x1536 unWISE strips (~600 MB)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>b4xj843hz</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/0dda4d9e-6cbb-4a12-a541-fd4d105b1afb/tasks/b4xj843hz.output</output-file>
+<status>completed</status>
+<summary>Background command "Run spatial pipeline on unWISE scene (depth, stereo, HEIC)" completed (exit code 0)</summary>
+</task-notification>
+
+---
+
+The unwise images look excellent, but I'm seeing noticeable horizontal banding across the entire image.
