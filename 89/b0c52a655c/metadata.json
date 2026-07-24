@@ -3,13 +3,17 @@
   "checkpoint_id": "89b0c52a655c",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 37,
+  "checkpoints_count": 52,
   "files_touched": [
     ".gitignore",
     "Float/App/AppModel.swift",
     "Float/Immersive/ImmersiveView.swift",
     "Float/Immersive/SpatialImageEnvironment.swift",
     "Float/Interaction/Interaction.swift",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_carina_mystic.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m104_sombrero.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m16_pillars.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m8_lagoon.jpg",
     "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2207a.jpg",
     "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2208a.jpg",
     "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2210a.jpg",
@@ -20,6 +24,10 @@
     "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2410a.jpg",
     "Float/Resources/Textures/Backdrop/Thumbnails/spatial_spherex_full.jpg",
     "Float/Resources/Textures/Backdrop/Thumbnails/spatial_spherex_stars.jpg",
+    "Float/Resources/Textures/Backdrop/spatial_carina_mystic.heic",
+    "Float/Resources/Textures/Backdrop/spatial_m104_sombrero.heic",
+    "Float/Resources/Textures/Backdrop/spatial_m16_pillars.heic",
+    "Float/Resources/Textures/Backdrop/spatial_m8_lagoon.heic",
     "Float/Resources/Textures/Backdrop/spatial_potm2207a.heic",
     "Float/Resources/Textures/Backdrop/spatial_potm2208a.heic",
     "Float/Resources/Textures/Backdrop/spatial_potm2210a.heic",
@@ -38,6 +46,14 @@
     "upscale/deepsky_auto.json",
     "upscale/deepsky_auto_catalog.swift",
     "upscale/deepsky_pipeline.py",
+    "upscale/deepsky_prev/spatial_carina_mystic_mono.jpg",
+    "upscale/deepsky_prev/spatial_carina_mystic_mono_rot.jpg",
+    "upscale/deepsky_prev/spatial_m104_sombrero_mono.jpg",
+    "upscale/deepsky_prev/spatial_m104_sombrero_wrap_mono.jpg",
+    "upscale/deepsky_prev/spatial_m16_pillars_mono.jpg",
+    "upscale/deepsky_prev/spatial_m16_pillars_mono_rot.jpg",
+    "upscale/deepsky_prev/spatial_m8_lagoon_mono.jpg",
+    "upscale/deepsky_prev/spatial_m8_lagoon_mono_rot.jpg",
     "upscale/deepsky_prev/unwise_banding_check.jpg",
     "upscale/deepsky_prev/unwise_w1w2.jpg",
     "upscale/deepsky_prev/unwise_w1w2_bg30_mn-0.15_mx100.jpg",
@@ -68,13 +84,20 @@
       "compact_transcript": "/89/b0c52a655c/2/transcript.jsonl",
       "content_hash": "/89/b0c52a655c/2/content_hash.txt",
       "prompt": "/89/b0c52a655c/2/prompt.txt"
+    },
+    {
+      "metadata": "/89/b0c52a655c/3/metadata.json",
+      "transcript": "/89/b0c52a655c/3/full.jsonl",
+      "compact_transcript": "/89/b0c52a655c/3/transcript.jsonl",
+      "content_hash": "/89/b0c52a655c/3/content_hash.txt",
+      "prompt": "/89/b0c52a655c/3/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 356,
-    "cache_creation_tokens": 531533,
-    "cache_read_tokens": 22674808,
-    "output_tokens": 151476,
-    "api_call_count": 184
+    "input_tokens": 534,
+    "cache_creation_tokens": 696156,
+    "cache_read_tokens": 34191238,
+    "output_tokens": 222181,
+    "api_call_count": 278
   }
 }
