@@ -121,3 +121,7 @@ I think the image is done. The gpu is idle
 <status>completed</status>
 <summary>Background command "Verification build after round-3 prune" completed (exit code 0)</summary>
 </task-notification>
+
+---
+
+Let's go ahead and commit. Then prep a handoff so we can clear the session.
