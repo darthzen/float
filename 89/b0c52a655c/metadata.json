@@ -3,7 +3,7 @@
   "checkpoint_id": "89b0c52a655c",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 52,
+  "checkpoints_count": 70,
   "files_touched": [
     ".gitignore",
     "Float/App/AppModel.swift",
@@ -42,7 +42,9 @@
     "Float/Resources/Textures/CREDITS.md",
     "scripts/fetch_potm.py",
     "scripts/fetch_unwise.py",
+    "scripts/make_triage_page.py",
     "upscale/allsky_rgb.py",
+    "upscale/build_sr_wf_ui.py",
     "upscale/deepsky_auto.json",
     "upscale/deepsky_auto_catalog.swift",
     "upscale/deepsky_pipeline.py",
@@ -58,9 +60,13 @@
     "upscale/deepsky_prev/unwise_w1w2.jpg",
     "upscale/deepsky_prev/unwise_w1w2_bg30_mn-0.15_mx100.jpg",
     "upscale/depth_anything_v2.json",
+    "upscale/equirect_realesrgan_sr.json",
     "upscale/master_sr.py",
+    "upscale/neural_sr.py",
     "upscale/potm_auto_manifest.py",
+    "upscale/potm_usdu_master_sr.json",
     "upscale/process_backdrops.py",
+    "upscale/pruned_scenes.json",
     "upscale/starfield_stereo_depth_official.json"
   ],
   "sessions": [
@@ -91,13 +97,20 @@
       "compact_transcript": "/89/b0c52a655c/3/transcript.jsonl",
       "content_hash": "/89/b0c52a655c/3/content_hash.txt",
       "prompt": "/89/b0c52a655c/3/prompt.txt"
+    },
+    {
+      "metadata": "/89/b0c52a655c/4/metadata.json",
+      "transcript": "/89/b0c52a655c/4/full.jsonl",
+      "compact_transcript": "/89/b0c52a655c/4/transcript.jsonl",
+      "content_hash": "/89/b0c52a655c/4/content_hash.txt",
+      "prompt": "/89/b0c52a655c/4/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 534,
-    "cache_creation_tokens": 696156,
-    "cache_read_tokens": 34191238,
-    "output_tokens": 222181,
-    "api_call_count": 278
+    "input_tokens": 732,
+    "cache_creation_tokens": 1152417,
+    "cache_read_tokens": 49883812,
+    "output_tokens": 326900,
+    "api_call_count": 385
   }
 }
