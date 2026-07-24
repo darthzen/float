@@ -1,0 +1,98 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "89b0c52a655c",
+  "session_id": "15d0143e-25b3-4f03-b8f7-97a3327d22f3",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-24T16:33:50.905552Z",
+  "branch": "main",
+  "checkpoints_count": 2,
+  "save_step_count": 2,
+  "files_touched": [
+    ".gitignore",
+    "Float/App/AppModel.swift",
+    "Float/Immersive/ImmersiveView.swift",
+    "Float/Immersive/SpatialImageEnvironment.swift",
+    "Float/Interaction/Interaction.swift",
+    "Float/Resources/Textures/CREDITS.md",
+    "upscale/depth_anything_v2.json",
+    "upscale/process_backdrops.py",
+    "upscale/starfield_stereo_depth_official.json"
+  ],
+  "agent": "Claude Code",
+  "model": "claude-fable-5",
+  "turn_id": "4710794dcb2d",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 8,
+    "cache_creation_tokens": 26424,
+    "cache_read_tokens": 153459,
+    "output_tokens": 2522,
+    "api_call_count": 4
+  },
+  "session_metrics": {
+    "turn_count": 2
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-24T16:33:50.88474Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 191,
+    "total_committed": 0,
+    "total_lines_changed": 191,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 3473,
+      "user_lines_removed": 191,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        ".gitignore": 4,
+        "Float/App/AppModel.swift": 22,
+        "Float/Immersive/ImmersiveView.swift": 33,
+        "Float/Immersive/SpatialImageEnvironment.swift": 86,
+        "Float/Interaction/Interaction.swift": 20,
+        "Float/Resources/Textures/CREDITS.md": 46,
+        "scripts/fetch_potm.py": 201,
+        "scripts/fetch_unwise.py": 129,
+        "scripts/make_triage_page.py": 201,
+        "scripts/prune_scenes.py": 88,
+        "upscale/allsky_rgb.py": 175,
+        "upscale/build_sr_wf_ui.py": 120,
+        "upscale/deepsky_auto.json": 783,
+        "upscale/deepsky_auto_catalog.swift": 61,
+        "upscale/deepsky_pipeline.py": 319,
+        "upscale/equirect_realesrgan_sr.json": 177,
+        "upscale/master_sr.py": 175,
+        "upscale/neural_sr.py": 116,
+        "upscale/potm_auto_manifest.py": 118,
+        "upscale/potm_usdu_master_sr.json": 392,
+        "upscale/process_backdrops.py": 24,
+        "upscale/starfield_stereo_depth_official.json": 178
+      },
+      "user_removed_per_file": {
+        "Float/App/AppModel.swift": 1,
+        "Float/Immersive/ImmersiveView.swift": 3,
+        "Float/Interaction/Interaction.swift": 4,
+        "upscale/depth_anything_v2.json": 178,
+        "upscale/process_backdrops.py": 5
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 5,
+      "user_lines_removed": 0,
+      "agent_lines_added": 3468,
+      "agent_lines_removed": 191,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      }
+    }
+  ]
+}

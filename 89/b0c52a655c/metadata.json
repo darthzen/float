@@ -3,7 +3,7 @@
   "checkpoint_id": "89b0c52a655c",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 11,
+  "checkpoints_count": 13,
   "files_touched": [
     ".gitignore",
     "Float/App/AppModel.swift",
@@ -27,13 +27,20 @@
       "compact_transcript": "/89/b0c52a655c/0/transcript.jsonl",
       "content_hash": "/89/b0c52a655c/0/content_hash.txt",
       "prompt": "/89/b0c52a655c/0/prompt.txt"
+    },
+    {
+      "metadata": "/89/b0c52a655c/1/metadata.json",
+      "transcript": "/89/b0c52a655c/1/full.jsonl",
+      "compact_transcript": "/89/b0c52a655c/1/transcript.jsonl",
+      "content_hash": "/89/b0c52a655c/1/content_hash.txt",
+      "prompt": "/89/b0c52a655c/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 101,
-    "cache_creation_tokens": 136802,
-    "cache_read_tokens": 6091944,
-    "output_tokens": 53084,
-    "api_call_count": 54
+    "input_tokens": 109,
+    "cache_creation_tokens": 163226,
+    "cache_read_tokens": 6245403,
+    "output_tokens": 55606,
+    "api_call_count": 58
   }
 }
