@@ -1,0 +1,13 @@
+I'm trying to get to my ollama instance in sdf1 via the ollama cli and the connection keeps timing out. I'm using OLLAMA_HOST=http://192.168.7.160:9401 to run it through my grafana exporter, but I've also tried it against the direct address, http://192.1687.153:11434. Neither is responding, but when I look at the deployment in rancher, I'm not seeing any issues.
+
+---
+
+Okay. I forgot about scaling it down while I was using comfyui. I feel foolish.
+
+---
+
+We could keep ollama pinned to a version that supports cuda_v12, but the caution is noted (though likely soon forgotten).
+
+---
+
+If that happens, would switching to vllm or another server be an option for preserving my hardware investment?
