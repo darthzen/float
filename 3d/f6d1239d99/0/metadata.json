@@ -1,0 +1,334 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "3df6d1239d99",
+  "session_id": "2fb2f414-57fa-46c0-b69c-49e9fd3df841",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-25T22:43:59.415073Z",
+  "branch": "main",
+  "checkpoints_count": 17,
+  "save_step_count": 17,
+  "files_touched": [
+    "upscale/build_sr_wf_ui.py",
+    "upscale/deepsky_auto.json",
+    "upscale/deepsky_auto_catalog.swift",
+    "upscale/deepsky_pipeline.py",
+    "upscale/equirect_360_outpaint.json",
+    "upscale/potm_auto_manifest.py",
+    "upscale/sky360.py"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "d72618c06d29",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 238,
+    "cache_creation_tokens": 801807,
+    "cache_read_tokens": 20782211,
+    "output_tokens": 126456,
+    "api_call_count": 120
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "prompt-skill-claude-code-handoff-2026-07-25T21:08:33.760156Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "handoff"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "d72618c06d29",
+      "timestamp": "2026-07-25T21:08:33.760156Z",
+      "native": {
+        "command": "/handoff"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/handoff",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 17
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-25T22:43:59.110205Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 1438,
+    "human_modified": 692,
+    "human_removed": 0,
+    "total_committed": 1438,
+    "total_lines_changed": 2148,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 5,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 5,
+      "user_lines_removed": 0,
+      "agent_lines_added": 1299,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1333,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1359,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1359,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 6,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1359,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 7,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1359,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 8,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1359,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 9,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1366,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 10,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1377,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 11,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1377,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 12,
+      "user_lines_added": 95,
+      "user_lines_removed": 48,
+      "agent_lines_added": 1395,
+      "agent_lines_removed": 68,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/deepsky_auto.json": 1,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/deepsky_auto.json": 1,
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 13,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1396,
+      "agent_lines_removed": 69,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 14,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1396,
+      "agent_lines_removed": 69,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 15,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1402,
+      "agent_lines_removed": 69,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 16,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1402,
+      "agent_lines_removed": 69,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    },
+    {
+      "checkpoint_number": 17,
+      "user_lines_added": 94,
+      "user_lines_removed": 47,
+      "agent_lines_added": 1402,
+      "agent_lines_removed": 69,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/equirect_360_outpaint.json": 88,
+        "upscale/equirect_360_usdu_refine.json": 1
+      },
+      "user_removed_per_file": {
+        "upscale/equirect_360_outpaint.json": 46,
+        "upscale/equirect_360_usdu_refine.json": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "3df6d1239d99",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 17,
+  "files_touched": [
+    "upscale/build_sr_wf_ui.py",
+    "upscale/deepsky_auto.json",
+    "upscale/deepsky_auto_catalog.swift",
+    "upscale/deepsky_pipeline.py",
+    "upscale/equirect_360_outpaint.json",
+    "upscale/potm_auto_manifest.py",
+    "upscale/sky360.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/3d/f6d1239d99/0/metadata.json",
+      "transcript": "/3d/f6d1239d99/0/full.jsonl",
+      "compact_transcript": "/3d/f6d1239d99/0/transcript.jsonl",
+      "content_hash": "/3d/f6d1239d99/0/content_hash.txt",
+      "prompt": "/3d/f6d1239d99/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 238,
+    "cache_creation_tokens": 801807,
+    "cache_read_tokens": 20782211,
+    "output_tokens": 126456,
+    "api_call_count": 120
+  }
+}
