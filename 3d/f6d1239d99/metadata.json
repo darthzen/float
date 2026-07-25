@@ -3,13 +3,26 @@
   "checkpoint_id": "3df6d1239d99",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 17,
+  "checkpoints_count": 22,
   "files_touched": [
+    "Float/App/AppModel.swift",
+    "Float/App/FloatApp.swift",
+    "Float/App/SplashView.swift",
+    "Float/Immersive/ImmersiveView.swift",
+    "Float/Resources/Assets.xcassets/AppIcon.solidimagestack/Back.solidimagestacklayer/Content.imageset/back.png",
+    "Float/Resources/Assets.xcassets/AppIcon.solidimagestack/Front.solidimagestacklayer/Content.imageset/front.png",
+    "Float/Resources/Assets.xcassets/AppIcon.solidimagestack/Middle.solidimagestacklayer/Content.imageset/middle.png",
+    "project.yml",
+    "scripts/backdrop_tool.py",
     "upscale/build_sr_wf_ui.py",
     "upscale/deepsky_auto.json",
     "upscale/deepsky_auto_catalog.swift",
     "upscale/deepsky_pipeline.py",
     "upscale/equirect_360_outpaint.json",
+    "upscale/equirect_360_seam.json",
+    "upscale/make_icon.py",
+    "upscale/neural_sr.py",
+    "upscale/pack_spatial.swift",
     "upscale/potm_auto_manifest.py",
     "upscale/sky360.py"
   ],
@@ -20,13 +33,20 @@
       "compact_transcript": "/3d/f6d1239d99/0/transcript.jsonl",
       "content_hash": "/3d/f6d1239d99/0/content_hash.txt",
       "prompt": "/3d/f6d1239d99/0/prompt.txt"
+    },
+    {
+      "metadata": "/3d/f6d1239d99/1/metadata.json",
+      "transcript": "/3d/f6d1239d99/1/full.jsonl",
+      "compact_transcript": "/3d/f6d1239d99/1/transcript.jsonl",
+      "content_hash": "/3d/f6d1239d99/1/content_hash.txt",
+      "prompt": "/3d/f6d1239d99/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 238,
-    "cache_creation_tokens": 801807,
-    "cache_read_tokens": 20782211,
-    "output_tokens": 126456,
-    "api_call_count": 120
+    "input_tokens": 511,
+    "cache_creation_tokens": 1125473,
+    "cache_read_tokens": 51926389,
+    "output_tokens": 293112,
+    "api_call_count": 267
   }
 }
