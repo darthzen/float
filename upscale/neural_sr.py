@@ -93,9 +93,8 @@ def _run_pod(pod, local_png, tag, out_png, timeout_s=1800):
     subprocess.run(["kubectl", "cp", f"{NS}/{pod}:{remote}", out_png], check=True)
 
 
-def sr_equirect(im, tag, target_w):
-    """Upscale a PIL equirect to exactly (target_w, target_w//2) via RealESRGAN on the
-    pod, wrap-padded across the lon seam. Returns a PIL Image."""
+def _sr_pass(im, tag):
+    """One wrap-padded RealESRGAN x4 pass over a PIL equirect. Returns a PIL Image."""
     import numpy as np
     arr = np.asarray(im.convert("RGB"))
     padded = np.concatenate([arr[:, -WRAP_PAD:], arr, arr[:, :WRAP_PAD]], axis=1)
@@ -110,7 +109,26 @@ def sr_equirect(im, tag, target_w):
         _log(f"  SR {tag}: {im.size[0]}x{im.size[1]} -> {up.size[0]}x{up.size[1]} "
              f"({MODEL}, {time.time() - t0:.0f}s)")
         pad = WRAP_PAD * MODEL_SCALE
-        up = up.crop((pad, 0, up.size[0] - pad, up.size[1]))
-        if up.size != (target_w, target_w // 2):
-            up = up.resize((target_w, target_w // 2), Image.LANCZOS)
-        return up
+        return up.crop((pad, 0, up.size[0] - pad, up.size[1]))
+
+
+def sr_equirect(im, tag, target_w):
+    """Upscale a PIL equirect to exactly (target_w, target_w//2), wrap-padded across the
+    lon seam so +/-180 (directly behind the viewer) stays continuous.
+
+    Multi-pass when one x4 undershoots: the sky360 diffusion canvas is 1536 wide and the
+    target is 12288, so it needs x8. Between passes the frame is Lanczos-shrunk to
+    target/4 so the FINAL x4 lands exactly on target — otherwise the last pass would have
+    to produce (and kubectl cp) a 300-megapixel intermediate. Sources that already reach
+    target/4 in one pass behave exactly as before (single pass, then Lanczos down)."""
+    n = 0
+    while im.width * MODEL_SCALE < target_w:
+        im = _sr_pass(im, f"{tag}_p{n}")
+        n += 1
+        if im.width * MODEL_SCALE > target_w:      # another full pass would overshoot
+            im = im.resize((target_w // MODEL_SCALE, target_w // (2 * MODEL_SCALE)),
+                           Image.LANCZOS)
+    up = _sr_pass(im, f"{tag}_p{n}" if n else tag)
+    if up.size != (target_w, target_w // 2):
+        up = up.resize((target_w, target_w // 2), Image.LANCZOS)
+    return up

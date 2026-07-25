@@ -12,6 +12,13 @@ final class AppModel {
     enum ImmersionState { case closed, opening, open }
     var immersion: ImmersionState = .closed
 
+    /// True once the FIRST sky has finished loading into the immersive space — the signal
+    /// SplashView fades out on. Deliberately one-way: `immersion == .open` only means the
+    /// space exists, and the real wait is decoding a ~100 MB stereo HEIC into two 12288×6144
+    /// textures. Never reset on a scene change — swapping skies is masked by the §7b
+    /// whiteout, and re-showing the launch view mid-session would read as a crash.
+    var sceneReady = false
+
     /// Index of the current sky in `SpatialImageEnvironment.catalog`. Restored across
     /// launches by NAME (not index) so catalog additions/reorders don't shift the selection.
     var currentScene: Int = 0

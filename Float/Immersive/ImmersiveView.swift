@@ -30,6 +30,7 @@ struct ImmersiveView: View {
             model.sceneRoot = scene
             Task { @MainActor in
                 await SpatialImageEnvironment.load(index: model.currentScene, into: scene)
+                model.sceneReady = true      // drops SplashView (see AppModel.sceneReady)
             }
 
             // §7b whiteout overlay — a persistent inward white sphere (alpha 0) a jump flashes.

@@ -1,5 +1,16 @@
 #!/usr/bin/env python3
-"""Render the Float app icon — a classic red/white fishing bobber floating on water.
+"""RETIRED (2026-07-25) — superseded by the "Backlit" (2C) icon.
+
+The shipping icon is now hand-authored artwork installed directly at
+Float/Resources/Assets.xcassets/AppIcon.solidimagestack (figure silhouette against a
+warm corona, on deep space). This script still renders the OLD red/white bobber
+concept. It writes only to upscale/icon_layers/ and never into the asset catalog, so
+running it cannot clobber the shipping icon — but do not copy its output over the
+catalog. Kept as the record of the previous concept; the 2C plate geometry is
+documented in the design drop's IMPLEMENTATION.md if it ever needs regenerating.
+
+--- original description ---
+Render the Float app icon — a classic red/white fishing bobber floating on water.
 
 visionOS app icons are LAYERED (back/middle/front, each 1024×1024); the system
 composites them with parallax + a circular glass mask on the Home View. We render:

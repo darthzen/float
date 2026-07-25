@@ -2,13 +2,13 @@
  {
   "name": "spatial_potm2508a",
   "rel": "../potm_sr/potm2508a.png",
-  "kind": "field",
+  "kind": "object",
   "params": {
-   "fov_x": 130,
+   "fov_x": 85,
    "lon": 0,
    "lat": 0,
-   "feather": 0.3,
-   "exposure": 0.35
+   "feather": 0.14,
+   "exposure": 0.25
   },
   "title": "Dusty wisps round a dusty disc"
  },
@@ -41,13 +41,13 @@
  {
   "name": "spatial_potm2405a",
   "rel": "../potm/potm2405a.tif",
-  "kind": "object",
+  "kind": "field",
   "params": {
-   "fov_x": 85,
+   "fov_x": 130,
    "lon": 0,
    "lat": 0,
-   "feather": 0.14,
-   "exposure": 0.25
+   "feather": 0.3,
+   "exposure": 0.35
   },
   "title": "Fireworks of stellar starbursts"
  },
@@ -106,13 +106,13 @@
  {
   "name": "spatial_potm2305a",
   "rel": "../potm/potm2305a.tif",
-  "kind": "object",
+  "kind": "field",
   "params": {
-   "fov_x": 85,
+   "fov_x": 130,
    "lon": 0,
    "lat": 0,
-   "feather": 0.14,
-   "exposure": 0.25
+   "feather": 0.3,
+   "exposure": 0.35
   },
   "title": "Webb peers behind bars"
  },
@@ -158,13 +158,13 @@
  {
   "name": "spatial_potm2208a",
   "rel": "../potm_sr/potm2208a.png",
-  "kind": "object",
+  "kind": "field",
   "params": {
-   "fov_x": 85,
+   "fov_x": 130,
    "lon": 0,
    "lat": 0,
-   "feather": 0.14,
-   "exposure": 0.25
+   "feather": 0.3,
+   "exposure": 0.35
   },
   "title": "Webb Inspects the Heart of the Phantom Galaxy"
  },
@@ -210,13 +210,13 @@
  {
   "name": "spatial_weic2615a",
   "rel": "../potm_sr/weic2615a.png",
-  "kind": "field",
+  "kind": "object",
   "params": {
-   "fov_x": 194,
+   "fov_x": 193,
    "lon": 0,
    "lat": 0,
-   "feather": 0.3,
-   "exposure": 0.35
+   "feather": 0.14,
+   "exposure": 0.25
   },
   "title": "Centaurus A (MIRI image)"
  },
@@ -251,7 +251,7 @@
   "rel": "../potm/weic2427a.tif",
   "kind": "object",
   "params": {
-   "fov_x": 85,
+   "fov_x": 239,
    "lon": 0,
    "lat": 0,
    "feather": 0.14,
@@ -281,7 +281,8 @@
    "lon": 0,
    "lat": 0,
    "feather": 0.12,
-   "exposure": 0.2
+   "exposure": 0.2,
+   "desc": "empty deep space"
   },
   "title": "Saturn\u2019s rings shine in Webb\u2019s observations of ringed planet"
  },
@@ -290,7 +291,7 @@
   "rel": "../potm/bullet-cluster.tif",
   "kind": "object",
   "params": {
-   "fov_x": 85,
+   "fov_x": 191,
    "lon": 0,
    "lat": 0,
    "feather": 0.14,
@@ -303,7 +304,7 @@
   "rel": "../potm_sr/potm2401b.png",
   "kind": "field",
   "params": {
-   "fov_x": 210,
+   "fov_x": 240,
    "lon": 0,
    "lat": 0,
    "feather": 0.3,
@@ -329,7 +330,7 @@
   "rel": "../potm_sr/weic2520b.png",
   "kind": "field",
   "params": {
-   "fov_x": 182,
+   "fov_x": 181,
    "lon": 0,
    "lat": 0,
    "feather": 0.3,

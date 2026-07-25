@@ -6,30 +6,49 @@ import SwiftUI
 struct FloatApp: App {
     @State private var model = AppModel()
 
+    // Every panel here is `Window`, not `WindowGroup`: a WindowGroup is a *template* and
+    // `openWindow(id:)` spawns a fresh instance each call, so re-tapping "Scenes…" — or the
+    // §7 double-pinch, which fires whenever a pinch pair lands — stacked duplicate pickers
+    // and menus in the space. `Window` is a singleton scene: opening an already-open one
+    // just brings it forward.
     var body: some Scene {
-        WindowGroup(id: "launcher") {
-            LauncherView()
-                .environment(model)
+        Window("Float", id: "launcher") {
+            // LauncherView stays MOUNTED under the splash rather than being swapped for
+            // it: its `.task` is what opens the immersive space, so gating it behind
+            // `sceneReady` would mean nothing ever loads and the splash never lifts.
+            ZStack {
+                LauncherView()
+                    .environment(model)
+                if !model.sceneReady {
+                    SplashView().transition(.opacity)
+                }
+            }
+            // Explicit size because `.contentSize` shrink-wraps to the ideal size, and
+            // SplashView has none (it is maxWidth/maxHeight .infinity by design). Without
+            // this the launch window collapses around the menu and the splash renders in
+            // a sliver.
+            .frame(width: 720, height: 520)
+            .animation(.easeInOut(duration: 0.8), value: model.sceneReady)
         }
         .windowResizability(.contentSize)
 
         // Reading panel (Kindle Cloud Reader etc.) as its own window — the system gives it a
         // drag bar + resize + eye-level placement, so you can put it wherever you're lying.
-        WindowGroup(id: "reader") {
+        Window("Reader", id: "reader") {
             ReaderPanelView()
         }
         .defaultSize(width: 640, height: 900)
 
         // Scene picker (§7a) — its own window so it can be opened from inside the immersive
         // space and left floating while iterating on a specific sky.
-        WindowGroup(id: "scenes") {
+        Window("Scenes", id: "scenes") {
             SceneSelectorView()
                 .environment(model)
         }
         .defaultSize(width: 520, height: 640)
 
         // Entertainment sub-menu — Kindle / Music / Video.
-        WindowGroup(id: "entertainment") {
+        Window("Entertainment", id: "entertainment") {
             EntertainmentMenuView()
         }
         .defaultSize(width: 400, height: 480)

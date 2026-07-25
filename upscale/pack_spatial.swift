@@ -17,7 +17,13 @@ let left = load(L), right = load(R)
 guard let dst = CGImageDestinationCreateWithURL(URL(fileURLWithPath: OUT) as CFURL,
         UTType.heic.identifier as CFString, 2, nil) else { fatalError("no dst") }
 
-let opts: [String:Any] = [kCGImageDestinationLossyCompressionQuality as String: 0.9]
+// 0.9 removed the pipeline's 1-LSB dither again on smooth deep-space gradients — the
+// codec spends no bits on sub-threshold noise, so the contour bands came straight back
+// (measured on a shallow dark ramp: flat runs 2px dithered -> 90px after a q0.9 round
+// trip). These are sideloaded assets on a 256 GB device, so bits are the cheap side of
+// this trade. Override with FLOAT_HEIC_QUALITY if a scene ever needs to be shrunk.
+let quality = ProcessInfo.processInfo.environment["FLOAT_HEIC_QUALITY"].flatMap(Double.init) ?? 1.0
+let opts: [String:Any] = [kCGImageDestinationLossyCompressionQuality as String: quality]
 CGImageDestinationAddImage(dst, left, opts as CFDictionary)
 CGImageDestinationAddImage(dst, right, opts as CFDictionary)
 

@@ -134,12 +134,25 @@ def load_linear(path):
 
 # ---------------------------------------------------------------- tonemap
 
-def tonemap(lin, exposure=0.0, gamma=1.0, black=0.0):
+DITHER_SEED = 0x5100D                # fixed: the asset pipeline stays reproducible
+
+
+def tonemap(lin, exposure=0.0, gamma=1.0, black=0.0, dither=True):
     """Exposure (stops) -> optional black lift/crush -> Reinhard -> sRGB encode.
 
     Reinhard rather than a hard clip: night panoramas carry a very bright Milky
     Way core and moon against a near-black ground, and clipping blows the core
     into a flat white blob that reads as a light leak on the inside of a sphere.
+
+    `dither` adds triangular-PDF noise of +/-1 LSB immediately before the 8-bit
+    quantise. Deep space is mostly a very shallow gradient sitting in the bottom
+    ~10% of the range, where plain rounding lands 20-odd distinct levels across a
+    whole hemisphere: measured ~90px-wide flat steps, which on the inside of a
+    sphere at arm's length read as concentric contour bands. TPDF dither turns the
+    step into noise below the visible threshold (same measurement: flat runs 89px
+    -> 2px). It costs file size, because noise is what a codec cannot compress —
+    that is the trade, and it is why pack_spatial's quality had to come up too, or
+    the encoder simply removes the dither again.
     """
     x = lin * (2.0 ** exposure)
     if black:
@@ -149,7 +162,16 @@ def tonemap(lin, exposure=0.0, gamma=1.0, black=0.0):
         x = np.clip(x, 0.0, 1.0) ** gamma
     x = np.clip(x, 0.0, 1.0)
     srgb = np.where(x <= 0.0031308, x * 12.92, 1.055 * (x ** (1 / 2.4)) - 0.055)
-    return (np.clip(srgb, 0, 1) * 255.0 + 0.5).astype(np.uint8)
+    v = np.clip(srgb, 0, 1) * 255.0
+    if dither:
+        # In row blocks: a full-frame noise array at 12288x6144x3 is ~0.9 GB per draw,
+        # and TPDF needs two.
+        rng = np.random.default_rng(DITHER_SEED)
+        for r in range(0, v.shape[0], 512):
+            blk = v[r:r + 512]
+            blk += rng.random(blk.shape, np.float32)
+            blk -= rng.random(blk.shape, np.float32)
+    return np.clip(v + 0.5, 0, 255).astype(np.uint8)
 
 
 # ---------------------------------------------------------------- measuring
