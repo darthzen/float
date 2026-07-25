@@ -25,3 +25,7 @@ There is a zip file now in the home directory that contains a new icon and a spl
 ---
 
 the Float directory
+
+---
+
+Commit, but don't push. I will probably cut a few more images before we push.
