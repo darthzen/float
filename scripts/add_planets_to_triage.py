@@ -27,14 +27,22 @@ CARDS = [
     ("saturn",       "Saturn — live lighting",
      "8192 map (4096 real under SR) · honest to ~29&deg; · rings span 2.27 R"),
     ("saturn_baked", "Saturn — ring shadow baked",
-     "Cycles bake at 8192, globe unlit &middot; the shadow ON THE GLOBE is baked in and "
-     "survives into RealityKit &middot; the globe's shadow ACROSS THE RINGS is live Cycles "
-     "here and will NOT appear in the app yet (ring UV is 1-D, nothing to bake into)"),
-    ("jupiter",      "Jupiter",
-     "8192 map (4096 real under SR) · honest to ~29&deg;"),
-    ("iapetus",      "Iapetus &mdash; mono mosaic",
-     "8192 from the Cassini/Voyager mono mosaic &middot; honest to ~47&deg; &middot; "
-     "the 11741 colour map would reach ~59&deg; but has smeared poles and seams"),
+     "Cycles bake at 8192, globe unlit &middot; <b>should look near-identical to the card "
+     "above — that is the pass condition</b>, it means the bake reproduced the ray-traced "
+     "lighting faithfully (measured: mean diff 0.25/255, 2.7% of pixels). The difference "
+     "only appears IN THE APP, where the live-lit version loses the ring shadow entirely "
+     "because RealityKit cannot cast it &middot; caveat: the globe's shadow ACROSS THE RINGS "
+     "is live Cycles here and will NOT survive (ring UV is 1-D, nothing to bake into)"),
+    ("jupiter",      "Jupiter &mdash; Cassini + Juno",
+     "14400 REAL (Björn Jónsson) vs 4096 for the artist texture it replaces &middot; honest "
+     "to ~62&deg;, the sharpest body here &middot; spun to put the Great Red Spot on the "
+     "visible face &middot; graded +35% sat, +0.15 contrast &middot; poles are partly "
+     "synthetic where Juno data was blended in &middot; ⚠ redistribution needs a call, "
+     "see CREDITS.md"),
+    ("iapetus",      "Iapetus &mdash; colour mosaic",
+     "11741 real Cassini/Voyager colour &middot; honest to ~59&deg; &middot; the two-tone "
+     "split (bright trailing side vs dark Cassini Regio) is the point &middot; known "
+     "defects: smeared poles, mosaic seams, green cast near the terminator"),
     ("venus",        "Venus",
      "8192 real (SSS surface) &middot; honest to ~47&deg; &middot; "
      "retrograde, so north reads inverted"),

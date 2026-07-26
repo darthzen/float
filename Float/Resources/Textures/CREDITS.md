@@ -552,3 +552,51 @@ Scripts: `scripts/fetch_unwise.py` + `upscale/allsky_rgb.py`.
   HiPS: CDS, Strasbourg."
 - **Citations:** Lang 2014 (AJ 147, 108); Meisner, Lang & Schlegel 2017
   (AJ 154, 161); Wright et al. 2010 (WISE); Mainzer et al. 2011 (NEOWISE).
+
+## Planet / moon surface maps (geometry test bodies)
+
+These drive the USDZ bodies built by `scripts/render_planets.py`. The maps
+themselves live on the scratch volume (`FloatScratch/planets/`), NOT in this
+repo — see the redistribution note below.
+
+`jupiter_css_juno_14400.jpg` — Cassini + Juno merged global map of Jupiter,
+14400×7200, by **Björn Jónsson** (2018), hosted by The Planetary Society
+(<https://www.planetary.org/articles/0514-juno-meets-cassini-a-new>). Cassini's
+near-global coverage from December 2000 with Juno's superior polar imagery
+merged in. Chosen for the swirling cloud structure — festoons, white ovals, the
+turbulent wake downstream of the Great Red Spot — which neither of the
+alternatives carried:
+
+| candidate | real px | saturation | verdict |
+|---|---|---|---|
+| Solar System Scope artist texture | 4096 | 0.137 | no resolved structure |
+| Voyager 2 (2025, Jónsson) | 5760 | 0.111 | real colour, but the palest of the three |
+| **Cassini + Juno (Jónsson)** | **14400** | 0.137 | swirls resolved; honest to ~62° |
+
+Note the map is partially "fictional" at the poles, as the author says on the
+TPS page: Juno polar data is blended into Cassini coverage that did not extend
+there. Rendered with +35% saturation and +0.15 contrast — real Jovian colour is
+genuinely pale and reads as washed out on its own.
+
+- **Terms:** "publicly available… you do not need a special permission to use
+  them but if you do then please mention their origin." Credit line:
+  **"Jupiter map created by Björn Jónsson (Cassini/Juno data, NASA/JPL)."**
+- **⚠ REDISTRIBUTION — needs a human decision.** The same author asks: *"please
+  do not place a copy of the maps on your website."* This repo is **public** on
+  GitHub, so committing the map file — or a USDZ with the full-res map embedded
+  — arguably is exactly that. Rendered images derived from it (the triage
+  previews) are clearly fine and are what the author says he'd like to see.
+  Resolve before any planet asset ships inside `Float/Resources/`.
+- **Underlying data:** NASA/JPL Cassini and Juno, public domain.
+
+`Iapetus_Color_Map.jpg` — Cassini/Voyager colour mosaic of Iapetus,
+11741×5871, NASA/JPL-Caltech/Space Science Institute (USGS Astrogeology).
+Public domain. Replaced the mono mosaic, which threw away the two-tone split
+between the bright trailing hemisphere and the dark Cassini Regio — the one
+thing Iapetus is known for. Known defects: smeared poles, visible mosaic
+seams, and a green cast near the terminator boundary.
+
+`saturn_map_8192.png`, `Solarsystemscope_texture_8k_venus_surface.jpg`,
+`Solarsystemscope_texture_8k_saturn_ring_alpha.png` — Solar System Scope
+(<https://www.solarsystemscope.com/textures/>), CC BY 4.0. Attribution
+required. Saturn's globe is only 4096 real under the 8192 SR.

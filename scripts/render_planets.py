@@ -48,13 +48,39 @@ PREV = Path(__file__).resolve().parent.parent / "upscale" / "planet_prev"
 # body fills a large part of the view.
 SEGMENTS, RINGS = 256, 128
 
-# Axial tilt (degrees) applied about X so the poles do not sit dead vertical — a body lit and
-# tilted reads as a world, a body square-on reads as a sticker. Venus is retrograde (177°),
-# which is why its "north" ends up nearly upside down; that is correct, not a bug.
+# Axial tilt (degrees), applied about Y so the pole leans SIDEWAYS in view rather than
+# toward the camera. For Saturn this is the difference between a wide-open bullseye of rings
+# and the near-edge-on look of the saturn1 scene: with the tilt about X the ring plane was
+# turned to face the viewer, so even a low camera saw them opened ~41 deg. About Y, the ring
+# opening is set by camera elevation alone (see render_preview) and the tilt reads as a lean.
+# Venus is retrograde (177 deg), which is why its "north" ends up nearly upside down; that is
+# correct, not a bug.
+#
+# `grade` optionally boosts saturation/contrast. Real spacecraft colour for the gas giants is
+# genuinely pale — the Voyager map below measures LESS saturated (0.111) than the artist
+# texture it replaces (0.137) — so accuracy alone reads as washed out. The map is used for
+# its structure, which is far better, and the grade puts the punch back.
 BODIES = {
-    "iapetus": {"map": "iapetus_map_8192.png", "tilt": 15.5},
-    "jupiter": {"map": "jupiter_map_8192.png", "tilt": 3.1},
-    "saturn":  {"map": "saturn_map_8192.png",  "tilt": 26.7, "rings": True},
+    # The colour mosaic, not the mono one: Iapetus's whole point is the two-tone split
+    # between the bright trailing side and the dark Cassini Regio, which mono throws away.
+    # 11741 px wide, so it also outresolves the 8192 mono.
+    # sun_z: a shallow -20 deg instead of the default +40. The spin brought the dark
+    # Cassini Regio round to face the camera, but the default sun then put that half in
+    # night — a rotated body lit by an unmoved sun. This lights the side the spin exposes
+    # and leaves only a soft terminator.
+    "iapetus": {"map": "Iapetus_Color_Map.jpg", "tilt": 15.5, "spin": 0.75,
+                "sun_z": -0.35},
+    # Cassini (Dec 2000) global coverage merged with Juno polar imagery by Björn Jónsson,
+    # 14400x7200 REAL — honest to ~62 deg, so this is the one body that can fill a lot of
+    # view and stay sharp. Chosen over both the Solar System Scope artist texture (4096, no
+    # resolved structure) and the Voyager 2 map (5760, but measurably the palest of the
+    # three) because it actually carries the swirling cloud structure: festoons, white ovals,
+    # the turbulent wake downstream of the Great Red Spot.
+    # `spin` puts the GRS on the visible face — the biggest swirl on the planet.
+    "jupiter": {"map": "jupiter_css_juno_14400.jpg", "tilt": 3.1, "spin": 0.58,
+                "grade": {"sat": 1.35, "contrast": 0.15}},
+    "saturn":  {"map": "saturn_map_8192.png",  "tilt": 26.7, "rings": True,
+                "grade": {"sat": 1.25, "contrast": 0.05}},
     "venus":   {"map": "Solarsystemscope_texture_8k_venus_surface.jpg", "tilt": 177.4},
 }
 
@@ -76,7 +102,19 @@ RING_SEGMENTS = 512
 # map with no ring shadow in it at all. Keeping the light horizontal means the tilt alone
 # sets the elevation (~20 deg here), which is both real and steep enough to land the shadow
 # on the lit hemisphere where it can be seen.
-SUN_EULER = (1.5708, 0.0, -0.698)   # radians (90 deg about X, -40 about Z)
+#
+# The SIGN of the Z term is not cosmetic — it decides which face of Saturn's rings is lit.
+# The ring normal after the 26.7 deg tilt is (0.449, 0, 0.893) and the camera sits on its
+# positive side. At Z = -40 the light direction is (0.643, 0.766, 0), so L·N = +0.289: the
+# sun struck the BACK of the ring plane and the camera saw an unlit silhouette — the rings
+# read as black bands. At Z = +40, L = (-0.643, 0.766, 0) and L·N = -0.289, lighting the face
+# the camera actually sees. A single-sided flat annulus makes this an either/or.
+SUN_EULER = (1.5708, 0.0, 0.698)    # radians (90 deg about X, +40 about Z)
+
+# Per-body sun azimuth override (radians about Z), for bodies whose interesting feature is
+# not where the default sun leaves it. One sun cannot serve every body: the azimuth that
+# lights Saturn's rings also decides how much of Iapetus is in night.
+SUN_Z_DEFAULT = 0.698
 BAKE_SIZE = 8192   # match the source map; 4096 halved the angular resolution the "huge vs sharp" budget assumed
 
 
@@ -101,10 +139,11 @@ def reset_scene():
     scene.cycles.samples = 256
 
 
-def add_sun():
+def add_sun(sun_z=None):
     bpy.ops.object.light_add(type="SUN", location=(0, 0, 0))
     sun = bpy.context.object
-    sun.rotation_euler = SUN_EULER
+    sun.rotation_euler = (SUN_EULER[0], SUN_EULER[1],
+                          SUN_Z_DEFAULT if sun_z is None else sun_z)
     sun.data.energy = 4.0
     # A real sun is not a point at this distance, and a hard-edged ring shadow looks CG.
     # ~0.53° is the sun's actual angular diameter from Earth; from Saturn it is far smaller,
@@ -113,14 +152,32 @@ def add_sun():
     return sun
 
 
-def make_globe(name, map_path, tilt_deg):
+def make_globe(name, map_path, tilt_deg, grade=None, spin=0.0):
     bpy.ops.mesh.primitive_uv_sphere_add(segments=SEGMENTS, ring_count=RINGS, radius=1.0)
     globe = bpy.context.object
     globe.name = name
     bpy.ops.object.shade_smooth()
     # The UV sphere primitive's default unwrap is already equirectangular (u wraps longitude,
     # v runs pole to pole), which is exactly how these maps are authored — no reprojection.
-    globe.rotation_euler = (tilt_deg * 3.14159265 / 180.0, 0, 0)
+    # Tilt about Y — see the note on BODIES for why not X.
+    globe.rotation_euler = (0, tilt_deg * 3.14159265 / 180.0, 0)
+
+    # `spin` turns the body about its own polar axis by shifting the equirect u coordinate,
+    # choosing which longitude faces the camera. It decides whether Iapetus shows its famous
+    # two-tone boundary or just a grey hemisphere.
+    #
+    # Done by editing the mesh UVs, NOT with a Mapping node. A Mapping node works in Cycles
+    # but Blender does not write it into the USD — checked, and the exported .usdc had no
+    # UsdTransform2d — so the preview would have shown a spun body while the actual asset
+    # shipped unspun. UVs are mesh data and always export.
+    #
+    # No modulo: values outside [0,1] are fine with REPEAT extension, whereas wrapping them
+    # would leave the faces spanning the seam with u running 0.99 -> 0.01 and smear the whole
+    # texture across that column.
+    if spin:
+        tex_layer = globe.data.uv_layers.active.data
+        for loop in tex_layer:
+            loop.uv[0] += spin
 
     mat = bpy.data.materials.new(f"{name}_mat")
     mat.use_nodes = True
@@ -130,7 +187,23 @@ def make_globe(name, map_path, tilt_deg):
     # Colour maps are authored in sRGB; the default guess is right for jpg but be explicit so
     # the png-vs-jpg sources cannot end up graded differently from each other.
     tex.image.colorspace_settings.name = "sRGB"
-    mat.node_tree.links.new(bsdf.inputs["Base Color"], tex.outputs["Color"])
+
+    # Optional grade between the map and the shader. Done in nodes rather than by editing the
+    # source file so the map on disk stays the untouched original — the grade is a look, and
+    # looks get revised.
+    src = tex.outputs["Color"]
+    if grade:
+        hs = mat.node_tree.nodes.new("ShaderNodeHueSaturation")
+        hs.inputs["Saturation"].default_value = grade.get("sat", 1.0)
+        mat.node_tree.links.new(hs.inputs["Color"], src)
+        src = hs.outputs["Color"]
+        if grade.get("contrast"):
+            bc = mat.node_tree.nodes.new("ShaderNodeBrightContrast")
+            bc.inputs["Contrast"].default_value = grade["contrast"]
+            mat.node_tree.links.new(bc.inputs["Color"], src)
+            src = bc.outputs["Color"]
+
+    mat.node_tree.links.new(bsdf.inputs["Base Color"], src)
     bsdf.inputs["Roughness"].default_value = 0.9   # no specular hotspot on a rock or a cloud deck
     bsdf.inputs["Metallic"].default_value = 0.0
     globe.data.materials.append(mat)
@@ -215,8 +288,8 @@ def build(body, do_bake, do_preview=False):
         return
     log(f"=== {body} ({map_path.name}) ===")
     reset_scene()
-    add_sun()
-    globe, mat, tex = make_globe(body, map_path, spec["tilt"])
+    add_sun(spec.get("sun_z"))
+    globe, mat, tex = make_globe(body, map_path, spec["tilt"], spec.get("grade"), spec.get("spin", 0.0))
     objects = [globe]
     if spec.get("rings"):
         rings = make_rings(body)
@@ -302,9 +375,13 @@ def render_preview(objects, name, r_eff):
     # background, which is what makes a render read as a cutout.
     world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.004, 0.005, 0.011, 1)
 
-    # 5x the effective radius puts the body at ~55% of frame width. Elevated by 1.3x so
-    # Saturn's rings open up instead of collapsing to a line.
-    bpy.ops.object.camera_add(location=(0, -5.0 * r_eff, 1.3 * r_eff))
+    # 5x the effective radius puts the body at ~55% of frame width.
+    #
+    # Elevation is the ring-opening control now that the axial tilt leans sideways rather
+    # than toward the camera: opening = asin(cos(tilt) * z / hypot(d, z)). At z = 1.2 that is
+    # ~12 deg, i.e. the near-edge-on read of the saturn1 scene, rather than the ~41 deg
+    # bullseye the tilt-toward-camera setup produced regardless of where the camera sat.
+    bpy.ops.object.camera_add(location=(0, -5.0 * r_eff, 1.2 * r_eff))
     cam = bpy.context.object
     scene.camera = cam
     track = cam.constraints.new(type="TRACK_TO")
