@@ -1,0 +1,5 @@
+The same stuttering pattern happens, but the loading text is helpful. If there's not an easy fix for the animations, we should just remove them.
+
+---
+
+The black transition isn't quite right it fades to black, then back to the original scene, then jumps to the next scene
