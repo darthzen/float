@@ -39,6 +39,9 @@ import bpy  # noqa: E402  (only importable inside Blender)
 
 SRC = Path("/Volumes/Logic Pro/FloatScratch/planets")
 OUT = Path("/Volumes/Logic Pro/FloatScratch/planets/usdz")
+# Previews live in the repo (small) so triage.html can reference them like the sky
+# thumbnails; the USDZ themselves stay on the scratch volume.
+PREV = Path(__file__).resolve().parent.parent / "upscale" / "planet_prev"
 
 # Sphere tessellation. 256x128 is well past what silhouette-smoothness needs at these angular
 # sizes; the cost is trivial next to the textures and it keeps the limb from faceting when a
@@ -60,9 +63,20 @@ RING_INNER, RING_OUTER = 1.235, 2.27
 RING_ALPHA = "Solarsystemscope_texture_8k_saturn_ring_alpha.png"
 RING_SEGMENTS = 512
 
-# Sun placement. Off to one side and slightly above so there is a terminator to read depth
-# from, but not so oblique that most of the body is unlit.
-SUN_EULER = (0.0, 0.98, 0.60)   # radians
+# Sun placement, as a rotation of the sun lamp's default -Z direction.
+#
+# 90 deg about X makes the light purely HORIZONTAL in world space (direction +Y, away from
+# the camera → front-lit); -40 about Z then swings it 40 deg to the side, which is what puts
+# a terminator on the globe instead of a flat full-face.
+#
+# The horizontal part is not an aesthetic choice, it is Saturn's geometry. The rings lie in
+# the equatorial plane, which is the globe's 26.7 deg axial tilt — so the sun can NEVER be
+# more than 26.7 deg above the ring plane. An earlier pass used 45 deg, which is physically
+# impossible for Saturn and threw the entire ring shadow onto the night side, i.e. baked a
+# map with no ring shadow in it at all. Keeping the light horizontal means the tilt alone
+# sets the elevation (~20 deg here), which is both real and steep enough to land the shadow
+# on the lit hemisphere where it can be seen.
+SUN_EULER = (1.5708, 0.0, -0.698)   # radians (90 deg about X, -40 about Z)
 BAKE_SIZE = 8192   # match the source map; 4096 halved the angular resolution the "huge vs sharp" budget assumed
 
 
@@ -193,7 +207,7 @@ def export_usdz(objects, path):
     log(f"wrote {path.name} ({path.stat().st_size / 1e6:.1f} MB)")
 
 
-def build(body, do_bake):
+def build(body, do_bake, do_preview=False):
     spec = BODIES[body]
     map_path = SRC / spec["map"]
     if not map_path.exists():
@@ -209,12 +223,17 @@ def build(body, do_bake):
         rings.rotation_euler = globe.rotation_euler   # rings sit in the equatorial plane
         objects.append(rings)
 
+    r_eff = RING_OUTER if spec.get("rings") else 1.0
     export_usdz(objects, OUT / f"{body}.usdz")
+    if do_preview:
+        render_preview(objects, body, r_eff)
 
     if do_bake and spec.get("rings"):
         log(f"{body}: baking ring/globe shadowing at {BAKE_SIZE} (slow)")
         bake_shadows(globe, mat, tex, body)
         export_usdz(objects, OUT / f"{body}_baked.usdz")
+        if do_preview:
+            render_preview(objects, f"{body}_baked", r_eff)
 
 
 def bake_shadows(globe, mat, tex, name):
@@ -248,12 +267,60 @@ def bake_shadows(globe, mat, tex, name):
     img.save()
     log(f"baked -> {out.name}")
 
-    # Swap the baked map in so the follow-up export carries it.
+    # Swap the baked map in as EMISSION, not base colour, and black out the diffuse.
+    #
+    # A baked map already contains the lighting. Feeding it back into Base Color leaves it
+    # lit a second time — by Cycles here, and by whatever light RealityKit has in the scene
+    # there — which is what washed the first attempt's terminator and ring shadow back out.
+    # Routing it to emission makes the surface unlit: what you baked is exactly what shows.
+    # UsdPreviewSurface carries this as `emissiveColor`, which is what RealityKit reads.
     bsdf = mat.node_tree.nodes["Principled BSDF"]
     for link in list(mat.node_tree.links):
-        if link.to_socket == bsdf.inputs["Base Color"]:
+        if link.to_socket in (bsdf.inputs["Base Color"], bsdf.inputs["Emission Color"]):
             mat.node_tree.links.remove(link)
-    mat.node_tree.links.new(bsdf.inputs["Base Color"], target.outputs["Color"])
+    bsdf.inputs["Base Color"].default_value = (0, 0, 0, 1)
+    mat.node_tree.links.new(bsdf.inputs["Emission Color"], target.outputs["Color"])
+    bsdf.inputs["Emission Strength"].default_value = 1.0
+
+
+def render_preview(objects, name, r_eff):
+    """Camera render of the body for the triage page.
+
+    2:1 to match the card aspect on triage.html — the grid crops anything else and would
+    slice the rings off Saturn. Distance is derived from the body's effective radius rather
+    than hand-set per body, so Iapetus and ringed Saturn frame the same way.
+    """
+    scene = bpy.context.scene
+    scene.render.resolution_x, scene.render.resolution_y = 1600, 800
+    scene.render.film_transparent = False
+    scene.cycles.samples = 128
+
+    world = bpy.data.worlds.new("preview_world")
+    scene.world = world
+    world.use_nodes = True
+    # Not pure black: a hair of ambient keeps the unlit limb from clipping into the
+    # background, which is what makes a render read as a cutout.
+    world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.004, 0.005, 0.011, 1)
+
+    # 5x the effective radius puts the body at ~55% of frame width. Elevated by 1.3x so
+    # Saturn's rings open up instead of collapsing to a line.
+    bpy.ops.object.camera_add(location=(0, -5.0 * r_eff, 1.3 * r_eff))
+    cam = bpy.context.object
+    scene.camera = cam
+    track = cam.constraints.new(type="TRACK_TO")
+    track.target = objects[0]          # always aim at the globe, rings or not
+    track.track_axis = "TRACK_NEGATIVE_Z"
+    track.up_axis = "UP_Y"
+
+    # JPEG, matching the sky thumbnails: these are triage previews committed to the repo, and
+    # lossless PNG costs ~1.6 MB apiece for something only ever looked at in a browser grid.
+    out = PREV / f"{name}.jpg"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    scene.render.filepath = str(out)
+    scene.render.image_settings.file_format = "JPEG"
+    scene.render.image_settings.quality = 92
+    bpy.ops.render.render(write_still=True)
+    log(f"preview -> {out.name}")
 
 
 def main():
@@ -261,6 +328,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--only", help="build a single body (%s)" % ", ".join(BODIES))
     ap.add_argument("--bake", action="store_true", help="also run the slow Saturn shadow bake")
+    ap.add_argument("--preview", action="store_true", help="also render triage preview images")
     args = ap.parse_args(argv)
 
     OUT.mkdir(parents=True, exist_ok=True)
@@ -270,7 +338,7 @@ def main():
             log(f"unknown body {body}")
             continue
         try:
-            build(body, args.bake)
+            build(body, args.bake, args.preview)
         except Exception as exc:                  # noqa: BLE001 - one body failing must not
             log(f"FAILED {body}: {exc}")          # take the rest of the batch down
             import traceback
