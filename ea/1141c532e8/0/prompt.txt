@@ -1,0 +1,162 @@
+I created a directory in the Float root called screenshots, where I can drop screenshots of some specific issues. One is potm2307a  to show how it's still just an image in a box. The next is from m8_lagoon, where you can see that it's got gaps between the stitches, and the third
+  is from spherex_stars, where you can see the banding I've been talking about. Next, how was saturn1 upscaled to make the planet bigger? There are lots of pixelating artifacts. m31_andromeda and mgc4631_whale look like a bunch of images stacked on top of each other.
+
+---
+
+Work up the fixes and let's do the full run. I'm losing track of what's fixed where but not in place yet. I put a couple of lines on the image from spherex_stars. The screenshot makes them almost invisible, but they're very pronounced in the 3D space.
+
+---
+
+The sky reads as smooth gradient, aside from the stereo field issues we were just discussing. I want to get everything re-rendered with all the fixes and adjustments we've got so far so we can level set. If it will preserve token spend, give me a script to run and I can do it manually. Make the script with descriptive output so I can check the window periodically and see what's going on. Status bars would be especially nice.
+
+---
+
+The script is running in a screen session so you can easily look at the output, if you need to.
+
+---
+
+It's already running, but if you can add it in mid-stream, sure.
+
+---
+
+potm2508a going from 2901 to 3427 -- I thought we were upscaling to 8K. Did I misunderstand? Next, I stopped the rerender script. Can we move that cache in _raw/potm/ to the scratch volume before I restart it?
+
+---
+
+rashford@RICKs-MacBook-Pro Float % !sudo tmutil thinlocalsnapshots / 10000000000 4
+sudo ln -s "$(which bee)" /usr/local/bin/bee tmutil thinlocalsnapshots / 10000000000 4
+Password:
+ln: 4: No such file or directory
+rashford@RICKs-MacBook-Pro Float %
+
+---
+
+Done.
+
+---
+
+potm2410a should attack the shape first. delete sombrero_wrap. That angle is weird. leave m106_spiral for now and I'll look at it later.
+
+---
+
+The entry for sombrero_wrap is still showing, even though the image is blank.
+
+---
+
+While that's going, let's work on planetary images that will be better than what we have for Saturn right now. I love, for example, these solar flare images of the sun: https://svs.gsfc.nasa.gov/14497/ but I don't know if the resolution is good enough. Also, for solar flares, it would be amazing if that could actually be animated, but I'm guessing that would be difficult to impossible to do while maintaining fps and not ruining the stereo effect. If we used blender, could we render an animated 360 video that the user is standing inside?
+
+---
+
+There are textures at https://commons.wikimedia.org/wiki/Category:Solar_System_Scope that could be used on Blender spheres to create our own media.
+
+---
+
+The cylindrical planetary maps you suggested are probably a better source.
+
+---
+
+I'm willing to give that a try. So, what's the proposed methodology here? I want to be sure we're on the same page.
+
+---
+
+Let's do one of Iapetus, one of Jupiter of itself, and one of Saturn. Also, the app is unable to compile right now due to references to sombrero_wrap. Let's fix that first, and then do these renderings.
+
+---
+
+These would probably replace saturn1, but I want to wait until the rendering pass finishes before making that call. For now, they're alongside. I picked s
+
+---
+
+These would probably replace saturn1, but I want to wait until the rendering pass finishes before making that call. For now, they're alongside. I picked Saturn because I know the rings are a challenge. I want to do them for real, with real lighting work. I want to add the 8k Venus surface as a fourth object as well, since it shouldn't need upscaling, and I want to see how well that does.
+
+---
+
+Iapetus, I don't want greyscale. Is there a colorized version? Or a colored image that we could use as a reference to color this ourselves?
+
+I want these to all be huge. To fill the space in front of me, so companions won't be necessary, especially if we have a good starfield behind them. I think this might be good enough: https://www.solarsystemscope.com/textures/download/8k_stars.jpg
+
+---
+
+The only issue I see with deep_star_map is that it cluster stripe of stars going across it is pretty distinctive, and as such, it can make all the pictures look very similar unless we shift the viewpoint on each of these.
+
+---
+
+That's fine. This reminds me of a small task that can be backgrounded in a sub-agent. The menu should have a button to reorient the default viewpoint towards where the user is looking when the button is pressed.
+
+---
+
+Another sub-agent task is to change the color of the transition. Instead of going to white, go to black. The brightness of white is jolting when coming from dark picture to dark picture.
+
+---
+
+<task-notification>
+<task-id>ab4570e42d18ba673</task-id>
+<tool-use-id>toolu_014J4hYxmkWHXjjxEGuVcHNt</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/ab4570e42d18ba673.output</output-file>
+<status>completed</status>
+<summary>Agent "Add recenter-view menu button" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. Build passes.
+
+## What changed
+
+**`/Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/Float/App/AppModel.swift`**
+- Added `import ARKit / QuartzCore / simd`.
+- New `var worldTracking: WorldTrackingProvider?` (handed over by `ImmersiveView`) and `private(set) var recenterYaw: Float`.
+- New `func recenter()` — the whole implementation, ~12 lines.
+
+**`/Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/Float/Immersive/ImmersiveView.swift`**
+- New `.task { await runWorldTracking() }` alongside the existing hand-tracking task, plus a `runWorldTracking()` helper that runs its own `ARKitSession` with a `WorldTrackingProvider`, publishes it to the model, and parks on `session.events` to hold the session alive until `.task` cancellation.
+
+**`/Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/Float/Interaction/Interaction.swift`**
+- One line: `Button("Recenter") { model.recenter() }` in `ControlPanelView`.
+
+## Where the button lives
+
+Primary surface is **`LauncherView`** (in `AppModel.swift`) — the flat menu window that is the app's actual reachable UI. It sits between "Random Scene" and "Scenes…", styled `.bordered` with `systemImage: "dot.viewfinder"` to match its siblings, and `.disabled(model.immersion != .open)` since there is nothing to recenter before the immersive space exists. I also mirrored it into the in-scene `ControlPanelView` (which already duplicates "Random Scene"), so the two stay in sync when its reveal gesture is un-stubbed. I did *not* put it in `EntertainmentMenu.swift` — that window is Kindle/Music/Video, not scene control.
+
+## Head pose
+
+`WorldTrackingProvider.queryDeviceAnchor(atTimestamp: CACurrentMediaTime())` → `DeviceAnchor.originFromAnchorTransform`, queried on demand at button press only (nothing polls per frame). Verified against the XROS27.0 SDK `.swiftinterface` that this is still the current signature. `NSWorldSensingUsageDescription` was already in `Info.plist`, so no plist/entitlement change was needed.
+
+Yaw extraction: take the `-Z` column of the device transform, keep only its `(x, z)` components, and `atan2` that — dropping `y` *is* the yaw-only extraction, so pitch and roll never reach the quaternion. The rotation is written to `sceneRoot.orientation` as `simd_quatf(angle:axis: [0,1,0])`, which composes with (does not touch) the sphere's canonical `-π/2` facing in `makeSphere()`. Instant snap, no animation, no clock involvement — so the §5 one-clock rule isn't engaged at all. The camera is never touched.
+
+Two guards: a press is ignored if the device anchor isn't tracked, and ignored if the horizontal projection of forward is degenerate (user staring near-straight up or down), rather than snapping to an arbitrary heading.
+
+## Decision: recenter persists across scene changes
+
+The yaw lives on `sceneRoot`, the persistent `SpatialImageEnvironment` container; `load(index:into:)` only replaces the child sphere. So a scene switch inherits the current recenter for free. This is deliberate and I think correct — the yaw describes which way the user's *body* is pointing, not anything about a particular sky, and having the world jerk back to an arbitrary heading mid-session on a scene swap would be both surprising and a comfort regression. It resets on app relaunch (session-only, no persistence added, as scoped).
+
+One thing worth your call: I'd argue this *should* persist across launches too, for the common case of a user with a fixed favourite chair. That's a one-line `UserDefaults` addition next to the existing `lastSceneKey`. Not implemented — flagging rather than doing, per scope.
+
+## Verification
+
+`xcodegen generate` + `xcodebuild -scheme Float -destination 'generic/platform=visionOS' build` → **BUILD SUCCEEDED**, with zero warnings or errors from the changed files. I established a clean baseline build first, so the result is attributable. Note that `Float/Immersive/SpatialImageEnvironment.swift` and `Float/Layers/DepthLayers.swift` show in `git diff` — those are pre-existing uncommitted changes from your in-flight asset work, not mine. I touched nothing under `upscale/`, `scripts/`, or `Resources/Textures/`, ran no ComfyUI/kubectl jobs, and did not commit or push.
+
+**Unverified on hardware.** This cannot be functionally tested without the headset, and none of the runtime behaviour has been: that `queryDeviceAnchor` actually returns a tracked anchor in this app's session configuration, that the yaw sign is correct in practice (if it recenters to 180° off, the fix is negating `recenterYaw` — the sign convention is the single most likely thing to be wrong), that the snap reads as comfortable rather than jarring, and that the stereo disparity genuinely stays correct after rotation. The yaw-only constraint makes the disparity argument sound in principle, but "sound in principle" is not a comfort sign-off — this needs a person in the headset before it's done.</result>
+<usage><subagent_tokens>72830</subagent_tokens><tool_uses>32</tool_uses><duration_ms>354597</duration_ms></usage>
+</task-notification>
+
+---
+
+On app launch it should center on the viewer's current viewpoint.
+
+---
+
+Is the launchscreen just showing the icon something inherent to visionOS?
+
+---
+
+So, what I experience is staring at that launch screen for what feels like a long time, then the splash screen comes up and sits there unmoving for a long while. Eventually the immersion starts, but it's just flat black, and the splash still isn't doing anything. Then the splash stutters through a couple animations just before the transition into the first scene and then shifts over to the menu.
+
+---
+
+The recentering works perfectly. The black gap is worth restructuring for, IMO. If I'm waiting, I'd rather be in my loaded environment than in black limbo.
+
+---
+
+Let's work out the startup before we handoff. We're almost there. The loading straight into the starfield feels much better. The splash still sits there not moving for a while, before doing a couple herky jerky movements, and still only does anything smoothly right as you're loading the immersive space and going into the starfield. It might help if we at least add some "Loading starmaps..." text centered, right above the strip towards the bottom that animated a sliding light.
+
+---
+
+/handoff

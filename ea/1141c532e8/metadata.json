@@ -1,0 +1,38 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "ea1141c532e8",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 27,
+  "files_touched": [
+    "Float/App/AppModel.swift",
+    "Float/App/SplashView.swift",
+    "Float/Immersive/ImmersiveView.swift",
+    "Float/Immersive/SpatialImageEnvironment.swift",
+    "Float/Interaction/Interaction.swift",
+    "Float/Layers/DepthLayers.swift",
+    "scripts/rerender_all.py",
+    "upscale/deepsky_pipeline.py",
+    "upscale/master_sr.py",
+    "upscale/neural_sr.py",
+    "upscale/process_backdrops.py",
+    "upscale/sky360.py",
+    "upscale/stereo_synth.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/ea/1141c532e8/0/metadata.json",
+      "transcript": "/ea/1141c532e8/0/full.jsonl",
+      "compact_transcript": "/ea/1141c532e8/0/transcript.jsonl",
+      "content_hash": "/ea/1141c532e8/0/content_hash.txt",
+      "prompt": "/ea/1141c532e8/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 567,
+    "cache_creation_tokens": 542800,
+    "cache_read_tokens": 95492491,
+    "output_tokens": 323463,
+    "api_call_count": 303
+  }
+}
