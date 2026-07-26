@@ -1,0 +1,39 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "db803deb5baf",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 18,
+  "files_touched": [
+    "Float/App/AppModel.swift",
+    "Float/App/FloatApp.swift",
+    "Float/Immersive/ImmersiveView.swift",
+    "Float/Immersive/SpatialImageEnvironment.swift",
+    "Float/Resources/Textures/CREDITS.md",
+    "project.yml",
+    "scripts/make_triage_page.py",
+    "scripts/render_planets.py",
+    "upscale/deepsky_auto.json",
+    "upscale/m31_recut.py",
+    "upscale/neural_sr.py",
+    "upscale/process_backdrops.py",
+    "upscale/pruned_scenes.json",
+    "upscale/sky360.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/db/803deb5baf/0/metadata.json",
+      "transcript": "/db/803deb5baf/0/full.jsonl",
+      "compact_transcript": "/db/803deb5baf/0/transcript.jsonl",
+      "content_hash": "/db/803deb5baf/0/content_hash.txt",
+      "prompt": "/db/803deb5baf/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 182,
+    "cache_creation_tokens": 534988,
+    "cache_read_tokens": 12017120,
+    "output_tokens": 113830,
+    "api_call_count": 100
+  }
+}
