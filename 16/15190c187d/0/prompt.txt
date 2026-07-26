@@ -1,0 +1,11 @@
+The same stuttering pattern happens, but the loading text is helpful. If there's not an easy fix for the animations, we should just remove them.
+
+---
+
+The black transition isn't quite right it fades to black, then back to the original scene, then jumps to the next scene
+
+---
+
+The transition isn't long enough to worry about putting status text up. Consider this closed. Commit & push.
+
+Next up, while I get up and walk away for food, I want you to work on the entertainment area. First of all, I want the web viewer we have embedded for my Kindle viewer to become an embedded browser that people can use to browse the web. It should default to open to the last page used, which in my case will be the Kindle, and it should have the ability to have tabs, pull up history, and load iCloud tabs. Second, the Music integration just quits the app and opens the Music app. It needs to have an embedded interface. Same with the video. It should open up a window where you can select something from your TV app library to watch. Other streaming services can be gotten through the web browser, so maybe we relabel the button to make it clear where the content is coming from.
