@@ -68,11 +68,47 @@ SEAM_DENOISE = 0.40                 # round 6 (was 0.70): the seam band is now c
                                     # a continuity failure — so lower the denoise, don't
                                     # widen the mask
 FILL_BLUR = 32                      # px, near-rect fill: local continuation structure
-FILL_BLUR_FAR = 128                 # px, far-field fill: round 4 left ghost COPIES of
-                                    # the master (mirror tiles at blur 32 kept its
-                                    # morphology, which denoise 0.65 preserved) — far
-                                    # from the rect only a structureless wash remains
+FILL_BLUR_FAR = 128                 # px FLOOR for the far-field blur; the effective
+                                    # radius is scaled to the mirror-tile period, see
+                                    # FAR_BLUR_PERIOD_FRAC
+# Round 4 set the far blur to a flat 128px to kill the round-3 ghost COPIES of the
+# master. It did not: a Gaussian of radius 128 SOFTENS a morphology whose period is the
+# footprint size, it does not destroy it, and denoise 0.65 then faithfully redeveloped
+# the soft blobs back into full copies. On m8_lagoon (a 614px square footprint) that
+# shipped a literal triptych — the real Lagoon flanked by two mirrored Lagoons, with
+# black gutters where the master's own dark frame edge met its mirror. Round 7: scale
+# the far blur to the tile period so the repeated structure genuinely dies. At this
+# radius the far field converges to roughly the master's mean colour, which is the
+# point — FILL_DETAIL puts fine texture back for diffusion to develop, and fine texture
+# has no recognisable morphology to ghost.
+FAR_BLUR_PERIOD_FRAC = 0.60         # far blur radius >= this x the smaller footprint side
 GHOST_DIST = 256                    # px over which near fill fades to far fill
+# Round 7: the far field also has to get DARKER with distance from the footprint.
+# Without this the fill sits at the master's own brightness everywhere, so the whole
+# sphere ends up as luminous as the hero and "deep black sky" is lost — the milky
+# surround on potm2208a/potm2307a. Dimming toward a floor taken from the master's own
+# darks keeps it in-palette (a hard cut to pure black would just move the boundary),
+# and it is also what stops the mirror-ghosts that survive the blur, since anything
+# still lurking out there is multiplied toward the floor.
+# In DEGREES of arc from the footprint edge, not pixels or a fraction of the canvas.
+# The canvas is a 2:1 equirect, so WORK_H px spans 180deg and WORK_W px spans 360deg —
+# the same px/deg either way at the equator. A fraction-of-width scale looked fine on a
+# narrow object but was meaningless on a wide pano: potm2307a's footprint is 1024 of
+# 1536px, leaving ~256px of surround, so a 0.55*WORK_W = 845px ramp reached barely a
+# fifth of the way to the floor and the milky surround survived. Degrees make the
+# constant mean the same thing at every fov.
+FAR_FALLOFF_DEG = 45.0              # arc over which the far field dims to the floor
+FLOOR_PCTL = 2                      # percentile of the master taken as the sky floor
+FLOOR_GAIN = 0.50                   # ...then pushed BELOW it. Wall-to-wall starfield
+                                    # masters have no dark sky in them at all — measured,
+                                    # potm2307a's 1st percentile is 13 and potm2208a's is
+                                    # 11 — so "the master's own darks" is still grey and
+                                    # the surround stayed milky at any percentile. The
+                                    # floor has to go darker than anything in the frame;
+                                    # the gain keeps it in-palette rather than cutting to
+                                    # pure black, which would just move the boundary
+FAR_DETAIL_KEEP = 0.30              # fraction of FILL_DETAIL surviving at full falloff,
+                                    # so the deep field still has seeds to grow stars from
 FILL_DETAIL = 0.35                  # fraction of the master's FINE texture (detail finer
                                     # than FILL_BLUR) added back into the FAR fill. The
                                     # anchor dominance that fixed the palette problem is
@@ -97,6 +133,18 @@ MASK_OVERLAP = 48                   # px floor for how far the generation ring r
 # Fields dissolve further (they are meant to read as surrounding cloud, device round 1);
 # objects less, so the hero does not lose its own outline.
 FOOT_FEATHER = {"field": 0.22, "object": 0.14}
+# Superellipse exponent for the footprint edge: |x|^n + |y|^n = 1.
+# The feather made the boundary SOFT but left it a RECTANGLE — and a soft rectangle is
+# still a rectangle, with four corners and four straight edges, which is what potm2410a
+# still read as on device. Softness was never the missing thing; shape was.
+#   n=2   a true ellipse. Rejected: inscribed in a 261deg pano footprint it throws away
+#         the ends, which on the widest scenes is most of the picture.
+#   n=4   corners rounded away, straight edges gone, but the extremes of a wide pano are
+#         still ~97% of the way out (0.5^(1/4) = 0.84 of half-width at the diagonal vs
+#         0.71 for an ellipse). Straight-edge cue dies; content survives.
+# One exponent used by BOTH the canvas build and the final re-composite, for the same
+# reason FOOT_FEATHER is: if the two disagree, the hard edge comes back.
+FOOT_EXPONENT = 4.0
 REFINE_DENOISE = 0.30               # higher than SR's 0.20: we WANT invented detail
 REFINE_BY = 2.0                     # 1536x768 -> 3072x1536 (then ESRGAN x4 = 12288)
 
@@ -118,7 +166,12 @@ REFINE_BACKEND = os.environ.get("SKY360_REFINE", "none")
 # change can never silently reuse an old render — the previous round's near-miss was an
 # `[or]*` glob that cleared two of a scene's three stage files and left the third.
 # Old-tag files are just dead weight in the (gitignored) cache; delete them when happy.
-SKY_RECIPE = "r7"
+# r9, not r8: the round-7 sky360 changes were tagged r8, but four scenes then had their
+# MANIFEST `kind` corrected against the measured border level. `kind` selects the whole
+# canvas construction AND the prompt, yet it is not part of the cache key — so an r8
+# stage file could be reused under the opposite recipe. Bumping is the cheap structural
+# fix; a cache key that silently means two different things is not.
+SKY_RECIPE = "r10"
 
 # The field prompt has to ask for CONTINUATION, not surroundings. These masters are
 # crops: the subject runs past every frame edge, so "deep space surrounding X" invites
@@ -133,14 +186,28 @@ POS_TMPL = ("seamless 360 degree equirectangular panorama, {desc} continuing out
 # (batch 1: Saturn grew extra planets, Andromeda a twin swirl) and flat dark surrounds
 # show USDU tile seams. Their fill is a flat estimate of the master's own border sky,
 # denoise high, prompt = starfield — prompt dominance is CORRECT here.
-POS_OBJ = ("seamless 360 degree equirectangular deep space starfield surrounding "
-           "{desc}, vast field of scattered stars, tiny distant stars, tiny faint "
-           "remote background galaxies, deep black sky, photorealistic astrophotography")
+#
+# The subject is deliberately NOT named (device round 7). It used to read "...starfield
+# surrounding {desc}", and at denoise 0.85 with a flat fill the prompt is what dominates,
+# so naming the hero told the model to PAINT one: Andromeda came back with a twin swirl
+# in the upper right and its disc continued at a different tilt than the master's, which
+# together read as "a bunch of images stacked on top of each other". The mask already
+# preserves the real object; the surround only ever needs to be empty sky, so the hero's
+# name has no business in this prompt. (The FIELD prompt still names it, and must —
+# there the subject genuinely has to run off the frame edge and keep going.)
+POS_OBJ = ("seamless 360 degree equirectangular deep space starfield, vast field of "
+           "scattered stars, tiny distant stars, tiny faint remote background galaxies, "
+           "deep black sky, photorealistic astrophotography")
 OBJ_DENOISE = 0.85
 NEG = ("text, watermark, signature, caption, border, frame, vignette, planet earth, "
        "ground, terrain, horizon, people, spacecraft, window, lens flare, blurry, "
        "lowres, jpeg artifacts, oversaturated")
-NEG_OBJ = NEG + ", planet, planets, moon, moons, glowing orb, sphere, planetary rings"
+# The scale words matter: plain "galaxy" would also suppress the tiny remote ones the
+# positive prompt asks for. These target a SECOND HERO — something large enough to
+# compete with the master — not galaxies as such.
+NEG_OBJ = (NEG + ", planet, planets, moon, moons, glowing orb, sphere, planetary rings,"
+           " large galaxy, prominent galaxy, spiral arms, galactic core, bright nebula,"
+           " second galaxy, duplicate, mirrored copy")
 
 
 def _log(msg):
@@ -211,8 +278,31 @@ def _upload(pod, local_path, remote_name):
                    check=True)
 
 
+def _existing_outputs(pod, tag):
+    """Names of {tag}_*.png already in the pod's output dir, before we submit."""
+    r = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
+                        f"ls /basedir/output/{tag}_*.png 2>/dev/null"],
+                       capture_output=True, text=True)
+    return {l.strip() for l in r.stdout.splitlines() if l.strip()}
+
+
 def _run(pod, wf, tag, out_png, timeout_s=3600):
-    """Submit an API workflow, poll the queue to idle, fetch the newest output."""
+    """Submit an API workflow, wait for a NEW output file, fetch it.
+
+    Completion is detected by a new file appearing under this tag, not by the global
+    queue going idle. Polling the queue is a race: ComfyUI does not necessarily have
+    the prompt in queue_running/queue_pending the instant the POST returns, so the
+    first poll can read "idle" and break immediately — after which `ls -t` copies
+    whatever was newest, i.e. the PREVIOUS run's output for this scene. That is silent:
+    the stage looks like it succeeded in ~1s and the pipeline carries an old render all
+    the way to a packed HEIC. Observed live on spatial_carina_mystic, where it happened
+    to pick up an interrupted run's own output and so did no harm — but the pod keeps
+    skyout_* files from earlier recipes for every scene, and any of those would have
+    been taken just as happily. Requiring a filename we have not seen before makes the
+    stale case impossible rather than unlikely; the queue check is kept only as a
+    secondary settle so we do not grab a file that is still being written.
+    """
+    before = _existing_outputs(pod, tag)
     with tempfile.NamedTemporaryFile("w", suffix=".json", delete=False) as tf:
         json.dump({"prompt": wf}, tf)
         wfp = tf.name
@@ -227,30 +317,28 @@ def _run(pod, wf, tag, out_png, timeout_s=3600):
     if '"prompt_id"' not in r.stdout:
         raise RuntimeError(f"submit failed for {tag}: {r.stdout[:300]} {r.stderr[:200]}")
     t0 = time.time()
+    remote = ""
     while time.time() - t0 < timeout_s:
-        q = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
-                            "curl -s -m 6 http://127.0.0.1:8188/queue"],
-                           capture_output=True, text=True)
-        try:
-            d = json.loads(q.stdout)
-            if len(d.get("queue_running", [])) + len(d.get("queue_pending", [])) == 0:
-                break
-        except Exception:
-            pass
         time.sleep(4)
-    ls = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
-                         f"ls -t /basedir/output/{tag}_*.png 2>/dev/null | head -1"],
-                        capture_output=True, text=True)
-    remote = ls.stdout.strip()
+        fresh = sorted(_existing_outputs(pod, tag) - before)
+        if fresh:
+            # Newest of the new. Two can appear if a killed run left a job in flight;
+            # same seed and inputs, so either is right — take the latest.
+            remote = fresh[-1]
+            idle = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
+                                   "curl -s -m 6 http://127.0.0.1:8188/queue"],
+                                  capture_output=True, text=True)
+            try:
+                d = json.loads(idle.stdout)
+                if len(d.get("queue_running", [])) + len(d.get("queue_pending", [])) == 0:
+                    break
+            except Exception:
+                break
     if not remote:
-        raise RuntimeError(f"no output for {tag} (check the pod queue before resubmitting)")
+        raise RuntimeError(
+            f"no NEW output for {tag} after {time.time() - t0:.0f}s — the job never "
+            f"produced a file (check the pod queue and /basedir/output before resubmitting)")
     subprocess.run(["kubectl", "cp", f"{NS}/{pod}:{remote}", out_png], check=True)
-
-
-def _mirror_map(coords, period):
-    """Signed coords mapped onto a mirror-tiled source of size `period`."""
-    m = np.mod(coords, 2 * period)
-    return np.where(m < period, m, 2 * period - 1 - m)
 
 
 def _smoothstep(t):
@@ -281,6 +369,18 @@ def _mirror_blend_seam(rolled, band=SEAM_BAND):
     return np.clip(out + 0.5, 0, 255).astype(np.uint8)
 
 
+def footprint_alpha(w, h, feather, n=FOOT_EXPONENT):
+    """Soft-edged superellipse alpha over a w x h footprint. 1 inside, 0 at the edge.
+
+    `feather` keeps its old meaning — a fraction of the FULL width, not the half-width —
+    so the existing FOOT_FEATHER numbers still produce the same ramp thickness in pixels.
+    Hence the 2x: r runs 0..1 over the half-extent."""
+    x = (np.arange(w, dtype=np.float32) + 0.5) / w * 2.0 - 1.0
+    y = (np.arange(h, dtype=np.float32) + 0.5) / h * 2.0 - 1.0
+    r = (np.abs(x)[None, :] ** n + np.abs(y)[:, None] ** n) ** (1.0 / n)
+    return _smoothstep((1.0 - r) / max(2.0 * feather, 1e-9))
+
+
 def build_canvas(master_im, fov_x, lat, kind="field"):
     """Place the master on a 2:1 canvas at its natural angular proportions. The rest
     of the canvas is a mirror-tiled + heavily blurred extension of the master — the
@@ -295,24 +395,71 @@ def build_canvas(master_im, fov_x, lat, kind="field"):
     y0 = int(round(WORK_H * (0.5 - lat / 180.0) - hf / 2))
     y0 = max(0, min(WORK_H - hf, y0))
     small = np.asarray(master_im.resize((wf, hf), Image.LANCZOS), np.uint8)
+
+    # Angular distance from the footprint rect, and the two ramps driven off it. Shared
+    # by both recipes: the falloff to a dark floor is not a field-only concern (a flat
+    # object fill taken from a bright border washes the whole sphere grey just as badly).
+    dx = np.maximum(np.maximum(x0 - np.arange(WORK_W), np.arange(WORK_W) - (x0 + wf - 1)), 0)
+    dy = np.maximum(np.maximum(y0 - np.arange(WORK_H), np.arange(WORK_H) - (y0 + hf - 1)), 0)
+    dist = np.hypot(dx[None, :], dy[:, None])
+    tf = _smoothstep(dist / (FAR_FALLOFF_DEG * (WORK_H / 180.0)))[..., None]
+    floor = (np.percentile(small.reshape(-1, 3), FLOOR_PCTL, axis=0)
+             * FLOOR_GAIN).astype(np.float32)
+
     if kind == "object":
-        # flat fill at the master's own border-sky level — no structure, no ghosts
+        # FLAT fill at the master's own border-sky level — no structure, no ghosts, and
+        # crucially no distance falloff.
+        #
+        # Round 7 briefly dimmed this toward a floor the way the field recipe does. That
+        # was a mistake and it regressed every object scene: a flat fill is uniform over
+        # the whole sphere, so there is no boundary anywhere for diffusion to find, but a
+        # dimmed one is a bounded disc of lighter sky around the footprint — which the
+        # outpaint duly developed into a halo with a visible edge. On device m104_sombrero,
+        # m106_spiral, m8_lagoon and potm2508a all came back as glowing portholes on black.
+        # The falloff was added to stop m31 washing the sphere grey from its bright border
+        # median, but m31's real problem was being mis-typed as an object at all (border
+        # 143). With `kind` measured correctly, an object's border median IS its dark sky,
+        # so there is nothing left to dim.
         ring = np.concatenate([small[:4].reshape(-1, 3), small[-4:].reshape(-1, 3),
                                small[:, :4].reshape(-1, 3), small[:, -4:].reshape(-1, 3)])
         fill = np.broadcast_to(np.median(ring, axis=0).astype(np.uint8),
                                (WORK_H, WORK_W, 3)).copy()
     else:
-        tiled = small[np.ix_(_mirror_map(np.arange(WORK_H) - y0, hf),
-                             _mirror_map(np.arange(WORK_W) - x0, wf))]
-        tiled_im = Image.fromarray(tiled, "RGB")
-        near = np.asarray(tiled_im.filter(ImageFilter.GaussianBlur(FILL_BLUR)), np.float32)
-        far = np.asarray(tiled_im.filter(ImageFilter.GaussianBlur(FILL_BLUR_FAR)), np.float32)
-        dx = np.maximum(np.maximum(x0 - np.arange(WORK_W), np.arange(WORK_W) - (x0 + wf - 1)), 0)
-        dy = np.maximum(np.maximum(y0 - np.arange(WORK_H), np.arange(WORK_H) - (y0 + hf - 1)), 0)
-        t = np.clip(np.hypot(dx[None, :], dy[:, None]) / GHOST_DIST, 0.0, 1.0)[..., None]
-        # Fine texture goes back into the far field only — the near field already carries
-        # blur-32 structure; it is the far wash that gives diffusion nothing to work with.
-        detail = (np.asarray(tiled_im, np.float32) - near) * FILL_DETAIL
+        # EDGE-CLAMP extension, not mirror tiling (round 7). Mirroring repeats the whole
+        # master every footprint-width, and diffusion at denoise 0.65 redevelops those
+        # repeats into real copies — the m8_lagoon triptych. It also butts the master's
+        # own dark frame edge against its mirror, doubling it into the BLACK GUTTERS that
+        # ran down the shipped frame. Clamping replicates the border row/column outward
+        # instead: it continues the palette from the master's actual edges, which is all
+        # this anchor was ever for, and it cannot produce either artefact because it
+        # contains no repeat and no reflection. Its own signature — radial streaking from
+        # each border pixel — is entirely below FILL_BLUR.
+        ext = small[np.ix_(np.clip(np.arange(WORK_H) - y0, 0, hf - 1),
+                           np.clip(np.arange(WORK_W) - x0, 0, wf - 1))]
+        ext_im = Image.fromarray(ext, "RGB")
+        near = np.asarray(ext_im.filter(ImageFilter.GaussianBlur(FILL_BLUR)), np.float32)
+        far_r = max(FILL_BLUR_FAR, int(round(FAR_BLUR_PERIOD_FRAC * min(wf, hf))))
+        far = np.asarray(ext_im.filter(ImageFilter.GaussianBlur(far_r)), np.float32)
+        t = np.clip(dist / GHOST_DIST, 0.0, 1.0)[..., None]
+        # Distance falloff toward a floor taken from the master's own darks.
+        far = far * (1 - tf) + floor[None, None, :] * tf
+        # Far-field seed texture is NOISE, not the master's own fine detail. FILL_DETAIL
+        # exists because a blurred anchor makes diffusion produce blurred sky — it needs
+        # high-frequency energy to develop into stars and filaments. But it does NOT need
+        # the master's SHAPES: measured on m8_lagoon, the mirror-tiled detail band carried
+        # p2p 80 out in the flank (against 10 for the blurred far field), i.e. the fine
+        # band was doing most of the ghosting on its own. Seeded noise at the same energy
+        # gives diffusion identical seeds with no morphology to copy. Seeded off the scene
+        # so the deterministic-core rule still holds.
+        rng = np.random.default_rng(zlib.crc32(f"fill{wf}x{hf}".encode()))
+        noise = rng.normal(0.0, 1.0, (WORK_H, WORK_W, 1)).astype(np.float32)
+        noise = np.asarray(Image.fromarray(
+            np.clip(noise[..., 0] * 40 + 128, 0, 255).astype(np.uint8), "L")
+            .filter(ImageFilter.GaussianBlur(1.5)), np.float32)
+        noise = (noise - noise.mean())[..., None] / max(noise.std(), 1e-6)
+        band = np.asarray(ext_im, np.float32) - near          # the master's own fine band
+        detail = noise * float(band.std()) * FILL_DETAIL
+        detail = detail * (1 - (1 - FAR_DETAIL_KEEP) * tf)
         fill = (near * (1 - t) + (far + detail) * t + 0.5)
         fill = np.clip(fill, 0, 255).astype(np.uint8)
     # Feather the master INTO its own fill rather than butting a hard rect against it.
@@ -323,9 +470,7 @@ def build_canvas(master_im, fov_x, lat, kind="field"):
     # letting the generation mask cover that whole ramp, means the density falls off
     # gradually and there is no boundary for USDU/ESRGAN to crisp up later.
     fr = FOOT_FEATHER[kind]
-    ax = _smoothstep(np.minimum(np.arange(wf), np.arange(wf)[::-1]) / (fr * wf + 1e-9))
-    ay = _smoothstep(np.minimum(np.arange(hf), np.arange(hf)[::-1]) / (fr * hf + 1e-9))
-    a = np.minimum(ax[None, :], ay[:, None])[..., None]
+    a = footprint_alpha(wf, hf, fr)[..., None]
     canvas = fill.astype(np.float32)
     rect = canvas[y0:y0 + hf, x0:x0 + wf]
     canvas[y0:y0 + hf, x0:x0 + wf] = rect * (1 - a) + small.astype(np.float32) * a

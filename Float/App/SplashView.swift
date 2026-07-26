@@ -1,78 +1,81 @@
 import SwiftUI
 
-/// Float's launch view: ripple rings expanding from a single suspended mote.
+/// Float's launch view: a single suspended mote inside frozen ripple rings.
 ///
-/// Design intent — the ripple *is* the loading indicator. Nothing spins and
-/// nothing counts, so an unknown load time never reads as a stall.
-///
-/// Rings and mote share one loop (`period`), which is what produces the
-/// "breathing" cadence. Phase is derived from the timeline date rather than
-/// held in view state, so the view stays consistent with the app's one-clock
-/// rule; swap `now` for `AnimationClock.simTime` if that is already running
-/// this early.
+/// **Deliberately static — do not reintroduce animation here.** This view was
+/// originally a `TimelineView(.animation)` whose ripples, mote pulse, drift and
+/// progress sweep all derived their phase from the timeline date. The scene load
+/// blocks the main thread in bursts, so the timeline stopped ticking and the
+/// animation froze and jumped rather than reading as motion — worse than no
+/// motion at all. Moving the ~150 MP stereo HEIC decode off the main actor
+/// (see `SpatialImageEnvironment.loadEyes`) removed one large stall but not the
+/// stutter; the rest is RealityKit's own main-thread work uploading the texture,
+/// which the app cannot relocate. Any main-thread-driven animation on this
+/// screen will freeze the same way, so the composition is a still frame and the
+/// status line carries the "something is happening" job instead.
 struct SplashView: View {
 
     var tagline: String = "Finding a quiet part of the sky"
+    var statusText: String = "Loading starmaps…"
     var showsProgress: Bool = true
 
-    /// Shared loop length for rings and mote.
-    private let period: Double = 6.2
     private let ringCount = 3
     /// The rings are flattened — a surface seen at a shallow angle, not a bullseye.
     private let ringSize = CGSize(width: 520, height: 300)
-    /// Exposed so the exit transition can carry the last ring past the window bounds.
-    let ringScaleRange: ClosedRange<Double> = 0.24...1.75
+    /// Frozen phases for the three rings, spread across the old loop so the
+    /// still frame keeps the layered-ripple silhouette.
+    private let ringPhases: [Double] = [0.16, 0.49, 0.82]
+    private let ringScaleRange: ClosedRange<Double> = 0.24...1.75
 
     var body: some View {
-        TimelineView(.animation) { context in
-            let now = context.date.timeIntervalSinceReferenceDate
-            let loop = (now / period).truncatingRemainder(dividingBy: 1)
+        ZStack {
+            starfield
 
             ZStack {
-                starfield
+                // Static guide ring: keeps the composition from emptying out.
+                Ellipse()
+                    .strokeBorder(Color(red: 0.55, green: 0.75, blue: 1).opacity(0.09), lineWidth: 1)
+                    .frame(width: ringSize.width, height: ringSize.height)
 
-                ZStack {
-                    // Static guide ring: keeps the composition from emptying out
-                    // between pulses.
-                    Ellipse()
-                        .strokeBorder(Color(red: 0.55, green: 0.75, blue: 1).opacity(0.09), lineWidth: 1)
-                        .frame(width: ringSize.width, height: ringSize.height)
-
-                    ForEach(0..<ringCount, id: \.self) { i in
-                        let phase = (loop + Double(i) / Double(ringCount))
-                            .truncatingRemainder(dividingBy: 1)
-                        ripple(phase: phase, index: i)
-                    }
-
-                    mote(loop: loop)
+                ForEach(0..<ringCount, id: \.self) { i in
+                    ripple(phase: ringPhases[i], index: i)
                 }
-                .offset(y: drift(now) - 24) // group sits slightly above centre
 
-                VStack(spacing: 22) {
-                    Text("FLOAT")
-                        .font(.system(size: 46, weight: .light))
-                        .tracking(21)                       // ≈ 0.46em
-                        .padding(.leading, 21)              // balances the trailing track
-                        .foregroundStyle(Color(red: 0.93, green: 0.95, blue: 0.98))
-                        .shadow(color: Color(red: 0.59, green: 0.77, blue: 1).opacity(0.25), radius: 20)
-
-                    Text(tagline.uppercased())
-                        .font(.system(size: 13, design: .monospaced))
-                        .tracking(2.6)
-                        .foregroundStyle(Color(red: 0.75, green: 0.82, blue: 0.94).opacity(0.58))
-                }
-                .frame(maxHeight: .infinity, alignment: .bottom)
-                .padding(.bottom, showsProgress ? 210 : 170)
-
-                if showsProgress {
-                    progressHairline(now: now)
-                        .frame(maxHeight: .infinity, alignment: .bottom)
-                        .padding(.bottom, 96)
-                }
+                mote
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(background)
+            .offset(y: -24) // group sits slightly above centre
+
+            VStack(spacing: 22) {
+                Text("FLOAT")
+                    .font(.system(size: 46, weight: .light))
+                    .tracking(21)                       // ≈ 0.46em
+                    .padding(.leading, 21)              // balances the trailing track
+                    .foregroundStyle(Color(red: 0.93, green: 0.95, blue: 0.98))
+                    .shadow(color: Color(red: 0.59, green: 0.77, blue: 1).opacity(0.25), radius: 20)
+
+                Text(tagline.uppercased())
+                    .font(.system(size: 13, design: .monospaced))
+                    .tracking(2.6)
+                    .foregroundStyle(Color(red: 0.75, green: 0.82, blue: 0.94).opacity(0.58))
+            }
+            .frame(maxHeight: .infinity, alignment: .bottom)
+            .padding(.bottom, showsProgress ? 190 : 170)
+
+            if showsProgress {
+                // Static text, and no bar. While the ~100 MB stereo HEIC decodes and
+                // uploads there is no honest progress fraction to report, and a bar
+                // that stalls at 40% reads worse than one that never claimed to know.
+                // This just names what the wait IS.
+                Text(statusText.uppercased())
+                    .font(.system(size: 12, design: .monospaced))
+                    .tracking(2.2)
+                    .foregroundStyle(Color(red: 0.72, green: 0.80, blue: 0.93).opacity(0.72))
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, 112)
+            }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(background)
     }
 
     // MARK: - Pieces
@@ -114,8 +117,8 @@ struct SplashView: View {
         .ignoresSafeArea()
     }
 
+    /// One ring frozen at `phase` of the old expansion curve.
     private func ripple(phase: Double, index: Int) -> some View {
-        // Ease-out expansion, with a quick fade in and a long fade out.
         let eased = 1 - pow(1 - phase, 2.2)
         let scale = ringScaleRange.lowerBound
             + (ringScaleRange.upperBound - ringScaleRange.lowerBound) * eased
@@ -132,9 +135,8 @@ struct SplashView: View {
             .opacity(opacity)
     }
 
-    private func mote(loop: Double) -> some View {
-        let pulse = sin(loop * 2 * .pi)
-        return Circle()
+    private var mote: some View {
+        Circle()
             .fill(
                 RadialGradient(
                     stops: [
@@ -147,37 +149,6 @@ struct SplashView: View {
             )
             .frame(width: 46, height: 46)
             .shadow(color: Color(red: 0.55, green: 0.75, blue: 1).opacity(0.3), radius: 35)
-            .scaleEffect(1 + pulse * 0.08)
-            .opacity(0.89 + pulse * 0.11)
-    }
-
-    /// Slow vertical drift — 12 s, intentionally out of sync with the ripple loop.
-    private func drift(_ now: Double) -> CGFloat {
-        CGFloat(sin(now / 12 * 2 * .pi) * 6)
-    }
-
-    private func progressHairline(now: Double) -> some View {
-        let t = (now / 2.6).truncatingRemainder(dividingBy: 1)
-        let travel = -0.66 + 3.32 * t   // matches the CSS sweep: -100% → 340%
-
-        return ZStack(alignment: .leading) {
-            Capsule().fill(Color(red: 0.66, green: 0.83, blue: 1).opacity(0.14))
-            Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.66, green: 0.83, blue: 1).opacity(0),
-                            Color(red: 0.78, green: 0.89, blue: 1).opacity(0.9),
-                            Color(red: 0.66, green: 0.83, blue: 1).opacity(0)
-                        ],
-                        startPoint: .leading, endPoint: .trailing
-                    )
-                )
-                .frame(width: 66)
-                .offset(x: 220 * travel)
-        }
-        .frame(width: 220, height: 1.5)
-        .clipShape(Capsule())
     }
 }
 

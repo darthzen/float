@@ -136,30 +136,46 @@ def depth_via_comfy(mono_png, name, out_png):
         subprocess.run([sys.executable, os.path.join(HERE, "build_depth_wf.py"),
                         f"{name}.png", f"depth_{name}"], stdout=open(wf, "w"), check=True)
         subprocess.run(["kubectl", "cp", wf, f"{NS}/{pod}:/tmp/wf_{name}.json"], check=True)
+        before = {l.strip() for l in subprocess.run(
+            ["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
+             f"ls /basedir/output/depth_{name}_*.png 2>/dev/null"],
+            capture_output=True, text=True).stdout.splitlines() if l.strip()}
         r = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
                             f"curl -s -m 15 -X POST http://127.0.0.1:8188/prompt "
                             f"-H 'Content-Type: application/json' -d @/tmp/wf_{name}.json"],
                            capture_output=True, text=True)
         if '"prompt_id"' not in r.stdout:
             raise RuntimeError(f"depth submit failed for {name}: {r.stdout} {r.stderr}")
-        for _ in range(120):
-            q = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
-                                "curl -s -m 6 http://127.0.0.1:8188/queue"], capture_output=True, text=True)
-            try:
-                import json
-                d = json.loads(q.stdout)
-                if len(d.get("queue_running", [])) + len(d.get("queue_pending", [])) == 0:
-                    break
-            except Exception:
-                pass
+        # Wait for a NEW file under this tag, not for the queue to read idle. The queue
+        # can report empty before ComfyUI registers a just-POSTed prompt, and the old
+        # code then took `ls -t | head -1` — i.e. the PREVIOUS run's depth map for this
+        # scene, silently, in about a second. Same failure as sky360._run; see the note
+        # there. Depth maps are especially bad to get wrong because a stale one still
+        # looks plausible: the scene packs fine and only the stereo is off.
+        def listing():
+            r = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
+                                f"ls /basedir/output/depth_{name}_*.png 2>/dev/null"],
+                               capture_output=True, text=True)
+            return {l.strip() for l in r.stdout.splitlines() if l.strip()}
+
+        remote = ""
+        for _ in range(150):
             time.sleep(4)
-        # newest matching output
-        ls = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
-                             f"ls -t /basedir/output/depth_{name}_*.png 2>/dev/null | head -1"],
-                            capture_output=True, text=True)
-        remote = ls.stdout.strip()
+            fresh = sorted(listing() - before)
+            if fresh:
+                remote = fresh[-1]
+                q = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
+                                    "curl -s -m 6 http://127.0.0.1:8188/queue"],
+                                   capture_output=True, text=True)
+                try:
+                    import json
+                    d = json.loads(q.stdout)
+                    if len(d.get("queue_running", [])) + len(d.get("queue_pending", [])) == 0:
+                        break
+                except Exception:
+                    break
         if not remote:
-            raise RuntimeError(f"no depth output for {name}")
+            raise RuntimeError(f"no NEW depth output for {name} — job produced no file")
         subprocess.run(["kubectl", "cp", f"{NS}/{pod}:{remote}", out_png], check=True)
 
 

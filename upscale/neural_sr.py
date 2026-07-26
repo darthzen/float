@@ -66,30 +66,48 @@ def _run_pod(pod, local_png, tag, out_png, timeout_s=1800):
         subprocess.run(["kubectl", "cp", wfp, f"{NS}/{pod}:/tmp/nsr_{tag}.json"], check=True)
     finally:
         os.unlink(wfp)
+    before = {l.strip() for l in subprocess.run(
+        ["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
+         f"ls /basedir/output/nsrout_{tag}_*.png 2>/dev/null"],
+        capture_output=True, text=True).stdout.splitlines() if l.strip()}
     r = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
                         f"curl -s -m 15 -X POST http://127.0.0.1:8188/prompt "
                         f"-H 'Content-Type: application/json' -d @/tmp/nsr_{tag}.json"],
                        capture_output=True, text=True)
     if '"prompt_id"' not in r.stdout:
         raise RuntimeError(f"SR submit failed for {tag}: {r.stdout[:300]} {r.stderr[:200]}")
-    t0 = time.time()
-    while time.time() - t0 < timeout_s:
-        q = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
-                            "curl -s -m 6 http://127.0.0.1:8188/queue"],
+    # Wait for a NEW file under this tag rather than for the queue to read idle. The
+    # queue can report empty before ComfyUI registers a just-POSTed prompt, and the old
+    # code then took `ls -t | head -1` — the PREVIOUS run's upscale for this exact tag,
+    # silently, in about a second. Third instance of this pattern (see sky360._run and
+    # process_backdrops.depth_via_comfy); this is the worst-placed of the three because
+    # sr_equirect runs on EVERY scene and the tags (`<scene>_sky_p0`) accumulate output
+    # files across every previous render, so there is always a stale file ready to be
+    # picked up. Requiring an unseen filename makes that impossible rather than unlikely.
+    def listing():
+        r = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
+                            f"ls /basedir/output/nsrout_{tag}_*.png 2>/dev/null"],
                            capture_output=True, text=True)
-        try:
-            d = json.loads(q.stdout)
-            if len(d.get("queue_running", [])) + len(d.get("queue_pending", [])) == 0:
-                break
-        except Exception:
-            pass
+        return {l.strip() for l in r.stdout.splitlines() if l.strip()}
+
+    t0 = time.time()
+    remote = ""
+    while time.time() - t0 < timeout_s:
         time.sleep(4)
-    ls = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
-                         f"ls -t /basedir/output/nsrout_{tag}_*.png 2>/dev/null | head -1"],
-                        capture_output=True, text=True)
-    remote = ls.stdout.strip()
+        fresh = sorted(listing() - before)
+        if fresh:
+            remote = fresh[-1]
+            q = subprocess.run(["kubectl", "exec", "-n", NS, pod, "--", "bash", "-lc",
+                                "curl -s -m 6 http://127.0.0.1:8188/queue"],
+                               capture_output=True, text=True)
+            try:
+                d = json.loads(q.stdout)
+                if len(d.get("queue_running", [])) + len(d.get("queue_pending", [])) == 0:
+                    break
+            except Exception:
+                break
     if not remote:
-        raise RuntimeError(f"no SR output for {tag}")
+        raise RuntimeError(f"no NEW SR output for {tag} after {time.time() - t0:.0f}s")
     subprocess.run(["kubectl", "cp", f"{NS}/{pod}:{remote}", out_png], check=True)
 
 

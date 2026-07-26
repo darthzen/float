@@ -51,9 +51,8 @@ enum SpatialImageEnvironment {
         .init(name: "spatial_m16_pillars",     title: "Pillars of Creation",   grounded: false),
         .init(name: "spatial_carina_mystic",   title: "Carina — Mystic Mountain", grounded: false),
         .init(name: "spatial_m8_lagoon",       title: "Lagoon Nebula",         grounded: false),
+        // The equidistant-wrap A/B (fov 95) lost — the angle read as weird on device.
         .init(name: "spatial_m104_sombrero",   title: "Sombrero Galaxy",       grounded: false),
-        // A/B pair for the approved Sombrero: equidistant wrap, bigger. Delete the loser.
-        .init(name: "spatial_m104_sombrero_wrap", title: "Sombrero Galaxy (Wrap)", grounded: false),
         .init(name: "spatial_s106_angel",      title: "S106 — Snow Angel",     grounded: false),
         .init(name: "spatial_m106_spiral",     title: "M106 Spiral Galaxy",    grounded: false),
         .init(name: "spatial_ngc4631_whale",   title: "Whale Galaxy",          grounded: false),
@@ -126,19 +125,32 @@ enum SpatialImageEnvironment {
     /// falls back to the mono skybox. Removes the previous sky so cycling doesn't stack spheres.
     @MainActor
     static func load(index: Int, into container: Entity) async {
+        guard let sphere = await prepare(index: index) else { return }
+        attach(sphere, to: container)
+    }
+
+    /// Build the skybox entity WITHOUT attaching it — the expensive half (HEIC decode,
+    /// two 12288x6144 texture uploads, the ShaderGraph material) with no scene required.
+    ///
+    /// Split out so the first sky can be decoded BEFORE the immersive space opens. The old
+    /// order was: open the space, then start loading into it, which left a real window where
+    /// the space existed with nothing in it — on device that read as "immersion starts, but
+    /// it's just flat black". Entities don't need a scene to exist, so the wait can happen
+    /// while the launcher/splash is still the only thing on screen, and the space can then
+    /// come up already populated.
+    @MainActor
+    static func prepare(index: Int) async -> ModelEntity? {
         let n = resourceNames.count
         let name = resourceNames[((index % n) + n) % n]
+        if let stereo = await makeStereoSphere(name: name) { return stereo }
+        if let mono = await makeMonoSphere(name: name) { return mono }
+        print("[Float] SpatialImageEnvironment: '\(name)' failed to load (stereo + mono)")
+        return nil
+    }
 
-        let sphere: ModelEntity
-        if let stereo = await makeStereoSphere(name: name) {
-            sphere = stereo
-        } else if let mono = await makeMonoSphere(name: name) {
-            sphere = mono
-        } else {
-            print("[Float] SpatialImageEnvironment: '\(name)' failed to load (stereo + mono)")
-            return
-        }
-
+    /// Swap a prepared skybox in, removing the previous one so cycling doesn't stack spheres.
+    @MainActor
+    static func attach(_ sphere: ModelEntity, to container: Entity) {
         container.children
             .filter { $0.name == skyboxName }
             .forEach { $0.removeFromParent() }
@@ -154,9 +166,17 @@ enum SpatialImageEnvironment {
         do {
             var material = try await ShaderGraphMaterial(
                 named: materialPrimPath, from: materialSceneName, in: realityKitContentBundle)
-            let (left, right) = try loadEyes(name: name)
-            let leftTex  = try await TextureResource(image: left,  options: .init(semantic: .color))
-            let rightTex = try await TextureResource(image: right, options: .init(semantic: .color))
+            // Texture creation also runs detached. TextureResource uploads ~300 MB per eye;
+            // awaited from @MainActor the continuation resumes on main and any synchronous
+            // portion blocks the frame. If RealityKit ever marks this init MainActor-bound
+            // the compiler will reject this and the decode alone (above) is still off-main.
+            let textures = try await Task.detached(priority: .userInitiated) {
+                let eyes = try await loadEyes(name: name)
+                let l = try await TextureResource(image: eyes.left,  options: .init(semantic: .color))
+                let r = try await TextureResource(image: eyes.right, options: .init(semantic: .color))
+                return StereoTextures(left: l, right: r)
+            }.value
+            let leftTex = textures.left, rightTex = textures.right
             try material.setParameter(name: leftParam,  value: .textureResource(leftTex))
             try material.setParameter(name: rightParam, value: .textureResource(rightTex))
             return makeSphere(material: material)
@@ -167,15 +187,46 @@ enum SpatialImageEnvironment {
         }
     }
 
-    /// Extract the left (CGImage 0) and right (CGImage 1) eyes from the bundled spatial HEIC.
-    private static func loadEyes(name: String) throws -> (CGImage, CGImage) {
-        guard let url = Bundle.main.url(forResource: name, withExtension: "heic"),
-              let src = CGImageSourceCreateWithURL(url as CFURL, nil),
-              CGImageSourceGetCount(src) >= 2,
-              let left  = CGImageSourceCreateImageAtIndex(src, 0, nil),
-              let right = CGImageSourceCreateImageAtIndex(src, 1, nil)
-        else { throw SpatialError.eyesUnavailable }
-        return (left, right)
+    /// CGImage is immutable and thread-safe, but not formally Sendable; this box carries the
+    /// pair back from the decode task without weakening anything else.
+    private struct StereoTextures: @unchecked Sendable {
+        let left: TextureResource
+        let right: TextureResource
+    }
+
+    private struct EyePair: @unchecked Sendable {
+        let left: CGImage
+        let right: CGImage
+    }
+
+    /// Extract the left (CGImage 0) and right (CGImage 1) eyes from the bundled spatial HEIC,
+    /// **off the main actor**.
+    ///
+    /// This used to be a synchronous call from `@MainActor` code, which was a real stall, not
+    /// a micro-optimisation: `CGImageSourceCreateImageAtIndex` decodes without suspending, and
+    /// these are two 12288x6144 frames — ~300 MB of pixels each. On the main actor that blocks
+    /// every frame for the duration, which is what froze SplashView's animation (since removed —
+    /// see SplashView, which is now static because the *remaining* stall is inside RealityKit's
+    /// texture upload and cannot be moved). Nothing in here touches actor-isolated state, so it
+    /// is safe on a detached task; the main actor now just awaits the result and stays live.
+    private static func loadEyes(name: String) async throws -> EyePair {
+        try await Task.detached(priority: .userInitiated) {
+            // kCGImageSourceShouldCacheImmediately is the whole point of this options dict.
+            // Without it CGImageSourceCreateImageAtIndex returns a LAZY CGImage: it hands
+            // back a descriptor and defers the actual decode until something first touches
+            // the pixels — which is inside TextureResource, back on the main actor. So the
+            // first attempt at moving this work off-main moved only the file read, and the
+            // 75-megapixel-per-eye decode still landed on the main thread and still froze
+            // SplashView. Forcing the decode HERE is what actually relocates the cost.
+            let opts: [CFString: Any] = [kCGImageSourceShouldCacheImmediately: true]
+            guard let url = Bundle.main.url(forResource: name, withExtension: "heic"),
+                  let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+                  CGImageSourceGetCount(src) >= 2,
+                  let left  = CGImageSourceCreateImageAtIndex(src, 0, opts as CFDictionary),
+                  let right = CGImageSourceCreateImageAtIndex(src, 1, opts as CFDictionary)
+            else { throw SpatialError.eyesUnavailable }
+            return EyePair(left: left, right: right)
+        }.value
     }
 
     // MARK: - Mono fallback

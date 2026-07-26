@@ -46,6 +46,7 @@ struct ControlPanelView: View {
     var body: some View {
         VStack(spacing: 20) {
             Button("Random Scene") { model.randomScene() }
+            Button("Recenter") { model.recenter() }
             Button("Save This Spot") {
                 // §7e capture current sceneName + thumbnail.
             }

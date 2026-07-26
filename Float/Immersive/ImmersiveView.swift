@@ -28,9 +28,20 @@ struct ImmersiveView: View {
             let scene = SpatialImageEnvironment.makeContainer()
             container.addChild(scene)
             model.sceneRoot = scene
-            Task { @MainActor in
-                await SpatialImageEnvironment.load(index: model.currentScene, into: scene)
-                model.sceneReady = true      // drops SplashView (see AppModel.sceneReady)
+            if let ready = model.preparedSky {
+                // Preloaded by LauncherView before the space opened — attach synchronously
+                // so the very first frame of immersion already has the sky in it.
+                SpatialImageEnvironment.attach(ready, to: scene)
+                model.preparedSky = nil      // consumed; a scene change re-decodes as normal
+                model.sceneReady = true
+            } else {
+                // Preload failed or was skipped — fall back to loading in place. This is the
+                // old behaviour, black gap and all, but it only happens if `prepare` returned
+                // nil, in which case there is nothing to show either way.
+                Task { @MainActor in
+                    await SpatialImageEnvironment.load(index: model.currentScene, into: scene)
+                    model.sceneReady = true  // drops SplashView (see AppModel.sceneReady)
+                }
             }
 
             // §7b whiteout overlay — a persistent inward white sphere (alpha 0) a jump flashes.
@@ -50,8 +61,45 @@ struct ImmersiveView: View {
                 ControlPanelView().environment(model)
             }
         }
-        .task { await runHandTracking() }   // §7 reveal gesture
+        .task { await runHandTracking() }    // §7 reveal gesture
+        .task { await runWorldTracking() }   // head pose for AppModel.recenter()
         .upperLimbVisibility(.visible)
+    }
+
+    /// Runs a WorldTrackingProvider purely so `AppModel.recenter()` can query the device
+    /// (head) anchor on demand. Its own session, kept separate from hand tracking so an
+    /// unsupported/denied hand-tracking path can't take recentering down with it. Nothing
+    /// is polled per-frame — `queryDeviceAnchor` is called only when the button is pressed.
+    private func runWorldTracking() async {
+        guard WorldTrackingProvider.isSupported else { return }
+        let session = ARKitSession()
+        let world = WorldTrackingProvider()
+        do { try await session.run([world]) } catch { return }
+        model.worldTracking = world
+
+        // Launch auto-recenter: put the sky's front where the user is ALREADY facing rather
+        // than making them turn or hunt for the button. Retried rather than called once —
+        // the device anchor is not tracked the instant the provider starts, and `sceneRoot`
+        // is mounted by the RealityView closure, which need not have run yet. Bounded so a
+        // headset that never reports tracking doesn't spin.
+        //
+        // Scoped to this task's lifetime, which IS the immersive space's lifetime, so it
+        // fires once per space open — including a reopen mid-session, where the entities are
+        // rebuilt fresh and the previous yaw would otherwise be lost. It deliberately does
+        // NOT re-fire on a scene change: the yaw tracks the user's body, not the sky
+        // (see AppModel.recenterYaw).
+        //
+        // In practice this lands hidden behind SplashView, which holds until a ~100 MB
+        // stereo HEIC has decoded — far longer than tracking takes to come up.
+        let deadline = CACurrentMediaTime() + 3.0
+        while CACurrentMediaTime() < deadline, !model.recenter() {
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+
+        // Hold the session (and so the provider) alive for as long as the immersive view
+        // exists; `.task` cancels this on teardown, which drops both.
+        for await _ in session.events {}
+        model.worldTracking = nil
     }
 
     /// ARKit hand-tracking loop (90 Hz on v26+). Feeds the §7 double-pinch detector, which

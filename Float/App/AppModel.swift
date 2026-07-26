@@ -1,5 +1,8 @@
 import SwiftUI
 import RealityKit
+import ARKit
+import QuartzCore
+import simd
 
 /// App-wide observable state. The generated L1–L4 universe was retired in favour of a fixed
 /// library of pre-rendered stereo skies, so this is now just: which sky is showing, plus the
@@ -44,17 +47,86 @@ final class AppModel {
     var sceneRoot: Entity?        // the SpatialImageEnvironment sphere container
     var whiteout: Entity?         // §7b flash overlay
 
+    /// ARKit world tracking, handed over by ImmersiveView once its session is running.
+    /// Its only consumer is `recenter()` — the device anchor is the head pose.
+    var worldTracking: WorldTrackingProvider?
+
+    /// First sky, decoded BEFORE the immersive space opens so the space is never empty.
+    /// `ImmersiveView` consumes this once and clears it; nil afterwards, and nil if the
+    /// preload failed (in which case the view falls back to loading in place).
+    var preparedSky: ModelEntity?
+
+    /// Decode the startup sky while the launcher/splash is still the only thing on screen.
+    /// Ordering matters more than it looks: opening the space first and loading into it
+    /// afterwards leaves the user staring into an empty black sphere for the length of a
+    /// ~100 MB stereo HEIC decode. Doing it in this order costs the same wall time but
+    /// spends it on a screen that has something to look at.
+    func prepareFirstSky() async {
+        guard preparedSky == nil else { return }
+        preparedSky = await SpatialImageEnvironment.prepare(index: currentScene)
+    }
+
+    // MARK: - Recenter
+
+    /// Yaw (radians, about +Y) currently applied to `sceneRoot` so the sky faces the user.
+    /// Session-only — deliberately not persisted, and deliberately NOT reset by a scene
+    /// change: it describes which way the user's body is pointing, not which sky is up.
+    /// Living on the persistent `sceneRoot` container means a swap inherits it for free.
+    private(set) var recenterYaw: Float = 0
+
+    /// Make the direction the user is currently facing the scene's forward direction.
+    ///
+    /// **Yaw only.** Only the Y-axis component of the head pose is used; pitch and roll are
+    /// discarded. The backdrop is a stereo 360 sphere whose per-eye disparity is baked
+    /// horizontally in equirect space, so rotating content about any other axis tilts that
+    /// baked disparity axis off the viewer's interocular axis and introduces vertical
+    /// disparity — nauseating, not merely wrong-looking (§9, comfort is a gate).
+    ///
+    /// **Snaps, never animates.** Slewing the whole visual field is a textbook vection
+    /// trigger; an instant cut is the comfortable option (§9). The camera does not move —
+    /// only scene content rotates.
+    /// Returns whether the recenter was actually applied. The launch auto-recenter polls on
+    /// this: the device anchor is not tracked the instant the provider starts, so "did it
+    /// take" has to be answerable rather than silently no-op.
+    @discardableResult
+    func recenter() -> Bool {
+        guard let sceneRoot,
+              let device = worldTracking?.queryDeviceAnchor(atTimestamp: CACurrentMediaTime()),
+              device.isTracked
+        else { return false }
+
+        // Head forward is the -Z column of the device transform. Keep only its horizontal
+        // (x, z) part — that projection IS the yaw-only extraction.
+        let m = device.originFromAnchorTransform
+        let forward = SIMD2<Float>(-m.columns.2.x, -m.columns.2.z)
+        // Degenerate when looking near-straight up or down: there is no meaningful facing
+        // direction, so ignore the press rather than snap to an arbitrary heading.
+        guard simd_length_squared(forward) > 1e-6 else { return false }
+
+        // forward == (-sin θ, -cos θ) for a yaw of θ about +Y.
+        recenterYaw = atan2(-forward.x, -forward.y)
+        // Composes with (does not replace) the sphere's canonical -90° facing, which lives
+        // on the child ModelEntity in SpatialImageEnvironment.makeSphere().
+        sceneRoot.orientation = simd_quatf(angle: recenterYaw, axis: [0, 1, 0])
+        return true
+    }
+
     // MARK: - Scene selection
 
     /// Show a specific sky by catalog index, masked by the §7b whiteout flash.
     func selectScene(_ index: Int) {
         let n = SpatialImageEnvironment.catalog.count
         guard n > 0 else { return }
+        // A swap is already under the mask: ignore this one rather than queue it. Checked
+        // BEFORE `currentScene` is written, so the stored selection never claims a sky that
+        // was never loaded. The in-flight window is the length of a decode, so this is a
+        // real possibility on repeated taps, not a formality.
+        if whiteout?.components[WhiteoutComponent.self]?.active == true { return }
         let idx = ((index % n) + n) % n
         currentScene = idx
         UserDefaults.standard.set(
             SpatialImageEnvironment.catalog[idx].name, forKey: Self.lastSceneKey)
-        maskedSwap { [weak self] in self?.applyScene(idx) }
+        maskedSwap(to: idx)
     }
 
     /// Jump to a random *different* sky. Uses a shuffle bag so every sky is visited once
@@ -74,24 +146,52 @@ final class AppModel {
 
     private var sceneBag: [Int] = []
 
-    /// Load the sky into the sphere. Falls through to the mono skybox if the stereo material
-    /// or an eye can't load (SpatialImageEnvironment handles that).
-    private func applyScene(_ index: Int) {
+    /// Swap the sky under the §7b flash, holding the flash at full black until the new sky is
+    /// actually mounted. Falls through to the mono skybox if the stereo material or an eye
+    /// can't load (SpatialImageEnvironment handles that).
+    ///
+    /// The decode starts at the same instant as the fade-in rather than after it, so the
+    /// fade-in overlaps work that is already running off-main instead of being added in front
+    /// of it. What the mask cannot do is *shorten* the decode: a swap now sits at black for
+    /// however long the sky takes. That is the honest version of the old behaviour, which only
+    /// looked quicker because it uncovered the previous sky and then jumped.
+    private func maskedSwap(to index: Int) {
         guard let sceneRoot else { return }
-        Task { @MainActor in await SpatialImageEnvironment.load(index: index, into: sceneRoot) }
-    }
 
-    /// Run `swap` under the peak of the §7b whiteout flash. Applies immediately if the overlay
-    /// isn't mounted yet (e.g. a scene chosen from the launcher before entering the space).
-    private func maskedSwap(_ swap: @escaping @MainActor () -> Void) {
-        guard let whiteout else { swap(); return }
-        if whiteout.components[WhiteoutComponent.self]?.active == true { return }
+        // No overlay mounted yet (e.g. a scene chosen from the launcher before entering the
+        // space): there is nothing on screen to mask, so just load.
+        guard let whiteout else {
+            Task { @MainActor in
+                await SpatialImageEnvironment.load(index: index, into: sceneRoot)
+            }
+            return
+        }
+
         var c = whiteout.components[WhiteoutComponent.self] ?? WhiteoutComponent()
-        c.active = true; c.elapsed = 0
+        guard !c.active else { return }
+        c.active = true; c.elapsed = 0; c.holding = true
         whiteout.components.set(c)
+
         Task { @MainActor in
-            try? await Task.sleep(for: .seconds(0.30))
-            swap()
+            let sphere = await SpatialImageEnvironment.prepare(index: index)
+
+            // Don't uncover before the overlay is genuinely opaque. The flash advances on the
+            // render clock, so this reads its real state rather than sleeping a matching
+            // wall-clock interval and assuming the two agree. Terminates either way: `elapsed`
+            // grows every frame, and the loop also exits if the overlay goes away with the
+            // immersive space.
+            while let cur = whiteout.components[WhiteoutComponent.self],
+                  cur.active, cur.elapsed < cur.fadeIn {
+                try? await Task.sleep(for: .milliseconds(8))
+            }
+
+            // A nil sphere means both stereo and mono failed; release anyway and fade back to
+            // the sky that is already there rather than sit at black forever.
+            if let sphere { SpatialImageEnvironment.attach(sphere, to: sceneRoot) }
+            if var done = whiteout.components[WhiteoutComponent.self] {
+                done.holding = false          // the fade-out starts on the next frame
+                whiteout.components.set(done)
+            }
         }
     }
 }
@@ -123,6 +223,10 @@ struct LauncherView: View {
             Button("Random Scene", systemImage: "shuffle") { model.randomScene() }
                 .buttonStyle(.bordered)
 
+            Button("Recenter", systemImage: "dot.viewfinder") { model.recenter() }
+                .buttonStyle(.bordered)
+                .disabled(model.immersion != .open)
+
             Button("Scenes…", systemImage: "square.grid.2x2") { openWindow(id: "scenes") }
                 .buttonStyle(.bordered)
 
@@ -148,7 +252,14 @@ struct LauncherView: View {
             // shouldn't gate entry. (The in-scene control panel's hand-tracking reveal is
             // still stubbed, so the launcher window must keep existing as the fallback UI.)
             guard model.immersion == .closed else { return }
+            // `.opening` BEFORE the decode, not after: preparing now takes seconds, and
+            // leaving the state at `.closed` for that long would keep the Enter button
+            // live and let a tap start a second open underneath this one.
             model.immersion = .opening
+            // Decode the sky FIRST, then open the space, so it comes up populated rather
+            // than as black limbo the user waits inside. Same total wait, spent in front of
+            // the splash instead. See AppModel.prepareFirstSky().
+            await model.prepareFirstSky()
             _ = await openImmersiveSpace(id: AppModel.immersiveSpaceID)
             model.immersion = .open
         }

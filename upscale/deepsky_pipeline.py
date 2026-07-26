@@ -68,21 +68,46 @@ HALO_GAIN = {"field": 0.30, "object": 0.18}
 # objects "tiny". Fields: +~25% fov, wider feather, brighter plate + halo underlayer so the
 # frame dissolves into glow. Objects: ~1.7x angular size. Fov stays gnomonic-safe (<=150 for
 # sharp layers; edge stretch 1/cos^2 is ~15x at 150 but lives in the feathered fringe).
+# `kind` is MEASURED, not declared by eye or keyword — potm_auto_manifest.border_level
+# takes the brightest of the master's four edge medians, which answers the only question
+# the two sky360 recipes differ on: does the subject run off the frame (field: continue
+# it outward) or hang on black (object: paint starfield around it)? That rule was applied
+# to the 27 auto POTM rows last round but NOT to these nine hand rows, and four of them
+# were wrong — including both scenes in the "looks like images stacked on top of each
+# other" report. Measured border level is in the comment on each line; thresholds are
+# object < 25, field > 45. Re-check with:
+#   python3 -c "import sys;sys.path.insert(0,'upscale');from potm_auto_manifest import
+#   border_level; ..."   (or just re-run the measurement over MANIFEST)
 MANIFEST = [
-    # ── nebula fields (fill the forward view) ────────────────────────────────
+    # ── nebula fields (subject runs off the frame; diffusion continues it) ───
     # rot=1: vertically-composed masters turned 90deg CCW so the structure runs horizontally
     # (reads as a nebula bank, not a tall painting) — Rick's call, device round 1.
-    ("spatial_carina_mystic",  "carina_hh901_mystic_mountain_heic1007c.tif", "field",  dict(fov_x=150, lon=0, lat=0, feather=0.30, exposure=0.3, rot=1)),
-    ("spatial_m16_pillars",    "m16_pillars_visible_heic1501a.tif",          "field",  dict(fov_x=128, lon=0, lat=6, feather=0.30, exposure=0.4)),
-    ("spatial_m8_lagoon",      "m8_lagoon_visible_8kx8k.png",                 "field",  dict(fov_x=144, lon=0, lat=0, feather=0.30, exposure=0.3, rot=1)),
-    ("spatial_s106_angel",     "s106_snow_angel_heic1118a.tif",              "field",  dict(fov_x=118, lon=0, lat=0, feather=0.28, exposure=0.4)),
+    ("spatial_carina_mystic",  "carina_hh901_mystic_mountain_heic1007c.tif", "field",  dict(fov_x=150, lon=0, lat=0, feather=0.30, exposure=0.3, rot=1)),   # border 84.0
+    ("spatial_m16_pillars",    "m16_pillars_visible_heic1501a.tif",          "field",  dict(fov_x=128, lon=0, lat=6, feather=0.30, exposure=0.4)),          # border 62.7
+    ("spatial_s106_angel",     "s106_snow_angel_heic1118a.tif",              "field",  dict(fov_x=118, lon=0, lat=0, feather=0.28, exposure=0.4)),          # border 52.0
+    # was "object" (border 51.5) — the whale is an edge-on galaxy that runs past both
+    # short edges, so the object recipe painted a SECOND, differently-scaled galaxy
+    # around the real one instead of extending it
+    ("spatial_ngc4631_whale",  "ngc4631_whale_potw1146a.tif",                "field",  dict(fov_x=92,  lon=0, lat=0, feather=0.14, exposure=0.2)),          # border 51.5
+    # was "object" (border 143.3 — the most emphatic field in the library). Andromeda's
+    # PHAT mosaic is a CROP: the disc fills the frame edge to edge. The object recipe's
+    # flat border-median fill therefore took its colour from the galaxy's own bright halo
+    # and washed the whole sphere grey, and its footprint cut the core off square.
+    ("spatial_m31_andromeda",  "m31_andromeda_phat_10k_heic1502a.tif",       "field",  dict(fov_x=118, lon=0, lat=0, feather=0.16, exposure=0.3)),          # border 143.3
     # ── discrete objects on black (hero hanging in the void) ─────────────────
-    ("spatial_m104_sombrero",  "m104_sombrero_opo0328a.tif",                 "object", dict(fov_x=78,  lon=0, lat=2, feather=0.12, exposure=0.2)),
-    # A/B vs the approved gnomonic Sombrero: equidistant wrap + bigger, to judge immersion.
-    ("spatial_m104_sombrero_wrap", "m104_sombrero_opo0328a.tif",             "object", dict(fov_x=95,  lon=0, lat=2, feather=0.12, exposure=0.2, proj="equidistant")),
-    ("spatial_m106_spiral",    "m106_heic1302a_7910x6178.tif",               "object", dict(fov_x=70,  lon=0, lat=2, feather=0.12, exposure=0.2)),
-    ("spatial_ngc4631_whale",  "ngc4631_whale_potw1146a.tif",                "object", dict(fov_x=92,  lon=0, lat=0, feather=0.14, exposure=0.2)),
-    ("spatial_m31_andromeda",  "m31_andromeda_phat_10k_heic1502a.tif",       "object", dict(fov_x=118, lon=0, lat=0, feather=0.16, exposure=0.3)),
+    ("spatial_m104_sombrero",  "m104_sombrero_opo0328a.tif",                 "object", dict(fov_x=78,  lon=0, lat=2, feather=0.12, exposure=0.2)),          # border 15.0
+    # border 26.3 — the one master that lands in the refuse-to-guess band (25..45), so it
+    # keeps the keyword fallback, which is "object". Worth an eye on device.
+    ("spatial_m106_spiral",    "m106_heic1302a_7910x6178.tif",               "object", dict(fov_x=70,  lon=0, lat=2, feather=0.12, exposure=0.2)),          # border 26.3
+    # BACK to "field" after a device look (border 1.3 says object; the render says no).
+    # border_level answers "is the subject cut off by the frame?", and for this master the
+    # honest answer is no — the 8k crop happens to have dark sky at its edges. But the
+    # Lagoon genuinely does continue past the crop, and at fov 144 the footprint spans most
+    # of the forward view, so the object recipe's hard-bounded fill read as a circular
+    # porthole rather than a hero on black. The measurement is a good proxy for narrow
+    # objects and a bad one at this angular size; fov is the missing term. The triptych the
+    # object recipe was meant to cure is already cured by the edge-clamp fill.
+    ("spatial_m8_lagoon",      "m8_lagoon_visible_8kx8k.png",                 "field",  dict(fov_x=144, lon=0, lat=0, feather=0.30, exposure=0.3, rot=1)),  # border 1.3
 ]
 
 # Sky360 prompt descriptors for the hand rows (auto rows carry their POTM titles).
@@ -92,7 +117,6 @@ HAND_DESC = {
     "spatial_m8_lagoon":      "the glowing clouds of the Lagoon Nebula",
     "spatial_s106_angel":     "the Snow Angel bipolar star-forming nebula",
     "spatial_m104_sombrero":  "the Sombrero Galaxy floating edge-on in the void",
-    "spatial_m104_sombrero_wrap": "the Sombrero Galaxy floating edge-on in the void",
     "spatial_m106_spiral":    "the spiral galaxy M106",
     "spatial_ngc4631_whale":  "the edge-on Whale Galaxy",
     "spatial_m31_andromeda":  "the vast Andromeda Galaxy",
@@ -286,7 +310,12 @@ def compose(rel, kind, p, out_png, w=TARGET_W, h=TARGET_H):
     return (w, h)
 
 
-SKY_CACHE = os.path.join(REPO, "Float/Resources/Textures/_raw/_sky_cache")
+# Stage caches are bulky (~52 MB/scene, mostly the 12288 SR) and the repo lives on an
+# iCloud-backed volume that runs tight. FLOAT_SKY_CACHE relocates them; scripts/
+# rerender_all.py points it at an external scratch volume when one is available. The
+# default keeps the old in-repo location so single-scene runs behave as before.
+SKY_CACHE = os.environ.get("FLOAT_SKY_CACHE") or os.path.join(
+    REPO, "Float/Resources/Textures/_raw/_sky_cache")
 
 # Samples across the footprint for the _paste_master frequency split. Only has to be
 # fine enough to follow a TONE STEP between the master and the surround (a whole-rect
@@ -402,9 +431,10 @@ def _paste_master(base, master_lin, fov_x, lat, feather):
     # is added, so no tone boundary can survive.
     sky_rect = base[y0:y0 + hf, x0:x0 + wf]
     m = np.clip(m + _lowpass(sky_rect) - _lowpass(m), 0.0, None)
-    fx = _smoothstep(np.minimum(np.arange(wf), np.arange(wf)[::-1]) / (feather * wf + 1e-9))
-    fy = _smoothstep(np.minimum(np.arange(hf), np.arange(hf)[::-1]) / (feather * hf + 1e-9))
-    a = np.minimum(fx[None, :], fy[:, None])[..., None]
+    # Same superellipse the canvas build used — see sky360.FOOT_EXPONENT. These two
+    # ramps have to be the identical function or the hard edge returns.
+    from sky360 import footprint_alpha
+    a = footprint_alpha(wf, hf, feather)[..., None]
     base[y0:y0 + hf, x0:x0 + wf] = sky_rect * (1 - a) + m * a
 
 

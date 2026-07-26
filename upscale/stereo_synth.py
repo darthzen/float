@@ -109,7 +109,10 @@ def guided_refine(depth, guide, r=12, eps=1e-3):
     return np.clip(_box(a, r) * I + _box(b, r), 0.0, 1.0)
 
 
-def forward_warp(src, disp_px):
+Z_WINDOW = 1.5      # px a contribution may sit behind the winning surface and still count
+
+
+def forward_warp(src, disp_px, z_window=Z_WINDOW, block=512):
     """Forward-warp: each SOURCE pixel scatters to x + disp, foreground wins.
 
     Replaces the earlier inverse warp. Inverse warp sampled disparity at the
@@ -119,21 +122,76 @@ def forward_warp(src, disp_px):
     via a z-priority scatter; the gap revealed behind a foreground edge
     (disocclusion) is filled from the background neighbour — which is what the
     other eye actually sees there. Result: crisp silhouettes, clean fills.
+
+    The scatter is SUB-PIXEL (device round 7). It used to land on round(x + disp),
+    which quantises disparity to whole pixels — and in the deep-space recipe disp is
+    a smooth field with no real occlusion edges, dominated by the cos^power pole
+    falloff. Half-disparity there sweeps 13.5px -> 0 from equator to pole, so
+    rounding carved it into ~13 integer TERRACES at fixed latitudes on every scene,
+    independent of content: a 1px content step in each eye plus a discrete jump in
+    apparent depth across each boundary. That is the "banding" report — it reads as
+    pronounced arcs in the headset and is almost invisible in a 2D screenshot,
+    because most of the signal is the depth step, not the tone step. Splatting each
+    source pixel bilinearly across its two neighbouring destinations makes disparity
+    continuous, so a smooth depth field warps smoothly.
+
+    Hard z-priority is preserved: a first integer pass finds the winning (nearest)
+    surface per destination, and the splat rejects any contribution sitting more
+    than `z_window` px behind it. Genuine silhouettes — the grounded recipe's are
+    tens of px apart at 1.0% baseline — are therefore untouched; only sub-pixel
+    disparity differences, which is exactly the terracing regime, get blended.
+
+    Rows warp independently (the shift is purely horizontal), so this runs in row
+    blocks: a full-frame bincount at 12288x6144 would need GB-scale float64 buffers.
     """
     H, W = src.shape[:2]
-    xdst = np.mod(np.round(np.arange(W)[None, :] + disp_px).astype(np.int64), W)
-    rows = np.arange(H)[:, None]
-    flat = (rows * W + xdst).ravel()
+    srcf = src.astype(np.float32).reshape(H, W, 3)
+    out = np.zeros((H, W, 3), np.float32)
+    filled = np.zeros((H, W), bool)
+    xs = np.arange(W, dtype=np.float32)
 
-    out = np.zeros((H * W, 3), np.float32)
-    filled = np.zeros(H * W, bool)
-    order = np.argsort(disp_px.ravel(), kind="stable")   # ascending: near written last
-    fo = flat[order]
-    out[fo] = src.reshape(-1, 3)[order]
-    filled[fo] = True
+    for y0 in range(0, H, block):
+        y1 = min(H, y0 + block)
+        h = y1 - y0
+        d = disp_px[y0:y1].astype(np.float32)
+        xf = xs[None, :] + d
+        rowoff = (np.arange(h, dtype=np.int64) * W)[:, None]
+        n = h * W
+        # Priority is NEARNESS = |disp|, not the signed shift. `disp` is +0.5*d for the
+        # left eye and -0.5*d for the right, so a signed key ranks the right eye's
+        # nearest surface LAST and the far one wins every contested pixel — occlusion
+        # inverted in one eye only. (Pre-existing: the integer scatter sorted the signed
+        # value too. It hid because the common test case has the near surface moving
+        # AWAY from the join, which disoccludes instead of contesting.) The left eye is
+        # unaffected either way, so the approved look does not move.
+        prio = np.abs(d).ravel()
 
-    out = out.reshape(H, W, 3)
-    filled = filled.reshape(H, W)
+        # Pass 1 — integer z-priority scatter: which surface owns each destination.
+        xr = np.mod(np.round(xf), W).astype(np.int64)
+        fl = (rowoff + xr).ravel()
+        order = np.argsort(prio, kind="stable")        # ascending: nearest written last
+        zwin = np.full(n, -np.inf, np.float32)
+        zwin[fl[order]] = prio[order]
+
+        # Pass 2 — bilinear splat of the winning surface only.
+        x0 = np.floor(xf)
+        fr = (xf - x0).ravel()
+        sf = srcf[y0:y1].reshape(-1, 3)
+        acc = np.zeros((n, 3), np.float64)
+        wsum = np.zeros(n, np.float64)
+        for xi, wgt in ((x0, 1.0 - fr), (x0 + 1.0, fr)):
+            dst = (rowoff + np.mod(xi, W).astype(np.int64)).ravel()
+            w = np.where(zwin[dst] - prio <= z_window, wgt, 0.0)
+            for c in range(3):
+                acc[:, c] += np.bincount(dst, weights=w * sf[:, c], minlength=n)
+            wsum += np.bincount(dst, weights=w, minlength=n)
+
+        ok = wsum > 1e-6
+        blk = np.zeros((n, 3), np.float32)
+        blk[ok] = (acc[ok] / wsum[ok, None]).astype(np.float32)
+        out[y0:y1] = blk.reshape(h, W, 3)
+        filled[y0:y1] = ok.reshape(h, W)
+
     # Fill disocclusion holes by horizontal nearest-neighbour (background side).
     if not filled.all():
         for y in np.where(~filled.all(axis=1))[0]:
