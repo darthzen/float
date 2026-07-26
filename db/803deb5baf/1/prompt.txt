@@ -1,0 +1,25 @@
+I added two other new images to the originals root folder. Deathvalleysky_nps_big.jpeg is also from wikimedia, and it is 360. I don't know where Stars_01_(MK).jpeg came from, but it doesn't look 360 at first glance.
+
+---
+
+I deleted the Stars_01 image. Add the Deathvalley and the lake ones to triage.html. Then, search to see if you can find the death valley one in color.
+
+---
+
+The render job is done. Go ahead and try a colorization of the image to see what we get. If it's not good enough, we'll go with the monochrome
+
+---
+
+App isn't building. 
+
+Command Ld failed with a nonzero exit code
+
+/Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/Float/Resources/Textures/Backdrop/spatial_weic2520b.heic
+/Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/Float/Resources/Textures/Backdrop/spatial_weic2520b.heic The file “spatial_weic2520b.heic” couldn’t be opened because there is no such file.
+
+/Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2520b.jpg
+/Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2520b.jpg The file “spatial_weic2520b.jpg” couldn’t be opened because there is no such file.
+
+---
+
+/handoff

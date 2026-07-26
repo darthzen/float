@@ -3,19 +3,26 @@
   "checkpoint_id": "db803deb5baf",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 18,
+  "checkpoints_count": 23,
   "files_touched": [
     "Float/App/AppModel.swift",
     "Float/App/FloatApp.swift",
     "Float/Immersive/ImmersiveView.swift",
     "Float/Immersive/SpatialImageEnvironment.swift",
+    "Float/Layers/PlanetBodies.swift",
     "Float/Resources/Textures/CREDITS.md",
     "project.yml",
+    "scripts/composite_planet_previews.py",
     "scripts/make_triage_page.py",
     "scripts/render_planets.py",
     "upscale/deepsky_auto.json",
     "upscale/m31_recut.py",
     "upscale/neural_sr.py",
+    "upscale/planet_prev/iapetus.cam.json",
+    "upscale/planet_prev/jupiter.cam.json",
+    "upscale/planet_prev/saturn.cam.json",
+    "upscale/planet_prev/saturn_baked.cam.json",
+    "upscale/planet_prev/venus.cam.json",
     "upscale/process_backdrops.py",
     "upscale/pruned_scenes.json",
     "upscale/sky360.py"
@@ -27,13 +34,20 @@
       "compact_transcript": "/db/803deb5baf/0/transcript.jsonl",
       "content_hash": "/db/803deb5baf/0/content_hash.txt",
       "prompt": "/db/803deb5baf/0/prompt.txt"
+    },
+    {
+      "metadata": "/db/803deb5baf/1/metadata.json",
+      "transcript": "/db/803deb5baf/1/full.jsonl",
+      "compact_transcript": "/db/803deb5baf/1/transcript.jsonl",
+      "content_hash": "/db/803deb5baf/1/content_hash.txt",
+      "prompt": "/db/803deb5baf/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 182,
-    "cache_creation_tokens": 534988,
-    "cache_read_tokens": 12017120,
-    "output_tokens": 113830,
-    "api_call_count": 100
+    "input_tokens": 490,
+    "cache_creation_tokens": 864894,
+    "cache_read_tokens": 43325644,
+    "output_tokens": 294888,
+    "api_call_count": 259
   }
 }
