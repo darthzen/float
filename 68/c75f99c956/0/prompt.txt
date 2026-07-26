@@ -55,3 +55,7 @@ Saturn's rings are invisible at the angle we're showing. We might need to move t
 ---
 
 The live lighting Saturn looks great. The ring shadow baked one doesn't look like it got the change.
+
+---
+
+Is the Juno Jupiter one done already?
