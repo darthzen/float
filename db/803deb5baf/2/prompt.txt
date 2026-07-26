@@ -1,1 +1,5 @@
 Read the handoff and start working on your tasts. Use subagents as much as possible to parallelize work.
+
+---
+
+Let's commit the code we have so far. Let's wait on the images until we're more finalized.
