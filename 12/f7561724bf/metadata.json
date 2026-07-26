@@ -1,0 +1,32 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "12f7561724bf",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 4,
+  "files_touched": [
+    "scripts/add_planets_to_triage.py",
+    "scripts/render_planets.py",
+    "upscale/planet_prev/iapetus.jpg",
+    "upscale/planet_prev/jupiter.jpg",
+    "upscale/planet_prev/saturn.jpg",
+    "upscale/planet_prev/saturn_baked.jpg",
+    "upscale/planet_prev/venus.jpg"
+  ],
+  "sessions": [
+    {
+      "metadata": "/12/f7561724bf/0/metadata.json",
+      "transcript": "/12/f7561724bf/0/full.jsonl",
+      "compact_transcript": "/12/f7561724bf/0/transcript.jsonl",
+      "content_hash": "/12/f7561724bf/0/content_hash.txt",
+      "prompt": "/12/f7561724bf/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 598,
+    "cache_creation_tokens": 201779,
+    "cache_read_tokens": 19411814,
+    "output_tokens": 97469,
+    "api_call_count": 128
+  }
+}
