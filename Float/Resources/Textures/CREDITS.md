@@ -581,12 +581,16 @@ genuinely pale and reads as washed out on its own.
 - **Terms:** "publicly available… you do not need a special permission to use
   them but if you do then please mention their origin." Credit line:
   **"Jupiter map created by Björn Jónsson (Cassini/Juno data, NASA/JPL)."**
-- **⚠ REDISTRIBUTION — needs a human decision.** The same author asks: *"please
-  do not place a copy of the maps on your website."* This repo is **public** on
-  GitHub, so committing the map file — or a USDZ with the full-res map embedded
-  — arguably is exactly that. Rendered images derived from it (the triage
-  previews) are clearly fine and are what the author says he'd like to see.
-  Resolve before any planet asset ships inside `Float/Resources/`.
+- **Redistribution — DECIDED (Rick, 2026-07-25): take the repo private.** The
+  author asks *"please do not place a copy of the maps on your website."* This
+  repo is currently public on GitHub, so committing the map — or a USDZ with it
+  embedded — would be exactly that. Flipping the repo to private removes the
+  concern entirely. **Final-cleanup item before any App Store submission**, not
+  a blocker for development now.
+  Note the two questions are separate: private-repo settles *hosting*. Shipping
+  inside an App Store binary is *use*, which these terms already permit without
+  special permission so long as the origin is credited — they carry no
+  non-commercial clause. Keep the credit line in the app's about/credits.
 - **Underlying data:** NASA/JPL Cassini and Juno, public domain.
 
 `Iapetus_Color_Map.jpg` — Cassini/Voyager colour mosaic of Iapetus,

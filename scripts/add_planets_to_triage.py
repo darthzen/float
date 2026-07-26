@@ -37,8 +37,8 @@ CARDS = [
      "14400 REAL (Björn Jónsson) vs 4096 for the artist texture it replaces &middot; honest "
      "to ~62&deg;, the sharpest body here &middot; spun to put the Great Red Spot on the "
      "visible face &middot; graded +35% sat, +0.15 contrast &middot; poles are partly "
-     "synthetic where Juno data was blended in &middot; ⚠ redistribution needs a call, "
-     "see CREDITS.md"),
+     "synthetic where Juno data was blended in &middot; redistribution resolved: repo "
+     "goes private (see CREDITS.md)"),
     ("iapetus",      "Iapetus &mdash; colour mosaic",
      "11741 real Cassini/Voyager colour &middot; honest to ~59&deg; &middot; the two-tone "
      "split (bright trailing side vs dark Cassini Regio) is the point &middot; known "
@@ -81,7 +81,10 @@ def main():
     if MARK_START in html:
         html = re.sub(
             re.escape(MARK_START) + r".*?" + re.escape(MARK_END) + r"\n?",
-            section, html, flags=re.DOTALL)
+            # lambda, not the string itself: re.sub parses backslash escapes in a literal
+            # replacement, and this block legitimately contains \u sequences (JS string
+            # escapes), which raises "bad escape \u".
+            lambda _m: section, html, flags=re.DOTALL)
         action = "replaced"
     else:
         # Before the footer, so the planets land at the end of the scrollable card list

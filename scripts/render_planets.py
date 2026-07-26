@@ -64,12 +64,15 @@ BODIES = {
     # The colour mosaic, not the mono one: Iapetus's whole point is the two-tone split
     # between the bright trailing side and the dark Cassini Regio, which mono throws away.
     # 11741 px wide, so it also outresolves the 8192 mono.
-    # sun_z: a shallow -20 deg instead of the default +40. The spin brought the dark
-    # Cassini Regio round to face the camera, but the default sun then put that half in
-    # night — a rotated body lit by an unmoved sun. This lights the side the spin exposes
-    # and leaves only a soft terminator.
+    # sun_z 0 (dead-on) and a brighter lamp, deliberately flat. The spin brings the dark
+    # Cassini Regio round to face the camera; with ANY appreciable terminator the result
+    # reads as "half the moon is in shadow", because a viewer cannot tell a 0.05-albedo
+    # hemisphere from a shadowed one. Killing the terminator outright makes every dark
+    # pixel unambiguously TERRAIN, and the extra energy lifts the dark side far enough to
+    # show craters in it rather than a black mass. Limb darkening still gives it roundness.
     "iapetus": {"map": "Iapetus_Color_Map.jpg", "tilt": 15.5, "spin": 0.75,
-                "sun_z": -0.35},
+                "sun_z": 0.0, "sun_energy": 7.0,
+                "fill": {"z": -1.0, "energy": 2.5}},
     # Cassini (Dec 2000) global coverage merged with Juno polar imagery by Björn Jónsson,
     # 14400x7200 REAL — honest to ~62 deg, so this is the one body that can fill a lot of
     # view and stay sharp. Chosen over both the Solar System Scope artist texture (4096, no
@@ -139,17 +142,33 @@ def reset_scene():
     scene.cycles.samples = 256
 
 
-def add_sun(sun_z=None):
+def add_sun(sun_z=None, energy=None):
     bpy.ops.object.light_add(type="SUN", location=(0, 0, 0))
     sun = bpy.context.object
     sun.rotation_euler = (SUN_EULER[0], SUN_EULER[1],
                           SUN_Z_DEFAULT if sun_z is None else sun_z)
-    sun.data.energy = 4.0
+    sun.data.energy = 4.0 if energy is None else energy
     # A real sun is not a point at this distance, and a hard-edged ring shadow looks CG.
     # ~0.53° is the sun's actual angular diameter from Earth; from Saturn it is far smaller,
     # but a little penumbra reads better than a razor edge.
     sun.data.angle = 0.009
     return sun
+
+
+def add_fill(z, energy):
+    """Weak second sun from the opposite side, purely to lift a limb out of blackness.
+
+    Not physical — there is no second star — but a directional key light alone always drives
+    N·L to zero at the limb, and on a body whose near limb is ALSO 0.05-albedo terrain the two
+    darkenings compound into something a viewer reads as a shadowed hemisphere. This raises
+    the floor so the dark terrain stays legible as terrain.
+    """
+    bpy.ops.object.light_add(type="SUN", location=(0, 0, 0))
+    fill = bpy.context.object
+    fill.rotation_euler = (SUN_EULER[0], SUN_EULER[1], z)
+    fill.data.energy = energy
+    fill.data.angle = 0.6      # broad and soft; a sharp second terminator would be worse
+    return fill
 
 
 def make_globe(name, map_path, tilt_deg, grade=None, spin=0.0):
@@ -288,7 +307,9 @@ def build(body, do_bake, do_preview=False):
         return
     log(f"=== {body} ({map_path.name}) ===")
     reset_scene()
-    add_sun(spec.get("sun_z"))
+    add_sun(spec.get("sun_z"), spec.get("sun_energy"))
+    if spec.get("fill"):
+        add_fill(spec["fill"]["z"], spec["fill"]["energy"])
     globe, mat, tex = make_globe(body, map_path, spec["tilt"], spec.get("grade"), spec.get("spin", 0.0))
     objects = [globe]
     if spec.get("rings"):
