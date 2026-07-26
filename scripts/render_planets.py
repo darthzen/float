@@ -70,7 +70,7 @@ BODIES = {
     # hemisphere from a shadowed one. Killing the terminator outright makes every dark
     # pixel unambiguously TERRAIN, and the extra energy lifts the dark side far enough to
     # show craters in it rather than a black mass. Limb darkening still gives it roundness.
-    "iapetus": {"map": "Iapetus_Color_Map.jpg", "tilt": 15.5, "spin": 0.75,
+    "iapetus": {"map": "Iapetus_Color_Map.jpg", "tilt": 15.5, "spin": 0.85,
                 "sun_z": 0.0, "sun_energy": 7.0,
                 "fill": {"z": -1.0, "energy": 2.5}},
     # Cassini (Dec 2000) global coverage merged with Juno polar imagery by Björn Jónsson,
