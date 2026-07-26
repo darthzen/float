@@ -65,3 +65,7 @@ Is the Juno Jupiter one done already?
 One thing we can do to reduce the size of the app at download is to flag some of the images as premium content that are in purchasable packs. Add a checkbox to the triage page for each image so I can flag it as premium for that potential future.
 
 Iapetus is still showing as half in shadow. The others look really good and I'll look at them on my next test run.
+
+---
+
+The render for potm2208a is done and while I haven't tested it yet, while it looks improved, it doesn't look great. Since potm 2410a is a different rendering of the same galaxy, can the two of them be used to improve each other?
