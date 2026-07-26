@@ -1,0 +1,1 @@
+Read the handoff and start working on your tasts. Use subagents as much as possible to parallelize work.

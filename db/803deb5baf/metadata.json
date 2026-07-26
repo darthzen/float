@@ -3,7 +3,7 @@
   "checkpoint_id": "db803deb5baf",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 23,
+  "checkpoints_count": 24,
   "files_touched": [
     "Float/App/AppModel.swift",
     "Float/App/FloatApp.swift",
@@ -15,6 +15,7 @@
     "scripts/composite_planet_previews.py",
     "scripts/make_triage_page.py",
     "scripts/render_planets.py",
+    "starfield_immersive_spec.md",
     "upscale/deepsky_auto.json",
     "upscale/m31_recut.py",
     "upscale/neural_sr.py",
@@ -41,13 +42,20 @@
       "compact_transcript": "/db/803deb5baf/1/transcript.jsonl",
       "content_hash": "/db/803deb5baf/1/content_hash.txt",
       "prompt": "/db/803deb5baf/1/prompt.txt"
+    },
+    {
+      "metadata": "/db/803deb5baf/2/metadata.json",
+      "transcript": "/db/803deb5baf/2/full.jsonl",
+      "compact_transcript": "/db/803deb5baf/2/transcript.jsonl",
+      "content_hash": "/db/803deb5baf/2/content_hash.txt",
+      "prompt": "/db/803deb5baf/2/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 490,
-    "cache_creation_tokens": 864894,
-    "cache_read_tokens": 43325644,
-    "output_tokens": 294888,
-    "api_call_count": 259
+    "input_tokens": 525,
+    "cache_creation_tokens": 922518,
+    "cache_read_tokens": 44494875,
+    "output_tokens": 315718,
+    "api_call_count": 278
   }
 }
