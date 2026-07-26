@@ -1,0 +1,57 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "fe5897311270",
+  "session_id": "9908e478-d6f5-4c0e-aa9c-b81be03e090b",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-26T03:03:23.645072Z",
+  "branch": "main",
+  "checkpoints_count": 1,
+  "save_step_count": 2,
+  "files_touched": [],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "7cac3272880c",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 823,
+    "cache_creation_tokens": 352810,
+    "cache_read_tokens": 54887611,
+    "output_tokens": 187412,
+    "api_call_count": 249
+  },
+  "session_metrics": {
+    "turn_count": 12
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 1052,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/logs/rerender_20260725_182848.log": 17,
+        "upscale/logs/rerender_20260725_182952.log": 70,
+        "upscale/logs/rerender_20260725_183341.log": 71,
+        "upscale/logs/rerender_20260725_183354.log": 32,
+        "upscale/logs/rerender_20260725_183724.log": 71,
+        "upscale/logs/rerender_20260725_184001.log": 24,
+        "upscale/logs/rerender_20260725_184238.log": 59,
+        "upscale/logs/rerender_20260725_190147.log": 70,
+        "upscale/logs/rerender_20260725_190206.log": 73,
+        "upscale/logs/rerender_20260725_190417.log": 45,
+        "upscale/logs/rerender_20260725_190554.log": 73,
+        "upscale/logs/rerender_20260725_191248.log": 74,
+        "upscale/logs/rerender_20260725_191401.log": 368
+      }
+    }
+  ]
+}
