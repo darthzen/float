@@ -59,3 +59,9 @@ The live lighting Saturn looks great. The ring shadow baked one doesn't look lik
 ---
 
 Is the Juno Jupiter one done already?
+
+---
+
+One thing we can do to reduce the size of the app at download is to flag some of the images as premium content that are in purchasable packs. Add a checkbox to the triage page for each image so I can flag it as premium for that potential future.
+
+Iapetus is still showing as half in shadow. The others look really good and I'll look at them on my next test run.
