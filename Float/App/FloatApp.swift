@@ -32,12 +32,25 @@ struct FloatApp: App {
         }
         .windowResizability(.contentSize)
 
-        // Reading panel (Kindle Cloud Reader etc.) as its own window — the system gives it a
-        // drag bar + resize + eye-level placement, so you can put it wherever you're lying.
-        Window("Reader", id: "reader") {
-            ReaderPanelView()
+        // Web browser as its own window — the system gives it a drag bar + resize + eye-level
+        // placement, so you can put it wherever you're lying. It reopens on whatever was last
+        // open (Kindle Cloud Reader, in practice), so there is no "home page" to navigate to.
+        Window("Browser", id: "browser") {
+            BrowserView()
         }
-        .defaultSize(width: 640, height: 900)
+        .defaultSize(width: 1100, height: 900)
+
+        // Music (MusicKit, played in-process — see MusicPanel).
+        Window("Music", id: "music") {
+            MusicPanelView()
+        }
+        .defaultSize(width: 480, height: 640)
+
+        // Local video from the photo library.
+        Window("Video", id: "video") {
+            VideoPanelView()
+        }
+        .defaultSize(width: 960, height: 620)
 
         // Scene picker (§7a) — its own window so it can be opened from inside the immersive
         // space and left floating while iterating on a specific sky.

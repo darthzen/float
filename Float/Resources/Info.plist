@@ -16,6 +16,18 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSAppleMusicUsageDescription</key>
+	<string>Float plays your music inside the scene, so you don't have to leave immersion to change what's on.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Float plays video you pick from your own photo library.</string>
+	<!-- Handoff. The supported way to get the page you were reading on a Mac or iPhone onto
+	     the headset: Safari advertises NSUserActivityTypeBrowsingWeb, Float accepts it, and
+	     BrowserView opens the URL in a new tab. Safari's iCloud Tabs list itself has no
+	     public API — this is the sanctioned equivalent. -->
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>NSUserActivityTypeBrowsingWeb</string>
+	</array>
 	<key>NSHandsTrackingUsageDescription</key>
 	<string>Float uses hand tracking so you can open controls with a double-pinch and flick asteroids.</string>
 	<key>NSWorldSensingUsageDescription</key>
