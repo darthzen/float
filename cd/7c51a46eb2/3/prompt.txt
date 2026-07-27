@@ -1,0 +1,866 @@
+Read the handoff and start working on your tasts. Use subagents as much as possible to parallelize work.
+
+---
+
+Let's commit the code we have so far. Let's wait on the images until we're more finalized.
+
+---
+
+<task-notification>
+<task-id>aca92e665f66952f6</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/aca92e665f66952f6.output</output-file>
+<status>completed</status>
+<summary>Agent "Consolidate m16 derived dirs" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. `&lt;ARCH&gt;/derived/m16_pillars/` now exists, fully populated and verified; every original is still in place.
+
+## Inventory
+
+80 files / 188 MB across the 15 `m16_*` directories, all JPEG renders or montages from `upscale/science_render.py`. The script's output tag is `{dataset}_{mapping}_{stretch}_Q{Q}_wb{wb_pct}_sat{sat}_s{scale}[_dsp{d}L{len}C{core}]`, which pinned down the flags; pixel dimensions pinned down `--scale` (s1 = 14341×8583, s4 = 3586×2146, s8 = 1793×1073, s16 = 897×537). HST renders come out at the JWST s8 size because they were made with `--footprint m16_jwst`.
+
+Where filenames collided I settled identity by measurement, not by guessing:
+
+- **The whole set except one file has punched star cores.** JWST flags saturated cores as NaN and they rendered as black squares. Measured (dark blob enclosed by pixels &gt;235): `m16_compare` 29, `m16_nodespike` 29, `m16_coresafe` 21, `m16_corefix3` **0**. The `--despike 0` control scoring 29 is what clears the despike of blame. **All three pack candidates, including the one in `PACK_COMPARISON.jpg`, carry the defect** — anything promoted to the backdrop pack needs a re-render.
+- `m16_hst_test` vs `m16_hst_wb`: the former has 60.3% non-black coverage against 58.5%; the extra 1.8% is the one-channel blue wedge from before the coverage-intersection fix.
+- `m16_merge` = `--merge-mode add` (greys out, footprint rectangle appears as gain rises), `m16_merge_gain` = `--merge-mode gain` (hue preserved). Confirmed visually and by file-size trend.
+- Two exact byte duplicates found and not copied: `m16_jwst/…_s4.jpg` ≡ `…_s4_dsp1L31C7.jpg` (same render, written before the `dsp` suffix existed), and the two `merge_ero_blend_g000.jpg` (gain 0 makes mode irrelevant).
+
+## New layout
+
+`m16_pillars/` with `01_survey` (28), `02_despike` (11), `03_blend` (9), `04_hst` (7), `05_merge` (11), `06_pack_candidates` (4), `07_star_cores` (5), `08_full_res` (3) — 78 files, 176 MB, plus `README.md` carrying the full old→new table, the recipe per keeper, and the defect note. Names encode instrument, stage and key parameter; the five near-identical `flarefix/flarefix2/nodespike/coresafe/corefix3` renders are named for the code change each tests (`line-se-gapped`, `isolation-control`, `core-peak-protect`, `saturated-core-fill_CURRENT-BEST`).
+
+`m16_compare/` was **not** touched — `06_pack_candidates/` holds md5-verified copies of its four files.
+
+Verification: independent second pass re-hashed all 78 copies against all 80 originals — 0 unmatched, 0 originals without a copy. Nothing outside `m16_*` was read or written (`m31_extL3/` and a new `m31_fov2_scratch/` are being actively written by another agent; left alone).
+
+## Reclaimable
+
+**185,008,588 bytes (185 MB / 178 MB on disk)** if you delete these 14 directories — everything in them is copied and hash-verified:
+
+```
+m16_corefix3  m16_coresafe  m16_flarefix  m16_flarefix2  m16_hst_test
+m16_hst_wb    m16_jwst      m16_jwst_blend  m16_jwst_check  m16_jwst_despiked
+m16_jwst_final  m16_merge   m16_merge_gain  m16_nodespike
+```
+
+Not proposed for deletion: `m16_compare/` (3 MB, in use). I did not delete anything.
+
+## Could not identify
+
+- `m16_hst_wb/m16_hst_chromatic_blend_Q8_sat1_s8.jpg` predates the `wb` tag and is **not** a duplicate of `wb99.5` — its channel means are 69/71/68 vs 58/83/69. The percentile that produced it is unrecoverable. Kept as `wb-untagged-neutral`.
+- `m16_flarefix` vs `m16_flarefix2` differ in pixels but the gap value distinguishing them was never recorded; named `line-se-gapped` and `-retuned`.
+- Neither full-res `s1` render records its blend weight (blend params were never in the tag), so the exact stretch they used is unknown. Both kept.
+- Unexplained: the two `s1` renders show **no** punched cores at the same stars where every s4/s8 render before 17:07 does, despite predating `fill_saturated()`. Verified visually at 1:1 and by the enclosed-dark-blob detector (0 hits in a 6000×4000 sample). Worth understanding before trusting a full-res re-render.</result>
+<usage><subagent_tokens>108441</subagent_tokens><tool_uses>26</tool_uses><duration_ms>603219</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>aa92383b90bc3e976</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/aa92383b90bc3e976.output</output-file>
+<status>completed</status>
+<summary>Agent "M31 fov_x 160/175 renders" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. Deliverable is at `/Volumes/Logic Pro/Float Originals Archive/derived/M31_FOV_sweep2.jpg` (1536x2304, three stacked panels: 142.78 / 160 / 175, cyan lines at lon ±50°).
+
+## What I rendered
+
+I first had to work out how sweep #1 was actually made — it isn't a script in the repo. The evidence in `Float/Resources/Textures/_raw/_sky_cache/` (`spatial_m31_fov142_r10_*`, `fov200`, `fov270`, timestamped 17:09–17:22, matching the sweep's 17:22) shows each panel is the **sky360 diffusion outpaint stage output at 1536x768** — `sky360.make_sky(name, master, fov_x, lat=0, kind="field", style="inclined_disc")`, i.e. `build_canvas` → outpaint → seam close. Confirmations:
+- The recipe digest I compute from `HAND_DESC["spatial_m31_andromeda"]` + `style="inclined_disc"` is `83935551c2cf`, **byte-identical to the sidecar** in `spatial_m31_fov142_r10_framing.json`.
+- Sweep #1's top panel correlates 0.93 with the cached fov142 outpaint raw, 0.99 after a small blur (the rest is JPEG noise).
+
+So I ran that exact path on the ComfyUI pod (`comfyui-69d5b5f9cc-85gb7`, ~4 min each) for fov_x 160 and 175 from `root/m31_andromeda_hubble_mosaic_recut_v2_tiled.tif`, cache written to `derived/m31_fov2_scratch/sky_cache/` (not the repo). **Panel 1 of the new sweep is the same cached fov142 render as sweep #1's top panel**, so the three panels and both sweeps are directly comparable.
+
+Latitude is derived, not hardcoded: `lat = ±fov_x * (sh/sw) / 2` with the master's 14520x7795 (aspect 1.8627) — reproducing 142.78 → ±38.33.
+
+## Measured numbers
+
+Master column-luminance profile, sky floor (2nd percentile) subtracted, integrated over the ±50° window. Along the equator the projection maps master column → longitude linearly, so this is exact geometry, not an estimate.
+
+| fov_x | galaxy spans lon | lat | **% of galaxy light inside ±50°** | incl. sky | 90% of light within | 99% within |
+|---|---|---|---|---|---|---|
+| 142.78 | ±71.4° | ±38.3° | **88.1%** | 83.7% | ±52.7° | ±69.0° |
+| 160 | ±80.0° | ±42.9° | **83.5%** | 78.5% | ±59.0° | ±77.3° |
+| 175 | ±87.5° | ±47.0° | **79.9%** | 74.4% | ±64.6° | ±84.6° |
+
+## Recommendation (inferred, not measured)
+
+**160.** At 142.78 the 90%-light radius is ±52.7° — it only just crosses the static window, which is the caveat that prompted this job: essentially the whole galaxy is already in front of you with no head turn. At 160 the 90% radius moves to ±59°, so there is a real ~10° turn to each side to take in the disc, while the edges sit at ±80° — still forward of your shoulders. At 175 the edges reach ±87.5°, effectively beside you, which is where "wrapping" starts; 80% of light inside ±50° also means the bright disc itself begins spilling past the window.
+
+## Caveats
+
+- **This is a monitor judgement.** 142.78 vs 200 vs 270 was called on device; the real call between 160 and 175 needs the headset. The ±50° cyan marker is a stand-in for the AVP static window, and the perceptual difference between 160 and 175 is 7.5° per side — small enough that the numbers can't decide it.
+- Each fov gets its own diffusion seed (`scene_seed` is keyed off the scene name), so the *invented surround* differs slightly between panels. The master content is identical; only its angular scale changes. Sweep #1 had the same property.
+- The 175 panel has a faint vertical plume below the core — a diffusion artefact of that particular render, not a property of the fov.
+- These are the **pre-SR** outpaint frames (same as sweep #1), so sharpness is not representative of the shipping render, which adds ESRGAN x4 and the high-res master re-paste.
+- Changing `fov_x` invalidates the `spatial_m31_andromeda` sky cache (framing sidecar), so adopting 160 means a full re-render of that scene: outpaint → seam → SR12288 → stereo → pack.
+
+## Constraints honoured
+
+Nothing written to `&lt;ARCH&gt;/root/`; MANIFEST and all repo files untouched (`upscale/deepsky_pipeline.py` was already modified at 14:33, before this session — not by me); `m16_*` and `m31_extL3/` untouched; no commits. Writes were only `derived/M31_FOV_sweep2.jpg` (333 KB) and `derived/m31_fov2_scratch/` (14 MB, holds the downsampled master and the two new sky caches — useful if you want another fov without re-diffusing).</result>
+<usage><subagent_tokens>102041</subagent_tokens><tool_uses>38</tool_uses><duration_ms>1016437</duration_ms></usage>
+</task-notification>
+
+---
+
+Let's hold off on deletes for now. The savings on space aren't worth the annoyance if the wrong thing is deleted.
+
+---
+
+<task-notification>
+<task-id>a71bbad81e9db0570</task-id>
+<tool-use-id>toolu_01V94bMubXzuSw8t4RF1o85h</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a71bbad81e9db0570.output</output-file>
+<status>failed</status>
+<summary>Agent "Research remaining eight scenes" failed: Agent terminated early due to an API error: API Error: Connection closed mid-response. The response above may be incomplete.</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Now let me draft the document while the third agent finishes.</result>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a71bbad81e9db0570</task-id>
+<tool-use-id>toolu_01V2SwYYku1Y6GPkRyTv6S5D</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a71bbad81e9db0570.output</output-file>
+<status>completed</status>
+<summary>Agent "Research remaining eight scenes" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Written to `docs/SCENE_RESEARCH.md` (47 KB, uncommitted, untracked). No GPU, no FITS, no archive-volume access, no image touched.
+
+## Where the list came from — FOUND, not reconstructed
+
+It is a verbatim instruction from Rick, recovered from the session transcript of 2026-07-26T18:53:39Z: *"…such as the Carina Nebula, Pillars of Creation, Andromeda, the Milky Way, Sagittarius, the star-forming regions in M51, the Crab Nebula, Centaurs. There should probably be a list of ten overall."* So it is **eight named targets plus two slots to be filled by research** — which reconciles exactly with the handoff's "the other eight were never researched" (six unresearched named + two open slots).
+
+The important structural finding: **six of the eight remaining scenes already ship.** The work is replacement, not addition.
+
+## Ranked shortlist
+
+1. **Carina / Cosmic Cliffs (JWST 2731 + HST 12050)** — needs **zero new pipeline code**. Program 2731's NIRCam filters are *identical* to M16's six (`F090W F187N F200W F335M F444W F470N`), so `ERO_M16`, the settled Pillars stretch, and the measured JWST spike angles all apply verbatim; HST 12050 uses the same three WFC3/UVIS filters as `m16_hst`. It replaces the library's worst letterbox (`weic2205b`, 2.89:1, border max 94).
+2. **Centaurus A master swap to `weic2615d`** — 15,566×17,466 near-square replaces 4,490×1,859 at 2.42:1. A download and a manifest row, ~32× the pixels.
+3. **M51 as the whole Whirlpool (HST ACS 10452)** — retires the library's weakest scene.
+4. **Orion or Butterfly as slot 10**, batched with M51 (shares the same three `PIVOT` additions).
+5. **Crab (JWST 1714)** — the only genuinely new target. 6. **Horsehead as slot 9.** 7. **Milky Way — defer.** 8. **Sagittarius — ask Rick first.**
+
+## Findings worth flagging beyond the shortlist
+
+- **Licensing is three regimes, not two.** MAST **HLSPs are CC BY 4.0** (verbatim on the MAST data-use page) — so the convenient pre-combined mosaics at `prepds/m51/` and `prepds/carina/` carry the same attribution burden we are escaping. The free path is the ordinary `_i2d`/`_drc` products by proposal ID, which is what `science_fetch.py` already does.
+- **NASA-hosted twins of ESA press images exist** (confirmed for Cen A, Sgr B2, Lagoon) and fall under the public-domain regime. Cheapest possible licensing progress, no FITS pipeline needed.
+- **A silent-failure bug in `science_render.py`:** unknown filters return `None` from `filter_of()` and get co-added into one channel, while `PIVOT.get(f, 99)` / `.get(f, 1.0)` simultaneously sort them as 99 µm and colour them as 1.0 µm. No exception. Eight filters needed by the ten-scene list are missing from `PIVOT`.
+- **`science_fetch.py` takes one `proposal_id` per dataset** — Cen A needs 1269 *and* 4529. And `_products()` rejects WFPC2, so the 2005 Crab (which is **WFPC2, not ACS** — verified) is invisible to it.
+- **Corrected a memory note:** Cen A does *not* "run off the edge". I ran `border_level()`'s exact computation on the in-repo master: all four borders dark, max **24.67** — the "runs off" phrasing in `potm_auto_manifest.py:87` describes the bug that was *fixed*. The real defect is the crop. It also sits 0.33 below the 25.0 threshold, so it is one unit from silently switching sky360 recipes.
+- **`spatial_weic2608a` (M51) is 2887 px across `fov_x=360` ≈ 8 px/degree** — by far the thinnest master in the library, and it is a 1.9-arcmin crop of one spiral arm mis-titled as the Whirlpool.
+- **unWISE licensing is unresolved** for a scene already in the build (CDS hips2fits layer is ODbL; primary pages would not load). That is the loosest licence thread in the project.
+
+Verified-vs-assumed is broken out fully in §8. The short version: all licence quotes, all press-page specs, and all program IDs except three (JWST 4529's PI, the 2018 Lagoon program, and Butterfly's 11504) were verified by fetching pages; all border/pixel measurements came from files in this repo; every aesthetic claim is monitor reasoning with no headset behind it.</result>
+<usage><subagent_tokens>149411</subagent_tokens><tool_uses>47</tool_uses><duration_ms>1236065</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a18665b8e46458877</task-id>
+<tool-use-id>toolu_0171kAEeWqegGU6vkefjQk6q</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a18665b8e46458877.output</output-file>
+<status>completed</status>
+<summary>Agent "Investigate s1 punched-core anomaly" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>I have everything I need. No code edits were made. Here is the analysis.
+
+## 1. The mechanism
+
+**Scale is not the discriminator. Code state is — and the file mtimes lie about it.**
+
+The punched black cores are produced by the **coverage intersection** at `upscale/science_render.py:254-262`, not by the NaN→zero mapping at line 247 alone:
+
+```python
+247:  out[filt] = np.where(cnt &gt; 0, acc / cnt, 0.0).astype(np.float32)   # per-filter zero
+248:  cov = cnt &gt; 0
+249:  common = cov if common is None else (common &amp; cov)
+...
+258:  if common is not None and not common.all():
+261:      for filt in out:
+262:          out[filt] = np.where(common, out[filt], 0.0)               # ALL filters zeroed
+```
+
+Saturated star cores are non-finite in only *some* filters. Measured from the FITS at these sites: `clear-f200w`, `clear-f335m`, `clear-f444w` are NaN at the core; `clear-f090w`, `clear-f187n` (the reference grid) and `f444w-f470n` are usually finite.
+
+- **Without** line 262, a NaN filter contributes 0 through line 247, and `mix()` still divides by the full weight sum (`science_render.py:322-324`), so the affected channel collapses while the others stay bright → the core renders as a **saturated colour blotch**.
+- **With** line 262, one NaN filter zeroes *all six*, so R=G=B=0 → the core renders as a **black hole**.
+
+The intersection landed between 15:43 and 15:52 (it was added to fix the HST blue wedge). Both s1 renders and every s4 render predate it. The 16:09 s1 file's *mtime* postdates the edit, but a full-res run takes ~25 min, so the process loaded the source before the edit. This is independently confirmed by the filenames: neither s1 file carries the `wb` tag (`science_render.py:756`), which was in output names by 15:50:55.
+
+Secondary point, verified and negative: I tested the hypothesis that reprojection changes the mask. It does not. `same` at `science_render.py:232-238` is False at every scale&gt;1 for this dataset (`ny*scale = 8584 ≠ 8583`), so the documented `data[::scale, ::scale]` decimation path is effectively dead code and *every* filter goes through `reproject_interp` at scale&gt;1; only at scale 1 does the reference filter take the identity path. That asymmetry does not matter, because `common` goes False over the same sky area at both scales (1.66% vs 1.56%, 0.29% vs 0.39%, 0.80% vs 0.88% in matched windows).
+
+## 2. Pixel evidence
+
+Coordinates are matched by construction: the s8 grid is `ref.wcs.slice((::8, ::8))`, so s8 pixel (i,j) *is* s1 pixel (8i, 8j). 80 core sites were located by differencing the s8 control against the s8 corefix render.
+
+Same window of sky, `max(R,G,B) &lt; 25` ("true black") count:
+
+| site s8(y,x) | s8 control 16:49 | s4 preview 15:43 | s1 15:40 | s1 16:09 |
+|---|---|---|---|---|
+| (415,1496) | 15 black px, minRGB (0,0,0) | 0 black, minRGB (0,39,62) | 0 black, minRGB (0,10,59) | 0 black, minRGB (0,11,59) |
+| (711,1535) | 7 black px, (0,0,0) | 0, (21,35,39) | 0, (20,36,51) | 0, (18,35,50) |
+| (958,1475) | 8 black px, (0,3,0) | 0, (41,61,76) | 0, (38,23,71) | 0, (31,20,75) |
+
+Darkest core pixel, worst s1 sites versus the corefix render at the same star:
+
+```
+s1(3552, 9992)  s1 RGB=(  0, 42,183)  |  corefix RGB=(221,169,129)
+s1(6136, 1528)  s1 RGB=(  0, 42,176)  |  corefix RGB=(165,194,150)
+s1( 792, 1088)  s1 RGB=(  0, 47,173)  |  corefix RGB=(241,174,103)
+s1(3040, 9816)  s1 RGB=(221, 10, 16)  |  corefix RGB=(102,118,196)
+```
+
+At s1(3552,9992) the R channel drops out over a **contiguous 51-px, 8×8 blob dead-centre on the star** — an electric-blue dot where the corrected render gives a warm white star.
+
+Chroma `(max-min)/max` of the darkest core pixel across all 80 sites:
+
+| render | median | frac &gt; 0.55 | frac &gt; 0.75 |
+|---|---|---|---|
+| s1 16:09 | 0.59 | 54% | 30% |
+| s1 15:40 | 0.59 | 54% | 31% |
+| s8 corefix 17:07 | 0.23 | 1% | 0% |
+| s8 control 16:49 | 1.00 | 100% | 100% |
+
+22 of the 80 sites have a ≥4 px single-channel dropout inside the core at s1.
+
+Independent confirmation that the intersection is the switch — one-filter colour fringes in the frame-edge band (a pixel with one channel ≥90 and another ≤15 can only survive if per-filter coverage is *not* intersected):
+
+```
+s4_blend 15:26   2727      s8_pack  15:52   0
+s1       15:40   89192     s8_ctl   16:49   0
+s4_prev  15:43   2586      s8_fix   17:07   0
+s1       16:09   56938
+```
+
+## 3. Verdict
+
+**No — the two s1 renders are not trustworthy.** The defect is present at full resolution, at the same stars, in the same 80 places. It is invisible to a luminance blob detector because at s1 it is a *colour* hole, not a black one. `fill_saturated()` is load-bearing at every scale.
+
+## 4. Code
+
+I made no edits. There is no small, clearly-correct fix outstanding: `fill_saturated()` (`science_render.py:145-198`) is the right remedy and it is already in. I verified it would take these cores — running its exact algorithm on 201×201 cutouts at four sites accepts 78–100% of the NaN pixels in each of `f200w`/`f335m`/`f444w`, with fill values 75–8000 against global p99 thresholds of 32–56.
+
+Two things to describe rather than change:
+
+- **`science_render.py:232-238` — the decimation fast path is dead.** `m["shape"] == (ny * scale, nx * scale)` can only hold when the reference height and width are exact multiples of `scale`; for m16_jwst (8583×14341) it never is, so `arr = data[::scale, ::scale]` never executes and the reference filter is reprojected onto its own (decimated) grid at every scale&gt;1. Harmless, but the comment at line 133-135 describes a path that does not run. (`m["wcs"].to_header() == rw.to_header()` is fine — astropy `fits.Header` compares by value, confirmed.)
+- **Lines 254-262 conflate "one filter has no data" with "one filter is saturated."** Any NaN that `fill_saturated()` declines to fill still zeroes all six channels and becomes a black hole. That is defensible for genuine no-coverage, but it means the black-core failure mode is one rejected fill away at all times.
+
+## 5. One correction for the archive README
+
+`derived/m16_pillars/README.md` line 79-80 says the pack candidates and all s4/s8 renders carry the defect, and cites a blob census of s8 renders only. That is right about *which files are bad* but wrong about *what the defect looks like* in the pre-15:52 files. The 14:53–15:43 s4 renders and both s1 renders carry the same defect as **colour corruption**, which the blob census scores as 0. If anyone re-runs that census as an acceptance gate, it will pass files that are still broken. The gate needs a chroma test, not a darkness test.</result>
+<usage><subagent_tokens>128207</subagent_tokens><tool_uses>27</tool_uses><duration_ms>978137</duration_ms></usage>
+</task-notification>
+
+---
+
+On M31_FOV_sweep2_wide.jpg, I think the 175 is best, though we might want to shift the starting viewpoint slightly left so the galaxy is more centered in front of the viewer.
+
+---
+
+Fair point. Put the existing m31 onto the headset so I can check it now
+
+---
+
+<task-notification>
+<task-id>a964a3445559cbbf0</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a964a3445559cbbf0.output</output-file>
+<status>completed</status>
+<summary>Agent "Fix science_render filter bug + chroma gate" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. Report:
+
+## Item 1 — unknown filters now fail loudly
+
+`upscale/science_render.py`
+
+- `filter_of(path, where="")` now extracts every filter-shaped token from the filename with `FILT_RE = re.compile(r"F\d{3,4}[A-Z]{1,2}")` and raises `SystemExit` if any token is not in `PIVOT`, or if no token is found at all. The message names the offending code(s), the file, the dataset directory, and lists every registered filter in wavelength order. Matching the *filename* rather than `PIVOT`'s keys is what lets it name a filter it doesn't know.
+- Removed the contradictory defaults themselves: `PIVOT.get(f, 99)` (sort), `PIVOT.get(f, 1.0)`/`.get(f, lo)` (spectral placement) and `PIVOT.get(f, nan)` (log line) are now `PIVOT[f]`. With `filter_of()` refusing unregistered filters there is no default left to disagree with.
+- **Verified by running**: all four real MAST filename forms on disk still resolve correctly (`f444w-f470n` → `F470N`, `clear-f090w` → `F090W`, HST skycells → `F673N`/`F502N`); `…clear-f480m…` and a filename with no filter code both raise with the full message; `mix()` runs under all three mappings.
+
+**Eight filters added** (PIVOT 25 → 33 entries). Values are pivot wavelengths from the SVO Filter Profile Service (`svo2.cab.inta-csic.es/theory/fps`), cited in a comment in the file. I cross-checked SVO against the table's *existing* entries before trusting it — F200W 19886.48 Å → 1.990, F770W 76393.34 Å → 7.639, F502N 5009.81 Å → 0.501, all matching what was already there to 3 dp.
+
+| filter | µm | instrument | needed by |
+|---|---|---|---|
+| F212N | 2.121 | NIRCam | Sgr B2 |
+| F405N | 4.052 | NIRCam | M51 FEAST, Sgr B2 |
+| F560W | 5.635 | MIRI | Cen A |
+| F1000W | 9.953 | MIRI | Cen A |
+| F2550W | 25.364 | MIRI | Sgr B2 |
+| F435W | 0.433 | ACS/WFC | M51 |
+| F555W | 0.536 | ACS/WFC | M51 |
+| F814W | 0.805 | ACS/WFC | M51 |
+
+**Deliberately left out: F480M and F2100W** (the Crab pair). Their wavelengths are verifiable — SVO gives F480M 4.813 µm and F2100W 20.795 µm — but `docs/SCENE_RESEARCH.md` flags the *filter codes themselves* as inferred from a press-release wavelength and not confirmed against programme 1714. Registering them would let a Crab render proceed on that inference; leaving them out makes it stop. That's recorded in a comment next to the table, with the values available here if someone confirms the programme's filter list.
+
+Attempts to read the JDox NIRCam/MIRI filter tables failed (Confluence renders them dynamically; WebFetch got only the nav shell), which is why SVO is the cited source.
+
+## Item 2 — dead decimation path documented, not revived
+
+The strided branch is dead for **two** independent reasons, and I verified both by running code rather than by reading:
+
+1. `rw` is `reference_grid`'s *sliced* WCS. `WCS.slice((::s, ::s)).to_header() == wcs.to_header()` is `False` for s = 2, 4, 8 and `True` only for s = 1 — so `same` is already False at any scale &gt; 1, even for the reference file itself. This kills the fast path before the shape test is ever reached.
+2. The shape test needs both reference dims to be exact multiples of `scale`; for 8583×14341 it is False for every scale in {2,4,8,16}.
+
+So every filter goes through `reproject_interp` whenever scale &gt; 1, and the only live shortcut is the `elif same` pass-through at scale 1 for the reference file. Documented in a block comment at the guard plus a corrected `reference_grid` docstring/comment ("decimated" describes the grid, not the resampling). No behaviour changed.
+
+## Item 3 — chroma-based acceptance gate
+
+New file: `/Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/upscale/qa_star_cores.py`. Runs against any rendered JPEG.
+
+Method: find core *sites* in a defect-independent way — a bright compact peak whose 7×7 window is bright all the way around its border (max-filter first, so a star whose centre is a hole still peaks like a star); then score the **darkest pixel inside** by chroma `(max−min)/max`, plus an explicit black test (`max channel ≤ 20`) for the all-zero case where chroma is undefined. Enclosure locates the site; chroma judges it.
+
+Measured (corrupt fraction / fully-black cores / median chroma):
+
+```
+0.037 /  0 / 0.240  saturated-core-fill_CURRENT-BEST   PASS   &lt;- known good
+0.413 / 73 / 0.335  dsp0.0_isolation-control           FAIL
+0.463 / 26 / 0.510  dsp1.0_line-se-gapped              FAIL
+0.429 / 22 / 0.490  dsp1.0_line-se-gapped-retuned      FAIL
+0.420 / 30 / 0.466  dsp1.0_core-peak-protect           FAIL
+0.385 / 42 / 0.359  pack candidate (jwst)              FAIL
+0.057 / 26 / 0.387  montage_pack_comparison            FAIL (on black count)
+0.172 /  9 / 0.318  03_blend s4 SETTLED                FAIL
+0.294 /  0 / 0.374  02_despike s4 dsp0.0               FAIL
+```
+
+Known-good passes, every known-bad JWST render fails. My good-file median chroma of 0.240 lands on the 0.23 you quoted, which is a useful independent confirmation the same thing is being measured. Thresholds: rate &gt; 0.12 **or** ≥ 3 black cores. `INCONCLUSIVE` (exit 2) when fewer than 30 sites are found — it is explicitly *not* a pass, since "found nothing to look at" is exactly how the previous gate lied.
+
+Two honest limits, documented in the script: the two **HST** pack candidates pass this check (it is a JWST-saturated-core gate; HST-only renders generate tens of thousands of sites from broad nebulosity and dilute the rate), and the s16 first-look yields zero sites → INCONCLUSIVE.
+
+`README.md` at `derived/m16_pillars/` corrected in place (only file touched on that volume, verified): a new subsection "DO NOT re-use that blob census as an acceptance gate" explains that the pre-15:52 renders (15:05 despike sweep, 15:26 blend sweep, 15:40/15:43 full-res) carry **colour** corruption a blob census scores as 0 — the 15:05 s4 renders measure 0 black cores against 29% colour-corrupt — with the table above and the run command. I also flagged there that the "all three pack candidates" claim is inherited from the blob census and unverified per-instrument, since my check clears the two HST ones.
+
+## Noted, not fixed — lines 254-262 conflating no-coverage with saturation
+
+Yes, I think it deserves separating, and there is a cheap, non-invasive way to do it that the code is already throwing away: line 239 is `arr, _ = reproject_interp(...)` — the discarded second return is the **footprint**, which is the honest geometric coverage mask. Coverage should be intersected from that, not from `np.isfinite(data)`. Then a NaN that `fill_saturated()` declines to fill stays a per-filter data gap (handled by the co-add's `cnt`, i.e. one channel down) instead of zeroing all six into a black hole, and genuine off-footprint pixels are still correctly excluded. As it stands the black-hole failure mode is one rejected fill away at all times, and `fill_saturated`'s brightness threshold (99th percentile) is exactly the kind of knob that will reject a fill someday. I did not restructure it.
+
+Nothing committed. `upscale/deepsky_pipeline.py` shows as modified in git but that is the M31 agent's work — I never opened it.</result>
+<usage><subagent_tokens>167057</subagent_tokens><tool_uses>73</tool_uses><duration_ms>905469</duration_ms></usage>
+</task-notification>
+
+---
+
+The width is actually fine there. There are lots of other issues, but those hopefully will be fixed by the tiled master. I can see the edges of the blocks such that it's very visible where diffusion took over. There is also a black line towards the bottom of the globular cluster. Once you get off the edges of the galaxy, the quality of the image plummets dramatically. Enough that I'm not 100% sure I'm looking at the right thing. What's the label I'm looking for?
+
+---
+
+9.2 is the right one
+
+---
+
+As for the diffusion falling off dramatically, I hate it. It completely ruins the effect. We don't need to have additional nebulae or galaxies showing up, but the star density at the edges of the galaxy needs to carry over relatively uniformly in all directions. Going straight off into smeared goo is antithetical to what we're trying to do.
+
+---
+
+I just dropped a screenshot into Downloads that shows how the upper edge transitions from pinpoint stars to big blobs on a black background, that then stretch up towards the center point.
+
+---
+
+It also needs to do the math so that when it wraps the equirect, we don't get streaked stars rushing towards the top.
+
+---
+
+<task-notification>
+<task-id>a6e550cabe7292202</task-id>
+<tool-use-id>toolu_013ht1nsjRv1FkEn1VSUydYp</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a6e550cabe7292202.output</output-file>
+<status>completed</status>
+<summary>Agent "Find source of tile grid in M31 HEIC" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>## Answer: there is no tile grid. The USDU signature is absent — I measured for it and it is not there.
+
+All figures are 1:1 crops in `/Volumes/Logic Pro/Float Originals Archive/derived/m31_griddiag/`, laid out horizontally.
+
+### The `REFINE_BACKEND` puzzle resolves as "the refine really didn't run"
+**Measured.** The r10 cache holds only `spatial_m31_andromeda_r10_outpaint.png` (1536×768, 15:06) and `..._r10_sr12288.png` (15:08) → HEIC 15:09. There is **no `_r10_refined.png`**, which `sky360.make_sky` writes whenever `refine == "usdu"` (sky360.py:625). The log signature for this scene is `SR ..._sky_p0: 1536x768 -&gt; 6656x3072` / `_sky_p1: 3072x1536 -&gt; 12800x6144` — the pure RealESRGAN path. No `SKY360_REFINE` is set anywhere in the repo. USDU did not run.
+
+### Candidate 2 (your leading hypothesis) is measurably clean
+**Measured.** `neural_sr.py` never takes the tiled path here (18.9 MP ≪ `MAX_OUT_MP`). I isolated exactly what SR added — `sr12288 − Lanczos(outpaint→12288)` — and tested its column/row |residual| profile for a phase-locked ridge at 256/512/1024/1536/2048/2560/3072/4096 px. Best score at any period is ~1.8× the profile sd and **rises monotonically with P**, which is the sample-count artefact you get from noise, not a grid. FFT of the profile peaks at 240–270 px with no harmonic structure. **Measured tile period: none, at any period from 64 to 4096 px.** ComfyUI's internal `tiled_scale` feathering is doing its job.
+
+### What Rick is actually seeing — three separate defects, three different stages
+
+**(3) "quality plummets off the edges of the galaxy" — `deepsky_pipeline.compose_sky360` / `FOOT_FEATHER`.** `FIG1_resolution_cliff_1to1.png`. High-frequency RMS by superellipse radius: 8.64 at r=0.5–0.6 → **0.73 at r&gt;1.0, a 12× collapse**, and it happens *inside* the footprint over the 0.22 feather ramp (r≈0.78→1.0), not at the edge. Root cause is a source-resolution cliff: master 14520 px / 142.78° = **101.7 px/deg** vs outpaint 1536 px / 360° = **4.27 px/deg**, a **24× step**. `detailmap.png` shows it as a bright oval on black. This is the documented `REFINE_BACKEND="none"` tradeoff, and it is far bigger than the comment implies.
+
+**(1) "edges of the blocks where diffusion took over" — 8-bit posterisation in the outpainted halo, introduced by the RealESRGAN pass.** `FIG3_banding_blocks.png`. In a 1200×700 far-sky patch the shipping HEIC carries **6 distinct luminance levels**; per-channel, the far sky is **R∈0..2 (3 levels)**. Crucially the 1536 outpaint has **9 levels over R∈7..25** in the same solid angle — **RealESRGAN crushed the deep sky from 7..25 down to 0..1**, then the surviving shallow gradient quantises into wide flat plateaus with hard edges (band widths median 2 px, p90 7 px, **max 213 px = 6.2°**). `detailmap.png` shows the entire diffusion surround covered in topographic contour rings — outside the master, banding is the *only* high-frequency content in the sphere. *(Inference: this is what reads as "blocks" in the headset; hard Mach-band edges at 34 px/deg are exactly what the eye locks onto.)*
+
+**(2) "black line towards the bottom of the globular cluster" — `m31_recut_fill.py`, and it is NOT a diffusion artefact at all.** `FIG2_black_line.png`, `FIG4_blackline_provenance.png`. **Measured:** two pure-black (L=0) slivers of raw mosaic no-data survive un-filled into the shipping master, both on the bright inner disc just below the core:
+
+| | master coords | ship coords | angular size |
+|---|---|---|---|
+| A | x 6206–6273, y 4088–4180 | x 5790–5813, y 3136–3167 | **1.12° long, 1–2 px (0.06°) wide** |
+| B | x 9016–9052, y 4071–4118 | x 6733–6745, y 3130–3146 | **0.58° long** |
+
+Line A measures **L≈36 against a local background of L≈152–165 — a 76% drop**, hard-edged, perfectly straight, ~60°. FIG4 shows the provenance in three panels: the recut's no-data wedge has a thin diagonal *spur*; stage 2 fills the wedge body and **leaves the spur completely untouched**. *(Inference, but strongly indicated by `m31_recut_tilefill.py`'s own docstring: the no-data mask is recovered by "a smoothed black-fraction with a spatial threshold", and a 1–3 px spur has too low a local black-fraction to clear that threshold.)*
+
+### The tiled master: good news and bad news, both measured
+
+- **It does NOT add a second grid.** I tested `..._recut_v2_tiled.tif` (it already exists, 17:09) against stage 2 in the changed region for phase-locked column steps at 256/384/512/640/768/1024. Scores are **statistically identical** (e.g. P=512: 2.447 tiled vs 2.453 stage 2; P=768: 2.755 vs 2.790). The stride-512 / 768-tile pass is invisible — the cosine window plus forcing the low band back to init is exactly the right cure for the per-tile black-level drift that made USDU fail.
+- **It does NOT fix the black lines.** Both slivers survive: A goes 92→87 black px, B 116→99. Black-on-bright drops 7168→932 px overall, so tilefill fixes the *area* problem beautifully (FIG4 panel J is smooth and structured where panel I is speckled mush) but the two visible lines are still there.
+- It also cannot help defects (1) or (3), which live in the sphere outside the master footprint.
+
+### Recommended fixes, in cost order
+
+1. **Black lines (cheap, do before any re-render).** In `m31_recut_fill.py` / `m31_recut_tilefill.py`, take the no-data mask as `(R,G,B)==(0,0,0)` **exactly**, then dilate 3–4 px, and drop the smoothed-fraction spatial threshold as the sole gate (keep it only to *add* regions, never to reject them). A `--verify` assert already exists in tilefill — extend it to "zero exact-black px on a background &gt;50", which currently fails with 932.
+2. **Banding (the actual "blocks").** Two options, both cheap relative to a re-render: (a) add ordered/blue-noise dither of ±1 LSB before the 8-bit write in `deepsky_pipeline.tonemap`; (b) better, stop RealESRGAN crushing the floor — offset the outpaint's black point up before SR and subtract after, or lift the surround floor so the halo lives above ~L=8 where 8 bits still has resolution. `FLOOR_GAIN`/`FAR_FALLOFF_DEG` push it the wrong way for this.
+3. **Resolution cliff.** Only a genuinely higher-res surround fixes it. Rendering the outpaint at 3072 rather than 1536 halves the 24× to 12× at ~4× the pod cost, with no tiling involved.
+
+### Housekeeping
+No code changed — nothing I measured proves an existing comment wrong. The `sky360.py:154-163` USDU note stands as written (it describes a backend that is off); it is just not the cause of this report. Nothing committed. Read-only paths untouched.</result>
+<usage><subagent_tokens>174207</subagent_tokens><tool_uses>68</tool_uses><duration_ms>1251924</duration_ms></usage>
+</task-notification>
+
+---
+
+Go aead and try the fixes.
+
+---
+
+<task-notification>
+<task-id>adff609116d37a8d6</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/adff609116d37a8d6.output</output-file>
+<status>completed</status>
+<summary>Agent "Fix black lines and 8-bit banding" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Both fixes are in and measured. No commits made.
+
+## FIX 1 — black no-data slivers: fixed, verified
+
+**Cause confirmed, and the previous diagnosis was wrong in an instructive way.** The two slivers were recorded in `m31_recut_fill.py`'s docstring item 4 as chip gaps "dark but not zero", too faint for the zero-fraction test. Re-measured: their cores are **exactly (0,0,0)** — ordinary mosaic no-data on a thin diagonal spur off the wedge. What the smoothed black-fraction test misses is not faintness but **width**: a 1-3 px feature never clears a threshold on a sigma-3 smoothed fraction. I corrected that docstring rather than deleting it.
+
+**Code** (`upscale/m31_recut_fill.py`, `upscale/m31_recut_tilefill.py`):
+- `nodata_exact()` — bit-zero exactly, then a **hysteresis grow** through pixels below 0.7× local background, seeded only where the background is &gt; 50. Hysteresis rather than a fixed dilation because the chip gap *continues* past its exact-zero core for tens of px. Measured non-flooding: 250 seed px → 1147 (4 iters) → 1583 (12) → 1812 (24), converging.
+- The stored `RECUT_MASK` can now only be made smaller by the pixels, never larger; the fraction test is **unioned** in, never allowed to veto.
+- `--verify` extended and now asserts on exact-black-on-bright.
+- New `--linefix &lt;master.tif&gt;` — no GPU, namespaced `_lf` output, refuses to overwrite.
+
+**Numbers** (extL3 master):
+
+| | before | after |
+|---|---|---|
+| exact-black on local bg &gt; 50 | **245** | **0** (assert passes) |
+| exact-black total | 27404 | 1056 (all in deep sky, bg 13-49) |
+| sliver A: px below 60% of local bg | 523 | **0** |
+| sliver A: worst dip, native / delivered 0.34× | 100% / 100% | 40% / 26% |
+| sliver B: worst dip, delivered | 100% | 41% |
+
+Note on **932**: I could not reproduce it with an exact-black test — I measure 245. `L &lt; 1` (near-black, not bit-zero) with the same background estimator gives 874-894, which is probably what was counted. My assert is on the exact test as specified; both numbers are above.
+
+**Fill recipe was A/B'd, not assumed.** Nearest-valid + blur (the obvious choice) pulls sliver A's fill **7 L below** its surroundings and loses 3/4 of the grain — a fainter version of the same line. Shipped recipe is weighted-Gaussian level (nearest-valid only where the denominator collapses, honouring the recorded large-blob lesson) + achromatic seeded grain matched in quadrature: level error +1.86 / +0.35 L, grain ratio 0.82 / 0.73. Independent per-channel grain was tried and is visibly wrong — a strip of RGB confetti on the bright disc.
+
+**Coordination:** extL3 was `18:40:06 / 396931566 B` when I started and **was revised to `19:23:10 / 396713250 B` mid-run**. I re-ran the repair against the current version. `..._extL3_lf.tif` + `..._extL3_lf_mask.png` are at 19:27:24 and derive from the 19:23 source. If extL3 changes again, re-run `--linefix`; it takes ~80 s.
+
+## FIX 2 — halo posterisation: (b) works, (a) does not
+
+**(b) Black-point lift before SR — shipped, verified end-to-end on the pod.** Diagnosis confirmed exactly: the 1536 outpaint carries R 7..20 in the far sky and RealESRGAN crushes it to R 0..1. `SR_BLACK_LIFT = 24` maps the range into [24,255] before the pod and inverts after (in float — no second quantise).
+
+| 1200×700 patch, through a q100 HEIC | far sky floor | halo gradient |
+|---|---|---|
+| SR output R range | 0..1 → **7.7..11.0** | 0..239 → 0..249 |
+| distinct L | 8 → **41** | 255 → **345** |
+| R,G,B levels | [3,3,4] → **[7,7,9]** | [60,55,55] → [67,63,61] |
+| max flat run | 40 → **22** | 27 → **19** |
+
+**Look change you need to see (sheet provided).** The crush had been acting as an unasked-for black point. Removing it puts the sphere's mean luminance at 16.08 → 21.09 and its 5th percentile at 0.00 → 8.91 — there is no pure-black sky anywhere any more. That is the outpaint's own painted floor, restored. This collides head-on with the other agent's `FLOOR_GAIN` / `FAR_FALLOFF_DEG` work: if the sky is now too bright, the lever is that floor or `tonemap`'s existing `black=`, **not** re-crushing in SR.
+
+**(a) Blue-noise dither — implemented, measured, and NOT enabled. It loses.** `backdrop_tool.tonemap` already had white TPDF dither. I added a proper tileable blue-noise mask (`dither="blue"`, FFT high-pass + rank-order). Banding error (std of the blurred residual, DC removed) on the halo-gradient patch:
+
+| | written | after q100 HEIC | HEIC max run |
+|---|---|---|---|
+| no dither | 0.2450 | 0.4368 | 383 |
+| TPDF white (current) | 0.0354 | **0.2266** | **27** |
+| blue noise | **0.0068** | 0.2961 | 296 |
+
+Blue noise is 5× better at the point of writing and **worse through the encoder** — an HEVC intra encoder discards the top octave first, and blue noise puts all its energy there. Both rescues failed too: raising the mask to ±1/±1.5/±2 LSB fixes runs (296→32/24/18) but band err only worsens (0.307/0.312/0.330); a band-pass "green" mask peaked at 3/6/10/20 px sits at 0.296-0.300 regardless. Post-HEIC band err has a **floor of ~0.227 that no dither goes below** — at that point the encoder makes the bands, not the quantiser. `DITHER = True` (unchanged) with the table in the comment. Getting under that floor needs a 10-bit HEIC (`pack_spatial.swift` writes 8) or real signal — which is what (b) does.
+
+## Deliverables (files are the point — please open them)
+
+`/Volumes/Logic Pro/Float Originals Archive/derived/m31_linefix/`
+- `FIX1_black_slivers_before_after.png` (5038×1218, horizontal) — both slivers, 1:1 and 4× NN, before | after
+- `linefix_A_4x.png`, `linefix_B_4x.png`, `linefix_A_1to1.png`, `linefix_B_1to1.png`
+- `FIX2_halo_banding_before_after.png` (9880×834, horizontal) — both patches, as-written and per-panel stretched
+- `FIX2_halo_banding_{halo_gradient,far_sky_floor}.png`
+- `m31_r10_sr12288_lift24.png` — the lifted SR, raw pod output
+
+## Files changed (not committed)
+- `upscale/m31_recut_fill.py` — `nodata_exact()` + constants; stored mask trimmed by pixels in `build_canvas` and `compose`; docstring item 4 corrected
+- `upscale/m31_recut_tilefill.py` — union mask, `black_on_bright()`, `fill_holes()`, `linefix()`, `--linefix`, extended `--verify` assert
+- `upscale/deepsky_pipeline.py` — `_sr_lift`/`_sr_unlift`, lift wired into the SR call with a lift-aware cache key, `DITHER` constant on both tonemap calls. **MANIFEST untouched** (verified in the diff)
+- `scripts/backdrop_tool.py` — additive `dither="blue"` option; default behaviour unchanged. The tonemap lives here, not in `deepsky_pipeline`, so this was the only way to avoid duplicating the Reinhard/sRGB path
+
+`upscale/sky360.py` not touched.
+
+**Two things for whoever picks this up:** (1) `..._extL3_lf.tif` is not in the MANIFEST — that row still points at `..._recut_v2_filled.tif`, and pointing it at the `_lf` master is the other agent's call. (2) The lift changes the SR cache key, so a full batch will re-run SR for all 44 scenes and roughly double the ~5 GB `_sky_cache`; the pre-lift `_sr12288.png` files can be pruned once the look is signed off.</result>
+<usage><subagent_tokens>280658</subagent_tokens><tool_uses>147</tool_uses><duration_ms>2512287</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a92bec6e182444130</task-id>
+<tool-use-id>toolu_01UN3z3MtpcAziez1X5jRyu4</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a92bec6e182444130.output</output-file>
+<status>completed</status>
+<summary>Agent "M31 left-edge extension" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. Here's the report.
+
+## What was built
+
+`/Volumes/Logic Pro/Float Originals Archive/root/m31_andromeda_hubble_mosaic_recut_v2_tiled_extL3.tif` — 16020×7795 (397 MB), plus `..._extL3_mask.png`. The 14520 inherited columns are **byte-identical** to the shipping `_v2_tiled` master (verified with `np.array_equal`); the mask's inherited half is identical too and the 1500 new columns are all marked generated.
+
+Script: `/Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float/upscale/m31_extend_left3.py` (reuses `m31_recut_tilefill.py`'s tiling/re-anchor and `m31_extend_left.py`'s solved registration). 1500 px of extension, 45 tiles of 768 px at stride 512, denoise 0.65, anchored on the registered ground-based Gendler/DSS frame.
+
+## Measured, same 18.78 sky reference
+
+```
+BEFORE  14520 px, fov_x 142.78
+  lon      -71.4  -57.1  -21.4    0.0  +21.4  +57.1  +71.4
+  colmean   26.3   34.0   71.2   85.6   61.0   24.4   21.3
+  ratio     1.40   1.81   3.79   4.56   3.25   1.30   1.13
+
+AFTER   16020 px, fov_x 157.53
+  lon      -78.8  -63.0  -23.6    0.0  +23.6  +63.0  +78.8
+  colmean   19.1   26.9   59.5  101.3   64.2   24.8   21.3
+  ratio     1.02   1.43   3.17   5.40   3.42   1.32   1.13
+
+edge band   8 cols   before 1.37 -&gt; after 1.01   (right edge 1.08)
+edge band 200 cols   before 1.43 -&gt; after 1.04   (right edge 1.14)
+edge band 500 cols   before 1.49 -&gt; after 1.10   (right edge 1.14)
+```
+
+**It went past the 1.15 target to ~1.04** — the left edge now sits marginally *below* the sky reference rather than matching the right edge's 1.14. That's the safe direction (a slightly-dark clamp beats a bright one) but it's a judgement call: 1200 px instead of 1500 would have landed on 1.13 and saved 2° of fov. Overrule if you'd rather have the tighter frame.
+
+Seam: no measurable step. Extrapolating the smoothed column mean to x=1500 from each side gives a **−0.45%** discontinuity, smaller than the natural ±1.3–3.6% at arbitrary interior control columns. High-band texture 9.83 (extension) vs 10.94 (master).
+
+Rendered sphere is now near-symmetric: surround within 300 px of the footprint reads L 43.4 / R 47.0 (ratio 0.92). Before, a 1.40-vs-1.13 edge ratio was clamping ~24% *brighter* on the left.
+
+## Verified by looking, not assuming
+
+- `ab_denoise.jpg` / `ab_grain_1to1.jpg` — 3 tiles × 3 denoise values. **Diffusion here *reduces* structure**, it doesn't add it: the init is a 6.6× upscale of a real frame so its mid band is already at the master's level. What denoise buys is sharpness — fine-band lag-1 goes 0.75 (init) → 0.43 (d0.65), i.e. blobs become point sources. 0.65 also lands the mid band on 6.03 against the master's 6.06.
+- **Caught and fixed a real artifact by rendering it at delivered scale.** My first repair of the guide's out-of-reference corner (nearest-valid fill blended to a σ150 smooth) produced a star-free wedge 45% brighter than the real guide (18.3 vs 12.7), with a diagonal boundary still obvious after a 3× downsample and the pipeline's own exposure-0.2 tonemap. Replaced with `mode="mirror"` on the warp — continuous and correctly levelled by construction — and **re-ran all 45 tiles**. Both states are in `_corner_delivered_new.jpg`.
+- Black pixels: 27404 total, of which 27151 are inherited from the existing master. The extension contributed 270, and its near-zero rate in dark sky (0.75% of L&lt;20 px) is *lower* than the master's own (1.41%).
+
+## Files Rick should open
+
+All in `/Volumes/Logic Pro/Float Originals Archive/derived/m31_extL3/`:
+- **`m31_extL3_before_after_lifted.jpg`** — the one that matters. 3000 px, before on top / after below, right-aligned so the galaxy is in the same place and the only difference is the left edge; gamma 1/2.2 because at true exposure a 1.40→1.04 change is a few levels and invisible. I stacked rather than juxtaposed deliberately — side-by-side puts the two left edges 3000 px apart, which hides the comparison.
+- `m31_extL3_before_after.jpg` (true exposure), `m31_extL3_seam_1to1.jpg`, `m31_extL3_edge_1to1.jpg` vs `m31_extL3_OLD_edge_1to1.jpg`, `_corner_delivered_new.jpg`, `_seam_delivered_new.jpg`.
+
+## Downstream
+
+- **MANIFEST updated** (`upscale/deepsky_pipeline.py`): now `..._recut_v2_tiled_extL3.tif`, `fov_x=157.53`. It was doubly stale — still naming `_v2_filled` after stage 3 shipped `_v2_tiled`, and still on 142.78. **`fov_x` must change; the latitude span must not.** 157.53 = 118 × 16020/12000, so deg/px is unchanged and the height didn't move — span stays ±38.33° (the pipeline confirmed it: "pole soften from 38.3deg"). The galaxy doesn't get wider either; the 12000-px crop still spans exactly 118°. The extra 14.75° is fade-to-sky replacing edge-clamp smear, so it moves *toward* "in front of me, not wrapping around".
+- **HEIC + thumbnail rebuilt** — `spatial_m31_andromeda.heic` 87.1 MB, sky cache correctly self-invalidated on the fov change. Symlink added at `Float/Resources/Textures/_raw/deepsky/`.
+- Nothing committed. `.entire/settings.json` exists.
+
+## Two things for you to decide
+
+1. **A concurrent session wrote `..._extL3_lf.tif` from my output at 19:27** (via `m31_recut_tilefill.py --linefix`). It's my master plus a no-data sliver repair: 27910 px changed (0.022%), exact-black 27404 → 1056, only 249 changed pixels inside my extension. It looks strictly better and preserves the extension, but I left the MANIFEST on `_extL3.tif` because I can't verify another session's in-flight pass. If it checks out, that row should point at `_lf`.
+2. **The extension's stars are visibly blobbier than the master's.** They're *real* — foreground Milky Way stars from the ground-based frame — but at a 6.6× upscale, and the master's adjacent sky is stage-2 invented and nearly starless, so at delivered scale there's a soft texture boundary at x=1500 (visible in `_corner_delivered_new.jpg`). I chose not to suppress them: that would mean degrading real data to match invented data. Ollama was left at 1 replica; I never needed to scale it down.</result>
+<usage><subagent_tokens>284665</subagent_tokens><tool_uses>120</tool_uses><duration_ms>7273959</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a160ce8af47eadf7b</task-id>
+<tool-use-id>REDACTED</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a160ce8af47eadf7b.output</output-file>
+<status>completed</status>
+<summary>Agent "Build star-field surround for M31" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done. Everything is measured, not asserted; nothing committed.
+
+## What was built
+
+`upscale/star_surround.py` (new, additive) — generates the surround from **Gaia DR3 at native 12288×6144**, plus `--selftest`, `--fetch`, `--build`. `upscale/sky360.py` — comment + two env-overridable constants, **defaults unchanged**. `deepsky_pipeline.py` untouched.
+
+Deliverables in `/Volumes/Logic Pro/Float Originals Archive/derived/m31_stars/`:
+- **`COMPARE_views_gnomonic.png`** — the key one. Elevations 0/30/60/80/89/90 laid out horizontally, BEFORE on top / AFTER below, 1:1. At elev 80 the before is a black sky with six streaks pointing at the zenith; the after is a dense field of round stars.
+- **`COMPARE_seam_1to1.png`** — three seam locations × before/after, 1:1, horizontal.
+- **`COMPARE_raster_vs_view_polar.png`** — the equirect raster at lat +80 (stars *are* ellipses, on purpose) beside the same stars in the view (round). So nobody "fixes" the maths later.
+- `PROFILE_density.txt`, `REPORT.json`, the full 12288 equirect, and the Gaia cache + provenance.
+
+## Measurements
+
+**Criterion 1 — density across the seam** (sources/deg² of sphere, common absolute threshold, bottom edge, inside → outside):
+- before `0.20 0.12 0.03 0.02 | 0.01 0.00 0.01 0.00 …`
+- after `0.68 0.71 0.64 0.74 | 0.67 0.76 0.83 0.82 …` — flat, all four edges.
+
+**Polar roundness** (gnomonic axis ratio, properly oversampled views): after = 0.944 / 0.937 / 0.933 / 0.933 at elev 60/80/89/90, p10 ≈ 0.90. Before = 0.72 / 0.56 / 0.76 / 0.69. Synthetic unit test passes 0.94–0.99 against a naive raster stamp at 0.13–0.19; pinwheel test exactly 0.
+
+**Registration is real, and was solved rather than assumed.** ESA's published orientation doesn't state sky parity. Sweeping PA × parity against 4000 detected master sources vs Gaia G&lt;18.5 gives a sharp 260× peak at PA 125.005° (published 125.0222 scores 228×), east-left parity, residual 1.5 master px. Independent check: **92% of Gaia stars match a detected source within 2 px, median separation 0.55 px.**
+
+## Two bugs I found in my own work, worth knowing
+
+1. The stamp width was set by the star's own row, truncating rows nearer the pole — reintroducing the exact defect. The self-test caught it (0.26 at elev 89), not inspection.
+2. Band-limiting the smear in **raster** pixels made it *worse* — 32 px is 0.94° at the equator but 0.08° at lat 85, so it smoothed blobs vertically and left them horizontally, turning them into bigger radial smears. It has to be done in arc.
+
+## Recommendation: catalogue, not SPHEREx, not hybrid
+
+SPHEREx is 4000×2000 = 5.40 arcmin/px of sky. At this sphere's 60.94× magnification the surround needs **0.0288 arcmin/px**, i.e. an all-sky equirect **748,830 px wide** — 187× short. It resolves 1.6 sources/deg² against Gaia's 12,895. Not close.
+
+## Things you should push back on if you disagree
+
+- **I removed the smear, I didn't just add stars.** Adding on top left the 8×-upscale blobs in frame. Band-limiting the invented surround to 2° of arc and substituting real point sources is a bigger change than "generate a star field", and it's what makes the views clean.
+- **The floor ramp is not the cause and I did not change it.** Measured: the surround background at lat −60 is within 5% of the master's own bottom edge. The delivered equirect carries 175–189 levels with p95 runs of 10–16 px — I could **not** reproduce 213-px plateaus; adding stars alone takes runs to 9–10 px. Raising `FLOOR_GAIN` has a documented cost (round 7's "glowing portholes"). I made both constants env-overridable so a pod A/B is one command.
+- **Brightness is derived, not measured.** Positions, colours and the PSF are real; each star's amplitude is a quantile match of Gaia G to the master's own number counts. The master's stretch is unknown, so photometry can't transfer — this instead makes density continuous at *every* brightness by construction.
+- **The 1/cos(lat) density pile-up is unavoidable**, not a bug: a bounded sky patch mapped onto a full sphere must be singular somewhere. I thin by `cos(lat)/cos(lat_master_edge)` above the master's own top edge — real stars, real positions, but *which* far-field stars survive is a choice.
+- **`--selftest` needs no data.** Run it before trusting anything here.
+
+Green dot: largest green-excess feature in the shipping frame is 8×8 px and none is a saturated uniform disc; the screenshot's dot is a hard-edged flat-hue circle with no PSF wings. Evidence says system overlay, not content. I stopped there.</result>
+<usage><subagent_tokens>311898</subagent_tokens><tool_uses>159</tool_uses><duration_ms>4668265</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a92bec6e182444130</task-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a92bec6e182444130.output</output-file>
+<status>completed</status>
+<summary>Agent "M31 left-edge extension" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Both done.
+
+## The vertical line — found and fixed
+
+You were right twice over, and the second message is what cracked it. It wasn't tone: the step at x=1500 measures **−0.45%**, *flatter* than the master's own +1.3…+3.6% at arbitrary interior columns. What the eye was locking onto was the **point-source population**, wrong in both directions at once:
+
+```
+peak&gt;25   lo12-18  18-25  25-35  35-50     peak&gt;100  lo12-18  18-25  25-35  35-50
+extension     405   2260  11573  21982     extension      24     40     83    133
+master       ~800  ~6400 ~18900 ~27700     master        0-3  11-21 82-108 145-497
+ratio        0.5x  0.35x  0.62x  0.79x     ratio         ~8x  ~2.5x    ~1x   0.4x
+```
+
+The ground-based guide's few foreground stars, upscaled 6.6×, become fat blobs — 8× too many bright ones in dark sky — while the dense faint population Hubble resolves isn't in the data at all. My `grain_match` matched the fine band's *variance* with i.i.d. noise, which is the exact mistake `m31_recut_tilefill.py` already names from the other side: **amplitude-matched noise is not structure.** No amplitude curve could ever have fixed it.
+
+**The fix: stop synthesising the high band and transfer it from the master.** The extension is split star-aware at σ40; everything below that is quilted from the master itself, brightness-matched per 256 px block. The statistics are the master's *by construction* — same PSF, same luminosity function, same density at every surface brightness. Result: sources/Mpx at peak&gt;25 now **1.05 / 1.04 / 0.92 / 1.07×** the master (was 0.35–0.81×), fine band 11.2 vs 11.7, seam gradient 1.39× → 1.35×.
+
+Four things I only found by looking, each of which I'd have shipped otherwise:
+- **Cosine-blending the quilt overlaps defeats the quilt** — averaging two independent texture fields halves every star in the overlap, and that's most of the area. Switched to a dithered hard assignment (each pixel from exactly one donor), which took sources 3991 → 5709.
+- **Dilating the star rejection is catastrophic** — it interpolates across huge holes and produces green/yellow amoeba patches. Pinned at 0 with the A/B sheet as evidence.
+- **σ16 leaves the blobs' wings** as pink/tan smudges; σ40 hands that band to the master too.
+- **Rejecting the blobs took their colour out**, leaving R and B 6–7% low at the seam while G was 2% — a pure colour step. A luminance-neutral chroma pin puts the per-channel ratios at 1.032/1.033/1.034, i.e. identical, so the only residual is the real disc gradient.
+
+Left edge is now 1.04× sky (was 1.43×), right edge 1.14×, the 14520 inherited columns are **byte-identical**, and the HEIC is rebuilt (79.8 MB) from a cleared sky cache since the master's border feeds the edge-clamp. Look at `_final_FINAL.jpg` and `_final_DARK.jpg` in `/Volumes/Logic Pro/Float Originals Archive/derived/m31_extL3/` — both at delivered scale under the pipeline's own exposure.
+
+**The honest cost:** the guide's individual foreground stars lose their positions. They were 6.6×-blurred blobs in a strip whose mask is 0.00% real Hubble, and the low band — the disc's real shape and fade — still comes from the photograph. If you'd rather keep them, say so and I'll revert; but that puts the line back.
+
+## Disk: 17 GB → 16 GB so far, with 4–6 GB more available
+
+**Done (safe, verified):** deleted 120 `.git` objects named `&lt;sha&gt; 2` — **1.27 GB**. These were iCloud duplicate-conflict copies; every one had a canonical twin on disk, git itself reported them as garbage, and `fsck` is clean afterwards. `.git` 9.4 → 8.2 GB.
+
+**That's a warning sign, not just waste.** iCloud is duplicating files *inside `.git/objects`*. It's fighting with git, and this repo also pushes to entire.io. Worth considering moving the working repo off `~/Library/Mobile Documents/`.
+
+**What's left, in priority order — none done, all need your call:**
+
+1. **`Backdrop/` HEICs are tracked in git — 2.9 GB of the 3.7 GB of history.** HEICs don't delta-compress, so every rebuild adds a full new blob: `spatial_m31_andromeda.heic` alone is 165 MB across 3 versions, and I just added a 4th. This is the structural problem. Options: untrack + symlink to the archive (the pattern `_raw/deepsky` already uses), git-lfs, or a history rewrite. A rewrite touches the entire.io checkpoint branch, so it's your decision.
+2. **`_raw/_sky_cache` 2.4 GB + `_sr_cache` 707 MB** — gitignored, fully regenerable (~2 min/scene of V100 time). Cheapest 3.1 GB available.
+3. **`_raw` source data: `deepsky` 828 MB, `unwise` 745 MB, `grounded` 595 MB, `potm_sr` 202 MB** — all gitignored, none currently duplicated on the archive, and 7 files in `deepsky` are *already* symlinks to it. Moving the rest and symlinking follows the existing convention exactly and frees ~2.3 GB. The archive volume has 799 GB free.
+4. **`git gc`** would reclaim some of the 2.0 GB of loose objects. I deliberately didn't run it — repacking a repo that iCloud is actively duplicating, and that entire.io checkpoints into, is the wrong thing to do unattended.</result>
+<usage><subagent_tokens>416438</subagent_tokens><tool_uses>187</tool_uses><duration_ms>13136786</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a92bec6e182444130</task-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a92bec6e182444130.output</output-file>
+<status>completed</status>
+<summary>Agent "M31 left-edge extension" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Understood — and that changes the recommendation. Scratch what I said about moving the repo off iCloud; the working tree belongs exactly where it is.
+
+## First, a mistake of mine I've fixed
+
+Every previous M31 session wrote its previews to `upscale/deepsky_prev/` — in the repo, so they sync to iCloud and you can open them in the headset. **I broke that today**, writing every comparison sheet to the Logic Pro volume, where you can't see them without sitting at the Mac. That's why "show, don't describe" kept turning into me describing.
+
+Fixed both ways: today's sheets are now copied into `upscale/deepsky_prev/` (11 files, ~19 MB), and the script's `PREV` now points there by default with the reason recorded in a comment. Heavy scratch (tiles, the 374 MB donor cache) stays on the archive volume. The ones worth opening on the Vision Pro:
+
+- `m31_extL3_delivered_BEFORE_blobwall.jpg` → `m31_extL3_delivered_disc.jpg` — the vertical line, then gone, at delivered scale under the pipeline's own exposure
+- `m31_extL3_seamstrips_BEFORE.jpg` / `_AFTER.jpg` — four 1:1 strips across the seam
+- `m31_extL3_before_after_lifted.jpg` — the whole master, before/after
+
+## Revised disk plan
+
+The important correction: **relocating `.git` frees iCloud, not local disk** (it's the same physical volume). So the two goals separate cleanly.
+
+**Frees internal disk (you have 20 GB now, up from 17):**
+- ✅ Done: 1.27 GB of iCloud-duplicate git objects. `fsck` clean.
+- **2.3 GB** — move `_raw/{deepsky,unwise,grounded,potm_sr}` to the Logic Pro volume and symlink. This is already the convention: 7 files in `deepsky` are symlinks. All gitignored, nothing breaks, genuinely moves bytes off the internal disk.
+- **3.1 GB** — delete `_raw/_sky_cache` + `_sr_cache`. Regenerable, but it's ~2 min of V100 time per scene × 44 scenes to rebuild, so only worth it if you're tight.
+
+**Fixes iCloud + the corruption risk, without touching what you view:**
+- `.git` is 8.3 GB of the 16, you never look at it on the Vision Pro, and GitHub is its real backup. It's also precisely what iCloud was duplicating — 121 corrupt copies inside `.git/objects`.
+- You can move *only* `.git` off iCloud and leave the working tree untouched, via a one-line `gitdir:` pointer file. **I tested it end-to-end** in a scratch repo: status, log, and commits all work, `--show-toplevel` is correct, no `core.worktree` needed. Xcode, `gh`, and entire.io all go through git so they're unaffected.
+  ```
+  mv .git ~/Developer/Float.git
+  printf 'gitdir: %s\n' "$HOME/Developer/Float.git" &gt; .git
+  ```
+  Say the word and I'll do it — but I won't touch entire.io's setup unasked.
+
+**The structural one, your call:** `Backdrop/*.heic` is tracked, and HEICs don't delta-compress, so every rebuild stores a full new copy — `spatial_m31_andromeda.heic` is 165 MB across 3 versions in history and I just added a 4th. That's 2.9 GB of the 3.7 GB of history. Untracking them (they're build outputs; the masters and `deepsky_pipeline.py` are the real sources) plus a `gc` would reclaim most of it, but a history rewrite touches the entire.io checkpoint branch, so I'd want your go-ahead.
+
+I did **not** run `git gc` — repacking a repo that iCloud is actively duplicating into is asking for trouble, and it should come after the `.git` relocation, not before.</result>
+<usage><subagent_tokens>426853</subagent_tokens><tool_uses>192</tool_uses><duration_ms>13465491</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a92bec6e182444130</task-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a92bec6e182444130.output</output-file>
+<status>completed</status>
+<summary>Agent "M31 left-edge extension" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Checked the things that would bite. Here's what the data says.
+
+## Scope — Float *is* the problem
+
+```
+Float/.git   8500 MB      ← 86% of all .git bytes
+Lean/.git    1068 MB
+other 17 repos  273 MB    ← combined
+```
+
+And the corruption was Float-only: **121 duplicate objects in Float, zero in all 18 other repos.** That's not a coincidence — iCloud coped fine with 18 text repos for months. Float broke it because it stores 60–90 MB HEICs that change wholesale on every rebuild.
+
+So the honest framing: a global standard would move 273 MB across 17 repos that have never had a problem, and 8.5 GB from the one that has. The root cause is that `Backdrop/*.heic` — **build outputs**, reproducible from the masters + `deepsky_pipeline.py` — are tracked. That's 2.9 GB of the 3.7 GB of history. Untrack them and Float's `.git` lands near Lean's scale and stops stressing iCloud at all.
+
+You've already said you'd rather have a standard than a one-off, and I don't think that's wrong — I just want you to have that number before committing to enforcing something across 19 repos.
+
+## If we do it, three things I found that matter
+
+1. **Float's two worktrees will break.** `Float-worktrees/T-003` and `T-004` contain `gitdir: /Users/rashford/Developer/Float/.git/worktrees/…`. Moving Float's `.git` invalidates both. Repairable with `git worktree repair`, but it's exactly the sharp edge that makes a standard leak.
+2. **Backup is fine.** `~/.developer` wouldn't be in iCloud, and 12 of 19 repos have unpushed commits (Float has 41). But Time Machine is on, hourly, covering `/Users/rashford` — latest backup 21:21 today. So unpushed work stays protected.
+3. **Git supports this natively** — I verified `git init --separate-git-dir` produces the pointer file and commits work normally. `git clone --separate-git-dir` is the clone equivalent.
+
+## Enforcement — the part you flagged, and you're right to
+
+There's no git config that forces it. Xcode, `gh repo clone`, any agent, and I will all create a plain `.git` by default. So enforcement has to be a **detector, not a policy**: a small `developer-doctor` script that walks `~/Developer`, finds any `.git` that's a *directory* rather than a pointer file, and reports or migrates it. Run from a Stop hook, a login item, or by hand. Without that, the standard decays in about a week.
+
+I'd suggest this order, since the first two are safe and reversible and the third isn't:
+1. Create `~/.developer`, migrate all 19 repos, repair Float's worktrees, verify each repo's `git status`/`log` still works.
+2. Write the doctor script + add the convention to your global CLAUDE.md so agents follow it.
+3. *Separately* decide on untracking the HEICs — that's the actual size fix, and a history rewrite touches the entire.io checkpoint branch, so it deserves its own conversation.
+
+**Say go and I'll do 1 and 2.** I've held off because it touches every repo you have, several with unpushed work, plus entire.io on Float.
+
+---
+
+**M31 is done and unaffected** by any of this: master `16020×7795` with the extension's high band transferred from the master itself, HEIC rebuilt at 79.8 MB, MANIFEST at `fov_x=157.53`. Today's comparison sheets are now in `upscale/deepsky_prev/` — on iCloud, so you can open them on the Vision Pro. Start with `m31_extL3_delivered_BEFORE_blobwall.jpg` then `m31_extL3_delivered_disc.jpg`.
+
+This session is long and expensive now (a lot of large-image reads in context), and M31 is at a clean boundary. Worth running `/handoff` and picking up the `~/.developer` migration fresh.</result>
+<usage><subagent_tokens>436375</subagent_tokens><tool_uses>197</tool_uses><duration_ms>14433435</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a92bec6e182444130</task-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a92bec6e182444130.output</output-file>
+<status>completed</status>
+<summary>Agent "M31 left-edge extension" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Done — and you were right to redirect me. Disk was the goal; the corruption was a side quest.
+
+## What shipped
+
+`scripts/offload_cold.py`. The key design choice: **it doesn't carry its own opinion about what's cold.** It parses `project.yml`'s `excludes:` list, which is already the exact definition of "not in the next build", and makes the disk match it. Re-enable a scene by deleting its two lines there and running `--restore`, and the file comes back as a real file. The policy can't drift from the build because it *is* the build's list.
+
+It also asserts `project.yml` ↔ `SpatialImageEnvironment.premiumHeldBack` still agree — `project.yml` warns they must, or the selector offers a scene whose HEIC isn't bundled and the load silently fails. That check caught its own bug immediately: my first parser swept up the `README.md`/`CREDITS.md` exclude globs as if they were scenes.
+
+**`_raw` is offloaded — 6.20 GB.** `Float/` went 7.6 → 1.8 GB, repo 16 → 11 GB. Verified: symlink resolves, 16 deepsky masters reachable, and the m31 master loads through the pipeline's own `DEEPSKY` path.
+
+I checked the one thing that could have failed silently: **xcodegen does not follow the symlink.** Built a scratch project with the same exclude pattern and a symlinked `_raw` containing a dummy 8 MB file — 0 references in the generated pbxproj, shipping file included normally. If it had followed it, the next build would have quietly tried to bundle 6 GB.
+
+## Why `df` still says 20 GB free
+
+**4 APFS Time Machine local snapshots are pinning the deleted bytes.** Nothing's wrong — macOS thins them automatically within about a day, or under pressure. If you want it now:
+
+```
+tmutil deletelocalsnapshots 2026-07-26-181400
+```
+
+Your real Time Machine backups are on `/Volumes/Time Machine`, hourly, latest 21:21 today, so the local snapshots aren't your safety net. I didn't delete them since that's your data protection to decide.
+
+## The 607 MB I deliberately didn't take
+
+All 30 held-back files (15 HEICs + thumbnails) are **git-tracked**. The tool refuses to symlink a tracked file, on purpose: replacing one with a symlink is a mode flip (100644 → 120000), and committing that puts symlinks in the repo and breaks every other clone. The biggest are `weic2520a` at 192 MB and `weic2608a` at 137 MB.
+
+They're build outputs — `deepsky_pipeline.py` regenerates them — so untracking loses nothing irreproducible, and it stops each rebuild adding another 40–90 MB blob to history:
+
+```
+git rm --cached Float/Resources/Textures/Backdrop/spatial_{m104_sombrero,m8_lagoon,potm2207a,...}.heic  # + thumbnails
+# add to .gitignore, then:
+python3 scripts/offload_cold.py
+```
+
+That's a commit on a repo that syncs to entire.io, so I'll do it on your say-so, not before.
+
+## Where the remaining weight is
+
+Repo is 11 GB and **`.git` is 8.3 of it** — now the dominant consumer by far. Roughly 2.9 GB is HEIC history: `spatial_weic2520a.heic` alone is 203 MB across 2 versions, `spatial_m31_andromeda.heic` 165 MB across 3 (4 now, after today). Untracking going forward stops the bleeding; reclaiming the existing 2.9 GB needs a history rewrite, which touches the entire.io checkpoint branch and deserves its own session.
+
+Running total reclaimed: **7.47 GB** (1.27 git garbage + 6.20 `_raw`), landing as the snapshots age out. Available next: 607 MB behind the untrack, ~2.9 GB behind the rewrite.
+
+Worth `/handoff` here — this session has a lot of large-image context in it, and both the M31 work and the offload are at clean stopping points.</result>
+<usage><subagent_tokens>464285</subagent_tokens><tool_uses>211</tool_uses><duration_ms>15078260</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a92bec6e182444130</task-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a92bec6e182444130.output</output-file>
+<status>completed</status>
+<summary>Agent "M31 left-edge extension" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Handoff written to `~/.claude/handoffs/-Users-rashford-Library-Mobile-Documents-com~apple~CloudDocs-Developer-Float.md` — it records the M31 stage-4 sign-off, the star-density lesson behind it, the 7.47 GB reclaimed, and the next action: your call on untracking the 30 held-back HEICs so `offload_cold.py` can take the last 607 MB.
+
+I merged rather than overwrote — the previous handoff's Pillars/FITS workstream, the "Centaurs" ambiguity, the add-on-pack idea and the pending headset sign-offs are all carried forward, since none of that was touched this session.
+
+Two notes before you clear:
+
+- There's a stale handoff at the older `com-apple-CloudDocs` (all-dashes) path from Jul 23 describing superseded M31 state. The loader used the `~` form this session, so it should be inert — but if a future session ever loads something that says the left edge is still cut off, that's the file.
+- Nothing is committed, and `_raw` is now a symlink to the Logic Pro volume, so that volume needs to be mounted for any pipeline work.
+
+Go ahead and `/clear`.</result>
+<usage><subagent_tokens>482370</subagent_tokens><tool_uses>217</tool_uses><duration_ms>16677027</duration_ms></usage>
+</task-notification>
+
+---
+
+<task-notification>
+<task-id>a92bec6e182444130</task-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/a92bec6e182444130.output</output-file>
+<status>completed</status>
+<summary>Agent "M31 left-edge extension" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Deleted. There were **two** stale ones, not one:
+
+- `-Users-rashford-Developer-Float.md` — the `~/Developer/Float` cwd form
+- `-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float.md` — the older all-dashes form
+
+Both had already been auto-stamped "SUPERSEDED — DO NOT ACT ON THIS FILE" at 22:12, pointing at the tilde-form file as live, so something in your hook chain already guards against this. Deleting them just removes the ambiguity entirely.
+
+Verified the live handoff is intact first — 174 lines, ends cleanly on the pending headset sign-offs. That's the only Float handoff left:
+
+```
+11245 bytes  Jul 26 22:10  -Users-rashford-Library-Mobile-Documents-com~apple~CloudDocs-Developer-Float.md
+```
+
+One thing worth knowing: because `~/Developer` is a symlink into iCloud, a session started from `~/Developer/Float` resolves to a *different* cwd string than one started from the Mobile Documents path, so it now gets no handoff rather than the wrong one. If you want both entry points covered automatically, a symlink from the `-Users-rashford-Developer-Float.md` name to the tilde-form file would do it and can never go stale. Say the word and I'll add it.
+
+Two Kitsune handoffs remain (Jul 22 and Jul 25) — same duplicate-path pattern, and the Jul 22 one is nearly at the 14-day cutoff. Not touching them without your say-so.
+
+Go ahead and `/clear`.</result>
+<usage><subagent_tokens>486797</subagent_tokens><tool_uses>220</tool_uses><duration_ms>16778696</duration_ms></usage>
+</task-notification>

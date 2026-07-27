@@ -1,0 +1,456 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "cd7c51a46eb2",
+  "session_id": "97c2c424-b05c-4a3a-804a-affa2c20e4d1",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-27T06:48:43.266018Z",
+  "branch": "main",
+  "checkpoints_count": 25,
+  "save_step_count": 25,
+  "files_touched": [
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m104_sombrero.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m8_lagoon.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2207a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2301a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2307a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2310a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2401b.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2410a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2508a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_spherex_full.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2316a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2427a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2520a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2608a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2615a.jpg",
+    "Float/Resources/Textures/Backdrop/spatial_m104_sombrero.heic",
+    "Float/Resources/Textures/Backdrop/spatial_m8_lagoon.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2207a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2301a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2307a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2310a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2401b.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2410a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2508a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_spherex_full.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2316a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2427a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2520a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2608a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2615a.heic"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "d111beefb710",
+  "checkpoint_transcript_start": 112,
+  "transcript_lines_at_start": 112,
+  "compact_transcript_start": 26,
+  "token_usage": {
+    "input_tokens": 155,
+    "cache_creation_tokens": 352666,
+    "cache_read_tokens": 12763226,
+    "output_tokens": 103259,
+    "api_call_count": 83
+  },
+  "session_metrics": {
+    "turn_count": 26
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-27T06:48:43.086166Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 909,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 909,
+    "total_lines_changed": 909,
+    "agent_percentage": 0,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 0,
+      "user_lines_removed": 0,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 10,
+      "user_lines_removed": 2,
+      "agent_lines_added": 2521,
+      "agent_lines_removed": 10,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/m31_extend_left3.py": 5
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 2
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 10,
+      "user_lines_removed": 2,
+      "agent_lines_added": 2521,
+      "agent_lines_removed": 10,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "upscale/m31_extend_left3.py": 5
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 2
+      }
+    },
+    {
+      "checkpoint_number": 5,
+      "user_lines_added": 726,
+      "user_lines_removed": 2,
+      "agent_lines_added": 2521,
+      "agent_lines_removed": 10,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 5
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 2
+      }
+    },
+    {
+      "checkpoint_number": 6,
+      "user_lines_added": 768,
+      "user_lines_removed": 19,
+      "agent_lines_added": 2524,
+      "agent_lines_removed": 11,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 47
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 19
+      }
+    },
+    {
+      "checkpoint_number": 7,
+      "user_lines_added": 778,
+      "user_lines_removed": 19,
+      "agent_lines_added": 2524,
+      "agent_lines_removed": 11,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 57
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 19
+      }
+    },
+    {
+      "checkpoint_number": 8,
+      "user_lines_added": 778,
+      "user_lines_removed": 19,
+      "agent_lines_added": 2609,
+      "agent_lines_removed": 33,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 57
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 19
+      }
+    },
+    {
+      "checkpoint_number": 9,
+      "user_lines_added": 778,
+      "user_lines_removed": 19,
+      "agent_lines_added": 2765,
+      "agent_lines_removed": 33,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 57
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 19
+      }
+    },
+    {
+      "checkpoint_number": 10,
+      "user_lines_added": 778,
+      "user_lines_removed": 19,
+      "agent_lines_added": 2765,
+      "agent_lines_removed": 33,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 57
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 19
+      }
+    },
+    {
+      "checkpoint_number": 11,
+      "user_lines_added": 778,
+      "user_lines_removed": 19,
+      "agent_lines_added": 2765,
+      "agent_lines_removed": 33,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 57
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 19
+      }
+    },
+    {
+      "checkpoint_number": 12,
+      "user_lines_added": 778,
+      "user_lines_removed": 19,
+      "agent_lines_added": 2765,
+      "agent_lines_removed": 33,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 57
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 19
+      }
+    },
+    {
+      "checkpoint_number": 13,
+      "user_lines_added": 778,
+      "user_lines_removed": 19,
+      "agent_lines_added": 2765,
+      "agent_lines_removed": 33,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 57
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 19
+      }
+    },
+    {
+      "checkpoint_number": 14,
+      "user_lines_added": 778,
+      "user_lines_removed": 19,
+      "agent_lines_added": 2765,
+      "agent_lines_removed": 33,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 57
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 19
+      }
+    },
+    {
+      "checkpoint_number": 15,
+      "user_lines_added": 1554,
+      "user_lines_removed": 19,
+      "agent_lines_added": 2765,
+      "agent_lines_removed": 33,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 57,
+        "upscale/star_surround.py": 776
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 19
+      }
+    },
+    {
+      "checkpoint_number": 16,
+      "user_lines_added": 1592,
+      "user_lines_removed": 20,
+      "agent_lines_added": 2765,
+      "agent_lines_removed": 33,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 61,
+        "upscale/star_surround.py": 810
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 20
+      }
+    },
+    {
+      "checkpoint_number": 17,
+      "user_lines_added": 2797,
+      "user_lines_removed": 71,
+      "agent_lines_added": 2765,
+      "agent_lines_removed": 33,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "scripts/backdrop_tool.py": 43,
+        "upscale/deepsky_pipeline.py": 143,
+        "upscale/m31_extend_left3.py": 89,
+        "upscale/m31_recut_fill.py": 99,
+        "upscale/m31_recut_tilefill.py": 155,
+        "upscale/sky360.py": 36,
+        "upscale/star_surround.py": 1511
+      },
+      "user_removed_per_file": {
+        "scripts/backdrop_tool.py": 1,
+        "upscale/deepsky_pipeline.py": 7,
+        "upscale/m31_extend_left3.py": 54,
+        "upscale/m31_recut_fill.py": 6,
+        "upscale/m31_recut_tilefill.py": 1,
+        "upscale/sky360.py": 2
+      }
+    },
+    {
+      "checkpoint_number": 18,
+      "user_lines_added": 2402,
+      "user_lines_removed": 54,
+      "agent_lines_added": 3240,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 89,
+        "upscale/star_surround.py": 1592
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 54
+      }
+    },
+    {
+      "checkpoint_number": 19,
+      "user_lines_added": 2472,
+      "user_lines_removed": 62,
+      "agent_lines_added": 3240,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 89,
+        "upscale/sky360.py": 10,
+        "upscale/star_surround.py": 1652
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 54,
+        "upscale/sky360.py": 8
+      }
+    },
+    {
+      "checkpoint_number": 20,
+      "user_lines_added": 2716,
+      "user_lines_removed": 86,
+      "agent_lines_added": 3242,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/deepsky_pipeline.py": 12,
+        "upscale/m31_extend_left3.py": 331,
+        "upscale/star_surround.py": 1652
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 86
+      }
+    },
+    {
+      "checkpoint_number": 21,
+      "user_lines_added": 2720,
+      "user_lines_removed": 93,
+      "agent_lines_added": 3254,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 347,
+        "upscale/star_surround.py": 1652
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 93
+      }
+    },
+    {
+      "checkpoint_number": 22,
+      "user_lines_added": 2720,
+      "user_lines_removed": 93,
+      "agent_lines_added": 3254,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "upscale/m31_extend_left3.py": 347,
+        "upscale/star_surround.py": 1652
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 93
+      }
+    },
+    {
+      "checkpoint_number": 23,
+      "user_lines_added": 3023,
+      "user_lines_removed": 93,
+      "agent_lines_added": 3254,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "scripts/offload_cold.py": 303,
+        "upscale/m31_extend_left3.py": 347,
+        "upscale/star_surround.py": 1652
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 93
+      }
+    },
+    {
+      "checkpoint_number": 24,
+      "user_lines_added": 3023,
+      "user_lines_removed": 93,
+      "agent_lines_added": 3254,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "scripts/offload_cold.py": 303,
+        "upscale/m31_extend_left3.py": 347,
+        "upscale/star_surround.py": 1652
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 93
+      }
+    },
+    {
+      "checkpoint_number": 25,
+      "user_lines_added": 3023,
+      "user_lines_removed": 93,
+      "agent_lines_added": 3254,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "scripts/offload_cold.py": 303,
+        "upscale/m31_extend_left3.py": 347,
+        "upscale/star_surround.py": 1652
+      },
+      "user_removed_per_file": {
+        "upscale/m31_extend_left3.py": 93
+      }
+    }
+  ]
+}
