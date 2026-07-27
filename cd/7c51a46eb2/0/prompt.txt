@@ -7,3 +7,197 @@ Untrack the held back thumbnils. Don't bother with the .developer symlink for no
 ---
 
 Start the history rewrite in a subagent
+
+---
+
+<task-notification>
+<task-id>ad1d0ecbbf24f4945</task-id>
+<tool-use-id>toolu_01FD3Hmn93yr3WrwJ7uBLAwk</tool-use-id>
+<output-file>/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/cd193117-a579-417e-8e59-2ef407708d1b/tasks/ad1d0ecbbf24f4945.output</output-file>
+<status>completed</status>
+<summary>Agent "Plan and trial git history rewrite" finished</summary>
+<note>A task-notification fires each time this agent stops with no live background children of its own. The user can send it another message and resume it, so the same task-id may notify more than once.</note>
+<result>Live repo verified untouched (HEAD still `caf0efc`, 182 dirty entries, 10 refs). Here is the report.
+
+---
+
+# Float git history rewrite — plan, measurement, and cutover
+
+**The premise needs correcting before anything else.** The bloat is not primarily HEIC blobs in commit history. It is entire.io checkpoint garbage. History rewriting is the *smallest* of the three available levers. Everything below is measured, not estimated.
+
+All work was done in a `--no-hardlinks` mirror clone at
+`/private/tmp/claude-501/.../scratchpad/rewrite/`. The live repo was read-only throughout and is confirmed unchanged.
+
+---
+
+## 0. Corrections to the brief
+
+| Claim in brief | Measured |
+|---|---|
+| `.git` is 6.4 GB | **7.3 GB** (6.21 GiB packs + **1.10 GiB loose objects**, 478 of them — the loose objects were omitted from the 6.4 figure) |
+| ~2.9 GB of HEIC blobs in history | HEIC blobs *reachable from history and purgeable* total **442 MB**. The 2.9 GB figure appears to count unreachable garbage as "history". |
+| 29 shipping HEICs | HEAD (`caf0efc`) contains **51** `.heic`; minus the 15 held-back = **36** shipping. Where "29" comes from is unresolved — see Risks. |
+| `entire/caf0efc-e3b0c4` is a checkpoint ref | It is an entire.io **shadow branch**, and it is the single largest live consumer (1.47 GB). It also **moved twice during this session** (`dbcf3c6` → `6ffb5a3` → `0aa5313`) — entire.io is actively writing while you plan. |
+
+---
+
+## A. Blob census
+
+2,321 blobs, 9.40 GiB logical / **6.33 GiB on-disk**. Grouped by reachability:
+
+| Category | Blobs | On-disk | What it is |
+|---|---|---|---|
+| **A** — unreachable from *any* ref | 1,314 | **3.01 GiB** | Abandoned entire.io shadow-branch snapshots. Each time the shadow branch moves, the previous whole-working-tree snapshot is orphaned. Confirmed also unreachable in the live repo via reflog (`rev-list --all` = 1917 objects; `--all --reflog --indexed-objects` = 1927 — only 10 objects held by reflog). |
+| **B** — in a ref-tip tree (must keep) | 675 | 2.40 GiB | Of which only 0.95 GiB is `main`'s tree. **1.47 GiB is pinned solely by the shadow branch `entire/caf0efc-e3b0c4`** — untracked working files it snapshots: `spatial_deathvalley_playa.heic` (106 MB), `spatial_bontecou_lake.heic` (102 MB), `spatial_unwise_allsky.heic` (90 MB), the whole `upscale/` preview set, etc. |
+| **C** — reachable but superseded | 332 | 0.92 GiB | The only category a history rewrite addresses. |
+
+**The rewrite target, grouped as requested** (after the preparation in §B; 34 blobs, 441.7 MB on-disk):
+
+**G1 — paths absent from HEAD entirely, safe to purge in full** — 13 blobs, 80.7 MB. Pre-rename originals: `imported_spatial_1..5.heic` (60.9 MB), `blue_filaments.heic`, `pale_haze.heic`, `teal_orange.heic`, `dual_nebula.heic`, `dark_dust.heic`, `deep_star_map_8k.heic`.
+
+**G2 — superseded versions of still-shipping paths; tip must survive** — 6 blobs, 132.1 MB: old versions of `spatial_blue_filaments` (34.1 MB), `spatial_teal_orange` (30.6), `spatial_dual_nebula` (26.4), `spatial_pale_haze` (22.1), `spatial_dark_dust` (12.9), `spatial_deep_star_map` (6.0).
+
+**G3 — the 30 just-untracked held-back files** — 15 blobs, 228.9 MB (the 15 `.heic`; the 15 thumbnails are &lt;1 MB each and are deliberately left in history at negligible cost). **These are purgeable *only if the untracking is committed first*.**
+
+Note on `spatial_weic2520a.heic` and `spatial_weic2608a.heic`: the large "superseded" versions the brief refers to (191.9 MB and 137.2 MB) are not in the purge list because they are reachable *only* through the shadow branch — deleting that branch drops them into category A, where `gc` reclaims them. Same outcome, different mechanism. `spatial_m31_andromeda.heic`'s 4 versions resolve the same way (one tip kept, one purged as G-class, two reclaimed as garbage).
+
+**Ordering answer — the untracking must be committed BEFORE the rewrite.** Two independent reasons:
+1. While those 30 paths are in HEAD's tree they are tip blobs and must be preserved; the rewrite would keep 228.9 MB it should be deleting, and you would need a second rewrite later.
+2. `git-filter-repo` runs `git reset --hard` on any non-bare repo (verified in source: `reset = not GitUtils.is_repository_bare(target_working_dir)` at line ~4937). Running it against the live repo with 69 modified tracked files and 30 staged deletions **destroys all of them**. Committing first makes the reset a no-op. This is the single most dangerous property of the whole operation.
+
+---
+
+## B. The rewrite
+
+Three preparation steps, then one filter-repo call.
+
+```bash
+# 1. drop the ephemeral entire.io shadow branches (worth ~2.1 GB; sanctioned by the CLI)
+entire clean --all
+
+# 2. commit the held-back untracking (already staged)
+git commit -m "Untrack the 30 held-back HEIC/thumbnail files (see .gitignore)"
+
+# 3. generate the OID list: every reachable blob &gt;=1 MB that is in NO local branch tip
+#    (script: scratchpad/rewrite/mkpurge.py — asserts the purge set is disjoint from every tip)
+python3 mkpurge.py     # -&gt; purge-oids-final.txt
+
+# 4. the rewrite
+git filter-repo --strip-blobs-with-ids purge-oids-final.txt --prune-empty never --force
+```
+
+Design choices, each deliberate:
+
+- **`--strip-blobs-with-ids`, not `--path`.** Path removal cannot keep the tip version of a still-shipping file — it would delete `spatial_m31_andromeda.heic` outright. OID stripping keeps the tip and removes exactly the superseded blobs.
+- **`--prune-empty never`.** Keeps the commit DAG 1:1 (112 commits before, 112 after), which makes verification trivial and avoids reshaping the entire.io checkpoint chain.
+- **1 MB threshold.** Superseded *source* versions are legitimate project history and are worth 1.79 MB in total. They are kept.
+- **Transcript blobs excluded from the list.** 22 superseded `full.jsonl` blobs worth 0.6 MB were dropped from the purge set. Including them rewrote `entire/checkpoints/v1`'s SHAs; excluding them leaves that branch **bit-identical**. 0.6 MB is a trivial price for not touching the entire.io mirror branch at all.
+
+**Artifacts (in `/private/tmp/claude-501/-Users-rashford-Library-Mobile-Documents-com-apple-CloudDocs-Developer-Float/0dd143c0-c272-4ffd-ba59-6fd2abe356d1/scratchpad/rewrite/`):**
+- `purge-oids-final.txt` — **the 34-OID list, verified** ← the deliverable
+- `purge-detail.tsv` — OID, logical bytes, on-disk bytes, historic paths
+- `mkpurge.py` — regenerates the list (use this; the static file is state-dependent)
+- `verify.py`, `census.py`/`census2.py`/`census3.py`, `untrack-list.txt`
+- `final.git` — the rewritten repo, 866 MB, available for inspection
+- `float-mirror.git` — pristine 7.3 GB baseline
+
+---
+
+## C. Executed and measured
+
+Isolating each lever against the same 7.3 GB baseline:
+
+| Step | `.git` | Reclaim | Force-push? |
+|---|---|---|---|
+| baseline (mirror of live) | 7.3 G | — | — |
+| `reflog expire` + `gc --prune=now` **only** — no ref or history change | **3.3 G** | 4.0 G | **no** |
+| + `entire clean --all` + commit the untracking, gc only — **still no rewrite** | **1.2 G** | 6.1 G | **no** |
+| keep shadow branch + filter-repo | 2.2 G | 5.1 G | yes |
+| **recommended: all of the above + filter-repo** | **866 M** | **6.45 G** | yes (main only) |
+
+**The history rewrite itself contributes ~340 MB.** The other 6.1 GB is reclaimable with no rewrite, no force-push, and no worktree or entire.io disruption. That is the headline finding, and it should drive the decision.
+
+Verification of the 866 MB result:
+
+- `git fsck --full --strict` → **exit 0, no output**.
+- 112 commits before, 112 after. Only **22 commits changed SHA**, all on `main`'s line (`caf0efc` → `90331e1`, new tip `bee3f1f`).
+- `refs/heads/entire/checkpoints/v1` = `ea7e8fa…` — **byte-identical SHA to live**. Tip tree `f06a2207…` identical, 78 commits, 255 transcript files.
+- `refs/heads/task/T-003` = `af59bf2…`, `task/T-004` = `6410054…` — **identical SHAs**, unaffected (their merge-base with main predates the first rewritten commit).
+- **Content integrity:** rewritten `main` has 194 paths vs live `caf0efc`'s 224. The 30 dropped paths are *exactly* the untrack list. 0 paths added. **All 194 surviving paths have byte-identical blob OIDs to the live repo**, including all **36 surviving HEICs (36/36 OID-identical)**.
+- The apparent "mismatches" against files on disk are Rick's uncommitted work, not rewrite defects: 27 HEICs modified in the working tree and 9 HEICs deleted from the working tree but still in HEAD.
+
+`refs/remotes/origin/*` were removed by filter-repo (its standard behaviour); `git fetch` restores them.
+
+**Is the reclaim smaller than the ~2.9 GB expected?** No — it is larger (6.45 GB). But the *attribution* is inverted from the premise: ~4.0 GB is plain unreferenced garbage, ~2.1 GB is a deletable local ephemeral branch, and only ~0.34 GB comes from rewriting history.
+
+---
+
+## D. Cutover checklist
+
+&gt; **⚠️ IRREVERSIBLE** marks steps you cannot undo without the step-2 backup.
+&gt; Do not use `git push --force --mirror origin` — filter-repo suggests it, and it would **delete** refs on origin.
+
+**Consider stopping after step 7.** It yields 1.2 GB with zero force-push and zero rewrite. Steps 8–14 buy a further ~340 MB.
+
+1. **Quiesce entire.io.** Close every Claude Code / agent session on this repo. The shadow branch moved twice during analysis; a write mid-rewrite will corrupt the result. Confirm with `git for-each-ref 'refs/heads/entire/*'` twice, 60 s apart — the SHA must not change.
+2. **Pause iCloud sync**, then back up:
+   ```bash
+   cd "/Users/rashford/Library/Mobile Documents/com~apple~CloudDocs/Developer/Float"
+   tar -C . -cf "/Volumes/Logic Pro/Float Originals Archive/float-git-backup-$(date +%Y%m%d-%H%M).tar" .git
+   ```
+   This captures `.git/worktrees/`, `.git/entire-sessions/`, and all reflogs. **Verify the tar lists `.git/worktrees/T-003/` before continuing.**
+3. Also back up the *working tree* — 65 untracked paths (~1.5 GB, incl. `upscale/`, `Float/Resources/Textures/_raw`, `screenshots/`) are not in git anywhere except the shadow branch you are about to delete.
+4. **Commit the pending work.** At minimum the staged untracking; ideally the 27 modified + 9 deleted HEICs too, so the purge list is computed once against final content. *If you commit the modified HEICs, regenerate the OID list in step 9 — do not reuse the saved one.*
+5. `git status --porcelain` must be empty of tracked changes. If it is not, **stop** — step 12 will delete them.
+6. **⚠️ IRREVERSIBLE** — `entire clean --all --dry-run`, review, then `entire clean --all`. Deletes shadow branches and `.git/entire-sessions/`. Files on disk are untouched.
+7. **⚠️ IRREVERSIBLE** — `git reflog expire --expire=now --expire-unreachable=now --all &amp;&amp; git gc --prune=now`. Expect ~1.2 GB. **Decision point: you may stop here.**
+8. Re-clone a fresh mirror to a *local* disk (not iCloud) and dry-run the rewrite there first; compare against `final.git`.
+9. Regenerate the OID list: `python3 mkpurge.py`. Confirm it prints `SAFETY OK` and that no purged OID appears in any branch tip.
+10. **⚠️ IRREVERSIBLE** — run the rewrite in the live repo (in-place, so `.git/worktrees/` survives):
+    ```bash
+    git filter-repo --strip-blobs-with-ids purge-oids-final.txt --prune-empty never --force
+    ```
+11. `git worktree repair` from the main repo, then `git -C ../Float-worktrees/T-003 status` and the same for T-004. Both branch SHAs are unchanged, so these should be clean; if a worktree is confused, `git worktree repair "$PWD"` from inside it.
+12. Verify locally **before touching origin**: `git fsck --full --strict` (must be silent); `du -sh .git` (~900 MB); `git log --oneline -5`; `xcodegen generate &amp;&amp; xcodebuild build` — the shipping build is the real gate.
+13. Restore the remote: `git remote add origin git@github.com:darthzen/Float.git &amp;&amp; git fetch origin`.
+14. **⚠️ IRREVERSIBLE ON THE REMOTE** — push. Only `main` needs force:
+    ```bash
+    git push --force-with-lease origin main
+    git push origin entire/checkpoints/v1     # fast-forward, NOT a force
+    # task/T-003, task/T-004 already match origin — no push needed
+    ```
+15. Confirm the entire.io mirror: `entire repo mirror list --show-available` must still show `github.com/darthzen/Float` as **`mirrored`**, not `available`. Then `entire checkpoint list` and spot-check `entire checkpoint explain db803deb5baf`.
+16. **ROLLBACK** (valid until you are satisfied; after step 14 it also requires a re-force-push):
+    ```bash
+    cd "/Users/rashford/…/Float" &amp;&amp; rm -rf .git
+    tar -C . -xf "/Volumes/Logic Pro/Float Originals Archive/float-git-backup-&lt;stamp&gt;.tar"
+    git worktree repair &amp;&amp; git status
+    # if step 14 already ran:
+    git push --force origin main
+    ```
+    Keep the backup tar for at least one full week of normal work.
+
+---
+
+## E. Risks and open questions
+
+**Decide before cutover**
+
+1. **Is ~340 MB worth a force-push?** Steps 1–7 give 6.1 of the 6.45 GB with none of the risk. My recommendation is to do steps 1–7 now and treat the rewrite as optional.
+2. **The bloat will come straight back.** entire.io's shadow branch snapshots the entire working tree — including 1,482 MB of *untracked* files (only 2.3 MB of the 1,484 MB snapshot is gitignored, and that 2.3 MB is entire.io's own metadata, which it force-includes). Expect `.git` to regrow 1.5–3 GB per active session. Without a fix, you will be doing this again in a fortnight. `entire configure` (CLI 0.8.42) exposes no exclude or size-limit flag. Options worth raising with entire.io: whether shadow branches can respect `.gitignore`, and `--checkpoint-remote github:darthzen/float-checkpoints` to move the 370 MB transcript branch out of this repo. **I could not verify whether gitignoring `upscale/`, `_raw/`, and `screenshots/` would actually stop the snapshotting — it demonstrably includes at least some ignored paths.**
+3. **The "29 shipping HEICs" discrepancy.** HEAD has 51; 36 remain after untracking 15. The brief says 29. Reconcile against `premiumHeldBack` in `SpatialImageEnvironment.swift`, `project.yml`'s `excludes:`, and `.gitignore` (the CLAUDE.md three-list invariant, checkable with `scripts/offload_cold.py --check`) before trusting any count. This does not affect rewrite safety — the rewrite is OID-driven and preserves every tip blob regardless — but it may mean a further set of files should be held back first.
+4. **9 HEICs are in HEAD but deleted from the working tree**, and 27 more are modified on disk (often much larger than committed, e.g. `spatial_m31_andromeda.heic` is 79.8 MB on disk vs 18.5 MB committed). Committing that work adds ~1.2 GB of fresh blobs, so the post-cutover `.git` will not stay at 866 MB. Committing it *before* the rewrite means one pass instead of two.
+5. **`.git` lives in iCloud Drive.** A 6.4 GB deletion plus full repack will trigger an enormous re-sync, and iCloud eviction of `.git` pack files is a genuine corruption vector. Consider moving the repo off `com~apple~CloudDocs` entirely — this is arguably a bigger win than the rewrite.
+
+**Verified, so not a risk**
+
+- **Rewriting does *not* break entire.io checkpoint history.** The commit↔checkpoint link is a commit-message trailer (`Entire-Checkpoint: db803deb5baf`), which filter-repo preserves verbatim — confirmed identical pre- and post-rewrite. Checkpoint metadata (`metadata.json`) records `checkpoint_id`, `session_id`, `turn_id`, `branch`, and `files_touched`, and contains **no commit SHAs**. With the final purge list, `entire/checkpoints/v1` is not rewritten at all, so the dashboard mirror needs no force-push.
+- Shadow-branch deletion is a first-class CLI operation (`entire clean --all`), not a hack.
+
+**Could not verify**
+
+- The state of `origin` — I did not contact the remote, per constraint. `origin/main` is recorded locally at `79ebe4c` (2 commits behind), but that snapshot may be stale.
+- Whether the entire.io **dashboard** stores commit SHAs server-side for already-ingested commits. If it does, deep-links to the 22 rewritten commits will 404 on GitHub after the force-push. The transcripts themselves are unaffected.
+- The rewritten tree has not been built. `xcodebuild` (step 12) is the only real proof the shipping build is intact — though all 194 paths are OID-identical to live, so a build failure would be surprising.</result>
+<usage><subagent_tokens>118246</subagent_tokens><tool_uses>51</tool_uses><duration_ms>967686</duration_ms></usage>
+</task-notification>
