@@ -1,11 +1,13 @@
 {
   "cli_version": "0.8.42",
   "checkpoint_id": "cd7c51a46eb2",
+  "session_id": "8d423303-d0e9-4b2d-83f4-d37bffea1d7d",
   "strategy": "manual-commit",
+  "created_at": "2026-07-27T06:48:23.891573Z",
   "branch": "main",
-  "checkpoints_count": 26,
+  "checkpoints_count": 5,
+  "save_step_count": 1,
   "files_touched": [
-    ".gitignore",
     "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m104_sombrero.jpg",
     "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m8_lagoon.jpg",
     "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2207a.jpg",
@@ -35,37 +37,57 @@
     "Float/Resources/Textures/Backdrop/spatial_weic2427a.heic",
     "Float/Resources/Textures/Backdrop/spatial_weic2520a.heic",
     "Float/Resources/Textures/Backdrop/spatial_weic2608a.heic",
-    "Float/Resources/Textures/Backdrop/spatial_weic2615a.heic",
-    "scripts/offload_cold.py"
+    "Float/Resources/Textures/Backdrop/spatial_weic2615a.heic"
   ],
-  "sessions": [
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "33d9682e67c8",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 308,
+    "cache_creation_tokens": 329906,
+    "cache_read_tokens": 31308524,
+    "output_tokens": 181058,
+    "api_call_count": 159
+  },
+  "skill_events_version": 1,
+  "skill_events": [
     {
-      "metadata": "/cd/7c51a46eb2/0/metadata.json",
-      "transcript": "/cd/7c51a46eb2/0/full.jsonl",
-      "compact_transcript": "/cd/7c51a46eb2/0/transcript.jsonl",
-      "content_hash": "/cd/7c51a46eb2/0/content_hash.txt",
-      "prompt": "/cd/7c51a46eb2/0/prompt.txt"
-    },
-    {
-      "metadata": "/cd/7c51a46eb2/1/metadata.json",
-      "transcript": "/cd/7c51a46eb2/1/full.jsonl",
-      "compact_transcript": "/cd/7c51a46eb2/1/transcript.jsonl",
-      "content_hash": "/cd/7c51a46eb2/1/content_hash.txt",
-      "prompt": "/cd/7c51a46eb2/1/prompt.txt"
-    },
-    {
-      "metadata": "/cd/7c51a46eb2/2/metadata.json",
-      "transcript": "/cd/7c51a46eb2/2/full.jsonl",
-      "compact_transcript": "/cd/7c51a46eb2/2/transcript.jsonl",
-      "content_hash": "/cd/7c51a46eb2/2/content_hash.txt",
-      "prompt": "/cd/7c51a46eb2/2/prompt.txt"
+      "id": "prompt-skill-claude-code-handoff-2026-07-26T07:01:07.461445Z",
+      "event_type": "prompt_invocation",
+      "skill": {
+        "name": "handoff"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "prompt_slash_command",
+        "confidence": "explicit"
+      },
+      "turn_id": "33d9682e67c8",
+      "timestamp": "2026-07-26T07:01:07.461445Z",
+      "native": {
+        "command": "/handoff"
+      },
+      "collapse": {
+        "target": "user_message",
+        "label": "/handoff",
+        "default_collapsed": true
+      }
     }
   ],
-  "token_usage": {
-    "input_tokens": 552,
-    "cache_creation_tokens": 1007394,
-    "cache_read_tokens": 45584753,
-    "output_tokens": 329720,
-    "api_call_count": 292
+  "session_metrics": {
+    "turn_count": 5
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-27T06:48:23.342329Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 336,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 336,
+    "total_lines_changed": 336,
+    "agent_percentage": 0,
+    "metric_version": 2
   }
 }
