@@ -1,0 +1,57 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "cd7c51a46eb2",
+  "strategy": "manual-commit",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "files_touched": [
+    ".gitignore",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m104_sombrero.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m8_lagoon.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2207a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2301a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2307a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2310a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2401b.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2410a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2508a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_spherex_full.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2316a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2427a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2520a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2608a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2615a.jpg",
+    "Float/Resources/Textures/Backdrop/spatial_m104_sombrero.heic",
+    "Float/Resources/Textures/Backdrop/spatial_m8_lagoon.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2207a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2301a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2307a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2310a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2401b.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2410a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2508a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_spherex_full.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2316a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2427a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2520a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2608a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2615a.heic",
+    "scripts/offload_cold.py"
+  ],
+  "sessions": [
+    {
+      "metadata": "/cd/7c51a46eb2/0/metadata.json",
+      "transcript": "/cd/7c51a46eb2/0/full.jsonl",
+      "compact_transcript": "/cd/7c51a46eb2/0/transcript.jsonl",
+      "content_hash": "/cd/7c51a46eb2/0/content_hash.txt",
+      "prompt": "/cd/7c51a46eb2/0/prompt.txt"
+    }
+  ],
+  "token_usage": {
+    "input_tokens": 62,
+    "cache_creation_tokens": 142500,
+    "cache_read_tokens": 2259109,
+    "output_tokens": 34832,
+    "api_call_count": 33
+  }
+}

@@ -1,0 +1,161 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "cd7c51a46eb2",
+  "session_id": "0dd143c0-c272-4ffd-ba59-6fd2abe356d1",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-27T06:47:38.173576Z",
+  "branch": "main",
+  "checkpoints_count": 3,
+  "save_step_count": 3,
+  "files_touched": [
+    ".gitignore",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m104_sombrero.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m8_lagoon.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2207a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2301a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2307a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2310a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2401b.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2410a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2508a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_spherex_full.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2316a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2427a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2520a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2608a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2615a.jpg",
+    "Float/Resources/Textures/Backdrop/spatial_m104_sombrero.heic",
+    "Float/Resources/Textures/Backdrop/spatial_m8_lagoon.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2207a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2301a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2307a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2310a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2401b.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2410a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2508a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_spherex_full.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2316a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2427a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2520a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2608a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2615a.heic",
+    "scripts/offload_cold.py"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "d0a954207d9a",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 62,
+    "cache_creation_tokens": 142500,
+    "cache_read_tokens": 2259109,
+    "output_tokens": 34832,
+    "api_call_count": 33
+  },
+  "session_metrics": {
+    "turn_count": 3
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-27T06:47:38.125775Z",
+    "agent_lines": 78,
+    "agent_removed": 0,
+    "human_added": 0,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 78,
+    "total_lines_changed": 78,
+    "agent_percentage": 100,
+    "metric_version": 2
+  },
+  "prompt_attributions": [
+    {
+      "checkpoint_number": 1,
+      "user_lines_added": 6184,
+      "user_lines_removed": 49,
+      "agent_lines_added": 0,
+      "agent_lines_removed": 0,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5,
+        "docs/SCENE_RESEARCH.md": 716,
+        "scripts/backdrop_tool.py": 43,
+        "scripts/offload_cold.py": 303,
+        "starfield_immersive_spec.md": 3,
+        "upscale/deepsky_pipeline.py": 277,
+        "upscale/logs/after_batch_20260725_232632.log": 40,
+        "upscale/logs/m31rcv2.log": 56,
+        "upscale/logs/m31rcv2b.log": 61,
+        "upscale/logs/m31rcv2c.log": 41,
+        "upscale/logs/m31rcv2d.log": 62,
+        "upscale/logs/m31recut_ab.log": 34,
+        "upscale/logs/rerender_20260725_182848.log": 17,
+        "upscale/logs/rerender_20260725_182952.log": 70,
+        "upscale/logs/rerender_20260725_183341.log": 71,
+        "upscale/logs/rerender_20260725_183354.log": 32,
+        "upscale/logs/rerender_20260725_183724.log": 71,
+        "upscale/logs/rerender_20260725_184001.log": 24,
+        "upscale/logs/rerender_20260725_184238.log": 59,
+        "upscale/logs/rerender_20260725_190147.log": 70,
+        "upscale/logs/rerender_20260725_190206.log": 73,
+        "upscale/logs/rerender_20260725_190417.log": 45,
+        "upscale/logs/rerender_20260725_190554.log": 73,
+        "upscale/logs/rerender_20260725_191248.log": 74,
+        "upscale/logs/rerender_20260725_191401.log": 788,
+        "upscale/m31_extend_left3.py": 891,
+        "upscale/m31_recut_fill.py": 99,
+        "upscale/m31_recut_tilefill.py": 155,
+        "upscale/qa_star_cores.py": 156,
+        "upscale/science_render.py": 85,
+        "upscale/sky360.py": 38,
+        "upscale/star_surround.py": 1652
+      },
+      "user_removed_per_file": {
+        "scripts/backdrop_tool.py": 1,
+        "starfield_immersive_spec.md": 1,
+        "upscale/deepsky_pipeline.py": 16,
+        "upscale/m31_recut_fill.py": 6,
+        "upscale/m31_recut_tilefill.py": 1,
+        "upscale/science_render.py": 22,
+        "upscale/sky360.py": 2
+      }
+    },
+    {
+      "checkpoint_number": 2,
+      "user_lines_added": 5,
+      "user_lines_removed": 1,
+      "agent_lines_added": 6180,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      },
+      "user_removed_per_file": {
+        "Float/Resources/Textures/_raw": 1
+      }
+    },
+    {
+      "checkpoint_number": 3,
+      "user_lines_added": 5,
+      "user_lines_removed": 1,
+      "agent_lines_added": 6258,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      },
+      "user_removed_per_file": {
+        "Float/Resources/Textures/_raw": 1
+      }
+    },
+    {
+      "checkpoint_number": 4,
+      "user_lines_added": 5,
+      "user_lines_removed": 1,
+      "agent_lines_added": 6258,
+      "agent_lines_removed": 49,
+      "user_added_per_file": {
+        ".claude/settings.local.json": 5
+      },
+      "user_removed_per_file": {
+        "Float/Resources/Textures/_raw": 1
+      }
+    }
+  ]
+}

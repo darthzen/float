@@ -1,0 +1,9 @@
+What's the status of the project?
+
+---
+
+Untrack the held back thumbnils. Don't bother with the .developer symlink for now. Finish out the disk reclamation
+
+---
+
+Start the history rewrite in a subagent
