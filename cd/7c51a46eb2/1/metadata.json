@@ -1,0 +1,133 @@
+{
+  "cli_version": "0.8.42",
+  "checkpoint_id": "cd7c51a46eb2",
+  "session_id": "296e7f19-74a7-49ba-ba86-d3a4973df86f",
+  "strategy": "manual-commit",
+  "created_at": "2026-07-27T06:48:01.362638Z",
+  "branch": "main",
+  "checkpoints_count": 18,
+  "save_step_count": 1,
+  "files_touched": [
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m104_sombrero.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m8_lagoon.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2207a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2301a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2307a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2310a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2401b.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2410a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_potm2508a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_spherex_full.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2316a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2427a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2520a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2608a.jpg",
+    "Float/Resources/Textures/Backdrop/Thumbnails/spatial_weic2615a.jpg",
+    "Float/Resources/Textures/Backdrop/spatial_m104_sombrero.heic",
+    "Float/Resources/Textures/Backdrop/spatial_m8_lagoon.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2207a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2301a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2307a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2310a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2401b.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2410a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_potm2508a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_spherex_full.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2316a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2427a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2520a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2608a.heic",
+    "Float/Resources/Textures/Backdrop/spatial_weic2615a.heic"
+  ],
+  "agent": "Claude Code",
+  "model": "",
+  "turn_id": "2b92b22ec9cd",
+  "compact_transcript_start": 0,
+  "token_usage": {
+    "input_tokens": 182,
+    "cache_creation_tokens": 534988,
+    "cache_read_tokens": 12017120,
+    "output_tokens": 113830,
+    "api_call_count": 100
+  },
+  "skill_events_version": 1,
+  "skill_events": [
+    {
+      "id": "claude-skill-toolu_01DyGroSM713MYJ8DXEw9RTn",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "handoff"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "2b92b22ec9cd",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 592,
+        "end": 593,
+        "entry_ids": [
+          "29ca4bb8-0318-4d4f-8dfa-702728954ab9"
+        ],
+        "tool_use_id": "toolu_01DyGroSM713MYJ8DXEw9RTn"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01DyGroSM713MYJ8DXEw9RTn"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: handoff",
+        "default_collapsed": true
+      }
+    },
+    {
+      "id": "claude-skill-toolu_01Nkvv12CSoTu2ryP41foFEc",
+      "event_type": "tool_invocation",
+      "skill": {
+        "name": "claude-api"
+      },
+      "source": {
+        "agent": "claude-code",
+        "signal": "skill_tool_use",
+        "confidence": "explicit"
+      },
+      "turn_id": "2b92b22ec9cd",
+      "transcript_anchor": {
+        "unit": "line",
+        "start": 609,
+        "end": 610,
+        "entry_ids": [
+          "bcdd4489-16c2-4ed1-a90a-1da1f78acff3"
+        ],
+        "tool_use_id": "toolu_01Nkvv12CSoTu2ryP41foFEc"
+      },
+      "native": {
+        "tool_name": "Skill",
+        "tool_use_id": "toolu_01Nkvv12CSoTu2ryP41foFEc"
+      },
+      "collapse": {
+        "target": "tool_pair",
+        "label": "Skill: claude-api",
+        "default_collapsed": true
+      }
+    }
+  ],
+  "session_metrics": {
+    "turn_count": 18
+  },
+  "initial_attribution": {
+    "calculated_at": "2026-07-27T06:48:01.078378Z",
+    "agent_lines": 0,
+    "agent_removed": 0,
+    "human_added": 336,
+    "human_modified": 0,
+    "human_removed": 0,
+    "total_committed": 336,
+    "total_lines_changed": 336,
+    "agent_percentage": 0,
+    "metric_version": 2
+  }
+}

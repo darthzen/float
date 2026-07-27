@@ -3,7 +3,7 @@
   "checkpoint_id": "cd7c51a46eb2",
   "strategy": "manual-commit",
   "branch": "main",
-  "checkpoints_count": 3,
+  "checkpoints_count": 21,
   "files_touched": [
     ".gitignore",
     "Float/Resources/Textures/Backdrop/Thumbnails/spatial_m104_sombrero.jpg",
@@ -45,13 +45,20 @@
       "compact_transcript": "/cd/7c51a46eb2/0/transcript.jsonl",
       "content_hash": "/cd/7c51a46eb2/0/content_hash.txt",
       "prompt": "/cd/7c51a46eb2/0/prompt.txt"
+    },
+    {
+      "metadata": "/cd/7c51a46eb2/1/metadata.json",
+      "transcript": "/cd/7c51a46eb2/1/full.jsonl",
+      "compact_transcript": "/cd/7c51a46eb2/1/transcript.jsonl",
+      "content_hash": "/cd/7c51a46eb2/1/content_hash.txt",
+      "prompt": "/cd/7c51a46eb2/1/prompt.txt"
     }
   ],
   "token_usage": {
-    "input_tokens": 62,
-    "cache_creation_tokens": 142500,
-    "cache_read_tokens": 2259109,
-    "output_tokens": 34832,
-    "api_call_count": 33
+    "input_tokens": 244,
+    "cache_creation_tokens": 677488,
+    "cache_read_tokens": 14276229,
+    "output_tokens": 148662,
+    "api_call_count": 133
   }
 }
