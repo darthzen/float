@@ -1,4 +1,6 @@
 # Float — Immersive Space Starfield (visionOS)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdarthzen%2Ffloat.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdarthzen%2Ffloat?ref=badge_shield)
+
 
 A single-user, fully-immersive "floating alone in deep space" experience for Apple Vision Pro.
 Full spec: `../starfield_immersive_spec.md`. Build plan: `BUILD_PLAN.md`.
@@ -41,3 +43,7 @@ Float/
 ## Verify before shipping
 - Exact hand-tracking privacy key name in `Info.plist` (`NSHandsTrackingUsageDescription`) against the current SDK — flagged assumption.
 - Per-asset licenses for any NASA/ESO textures used (§8).
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fdarthzen%2Ffloat.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fdarthzen%2Ffloat?ref=badge_large)
